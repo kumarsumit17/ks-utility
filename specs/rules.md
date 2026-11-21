@@ -9,11 +9,12 @@ status: draft
 # Rules
 
 - **Generic only.** A utility belongs here when it is reused across apps and knows nothing about any one of them. Application-specific logic or helpers stay in that app's repository.
-- **Drag and drop.** Each utility is self-contained: copying its file (or its one folder) into an app is all it takes to use it. No utility needs setup, configuration or a build step of its own.
-- **No third-party dependencies.** A utility uses only the language's standard library (for Kotlin, the Kotlin standard library and, when the utility is Android-specific, the Android SDK).
+- **Drop-in.** Each utility is self-contained: once an app has `ks-utility` as a dependency, a utility is used by importing it. No utility needs setup or configuration of its own.
+- **No third-party dependencies.** A utility uses only its language's standard library. The Kotlin part is plain Kotlin/JVM with no Android SDK, so Android, TV and desktop apps can all use it.
 - **No app knowledge.** No app package names, resources, screens, storage schemas or feature flags. Anything a utility needs from the app comes in as a parameter.
-- **Apps still build alone.** Apps take utilities by copying the source in; no app depends on this repository at build time or at run time.
-- **No network, no analytics.** A utility never opens a connection or reports anything by itself, so it is safe to copy into `ks-vault` and `ks-expense-manager`.
-- **Tested here.** Each utility has unit tests next to it in this repository.
+- **Pinned by commit.** Every app pins an exact `ks-utility` commit (see "How apps depend on it"). A change here reaches an app only when that app moves its pin, so apps still build and ship alone.
+- **No breaking changes in place.** Apps move their pins at different times: add a new function instead of changing the meaning or signature of one that is in use.
+- **No network, no analytics.** A utility never opens a connection or reports anything by itself, so it is safe for `ks-vault` and `ks-expense-manager`.
+- **Tested here.** Each utility has unit tests in this repository, in the same commit.
 
 These rules are also in `CLAUDE.md`, where they are loaded into every AI-assisted session; change both together.

@@ -2,24 +2,38 @@
 
 > Part of the [KS-Suite](https://github.com/kumarsumit17/KS-Suite).
 
-Common utility functions shared across the KS-Suite apps. Everything here is generic: a utility can be dragged and dropped into any suite app, today's or a later one, and used as it is. Application-specific logic does not belong in this repository.
+Common utility functions shared across the KS-Suite apps. Everything here is generic: any suite app, today's or a later one, can take it as a dependency and use it as it is. Application-specific logic does not belong in this repository.
 
 | | |
 |---|---|
-| **Used by** | Any KS-Suite app |
-| **Language** | Kotlin (`kotlin/`); another language gets its own top-level folder when an app first needs it |
+| **Used by** | Every KS-Suite app, as a dependency pinned to a commit |
+| **Languages** | Kotlin (`kotlin/`) · TypeScript (`typescript/`) · Rust (`rust/`) |
 | **Status** | Planned: the repository holds the structure and its rules, with utilities still to come |
 
 ## What belongs here
 
 - Code that is reused across apps and knows nothing about any one of them
-- Self-contained utilities that need only the language's standard library
+- Self-contained utilities that need only their language's standard library
 
 What does not: anything tied to one app's features, screens, data or package. That stays in the app's own repository. The full rules are in [specs/rules.md](specs/rules.md).
 
-## Using a utility
+## How apps depend on it
 
-Copy the utility's file (or its folder) from `kotlin/` into the app. There is nothing to configure, and the app keeps building and shipping alone.
+| App | Mechanism | Declared in |
+|---|---|---|
+| Kotlin apps (`ks-tv-launcher`, `ks-jaiplayer`, `ks-streamflix`, `ks-vault`, `ks-expense-manager`) | This repository as a git submodule at `ks-utility/`, included as a Gradle build | `.gitmodules`; `includeBuild("ks-utility/kotlin")` in `settings.gradle.kts`; `ks-utility = { module = "com.ks:utility" }` in `gradle/libs.versions.toml` |
+| `ks-download-manager` (interface) | npm git dependency | `"ks-utility": "github:kumarsumit17/ks-utility#<commit>"` in `package.json` |
+| `ks-download-manager` (engine) | Cargo git dependency | `ks-utility = { git = "https://github.com/kumarsumit17/ks-utility", rev = "<commit>" }` in `src-tauri/Cargo.toml` |
+
+Details and the steps to move an app to a newer commit: [specs/usage.md](specs/usage.md).
+
+## Tests
+
+```bash
+cargo test --manifest-path rust/Cargo.toml     # Rust
+npm test                                       # TypeScript (Node's built-in test runner)
+./gradlew -p ks-utility/kotlin test            # Kotlin, run from a Kotlin app that has this repo as a submodule
+```
 
 ## License
 

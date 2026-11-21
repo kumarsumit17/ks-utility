@@ -46,3 +46,14 @@ desktop.ini
 
 # ---- Logs ----
 *.log
+
+# ---- Rust ----
+target/
+**/target/
+Cargo.lock
+
+# ---- Node ----
+node_modules/
+
+# ---- graphify: generated output ----
+graphify-out/

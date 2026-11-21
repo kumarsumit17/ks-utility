@@ -8,19 +8,18 @@ status: draft
 
 # Overview
 
-Common utility functions shared across the KS-Suite apps. Everything here is generic: a utility can be dragged and dropped into any suite app, today's or a later one, and used as it is. Application-specific logic does not belong in this repository.
+Common utility functions shared across the KS-Suite apps. Everything here is generic: any suite app, today's or a later one, can take it as a dependency and use it as it is. Application-specific logic does not belong in this repository.
 
 | | |
 |---|---|
-| **Used by** | Any KS-Suite app |
-| **Language** | Kotlin; another language gets its own top-level folder when an app first needs it |
+| **Used by** | Every KS-Suite app, as a dependency pinned to a commit ([usage](usage.md)) |
+| **Languages** | Kotlin, TypeScript, Rust |
 
 ## Layout
 
-- `kotlin/`: Kotlin utilities, package `com.ks.utility`. One utility per file or per folder.
-
-## How apps use it
-
-An app copies the utility's file or folder into its own source tree. No app depends on this repository at build time or at run time, so each app still builds, ships and works alone ([Rules](rules.md)).
+- `kotlin/`: Gradle build of a plain Kotlin/JVM library, `com.ks:utility`, package `com.ks.utility`. Used by the five Kotlin apps.
+- `typescript/`: TypeScript source, exported through the `package.json` in the repository root. Used by the `ks-download-manager` interface.
+- `rust/`: crate `ks-utility`. Used by the `ks-download-manager` engine.
+- The same utility may exist in more than one language; each copy is written and tested for its own language.
 
 The repository is planned: it holds the structure and its rules, with utilities still to come.

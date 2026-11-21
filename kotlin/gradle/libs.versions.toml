@@ -1,0 +1,6 @@
+[versions]
+# Keep in step with the Kotlin version of the apps that include this build.
+kotlin = "2.4.21"
+
+[plugins]
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }

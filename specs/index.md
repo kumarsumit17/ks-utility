@@ -6,6 +6,10 @@ okf_version: "0.2"
 
 * [Overview](overview.md) - What KS Utility is for, who uses it and how it is laid out.
 
+# Reference
+
+* [How apps depend on KS Utility](usage.md) - The dependency mechanism for each kind of app, and the steps to move an app to a newer commit.
+
 # Policies
 
 * [Rules](rules.md) - What may go into KS Utility and the rules every utility must keep.

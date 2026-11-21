@@ -1,0 +1,11 @@
+[package]
+name = "ks-utility"
+# Placeholder: apps pin a git commit, so this number is never used.
+version = "0.0.0"
+description = "KS-Suite: common generic utility functions (Rust part)"
+authors = ["Kumar Sumit"]
+license = "MIT"
+edition = "2024"
+publish = false
+
+# Standard library only: no [dependencies] (see specs/dependencies.md).

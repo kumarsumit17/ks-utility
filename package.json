@@ -1,0 +1,17 @@
+{
+  "name": "ks-utility",
+  "version": "0.0.0",
+  "private": true,
+  "description": "KS-Suite: common generic utility functions (TypeScript part)",
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": "./typescript/src/index.ts"
+  },
+  "files": [
+    "typescript/src"
+  ],
+  "scripts": {
+    "test": "node --test typescript/test/"
+  }
+}
