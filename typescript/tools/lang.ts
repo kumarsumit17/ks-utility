@@ -2,8 +2,11 @@
 // The suite's language-file command (specs/usage.md, "Language files"). Node 23.6 or
 // later runs it as it is (TypeScript types are stripped); it needs nothing else.
 //
-//   node <ks-utility>/typescript/tools/lang.ts check <dir>... [--chrome <_locales dir>]...
-//   node <ks-utility>/typescript/tools/lang.ts android <dir>... --out <res dir> [--name <file>]
+//   node <ks-utility>/typescript/tools/lang.mjs check <dir>... [--chrome <_locales dir>]...
+//   node <ks-utility>/typescript/tools/lang.mjs android <dir>... --out <res dir> [--name <file>]
+//
+// lang.mjs is the entry point: Node does not strip types from files inside node_modules,
+// so it runs a copy of this file and src/lang from a temporary folder.
 //
 // Each <dir> holds en.json and hi.json. The shared catalogue (lang/common) is always
 // included: checked, and an app key that redefines one of its keys fails.
@@ -16,9 +19,10 @@ import type { Catalog } from "../src/lang/catalog.ts";
 import { checkCatalogs, duplicateKeys, fromChromeMessages, type Term } from "../src/lang/check.ts";
 import { resourceNameProblems, toAndroidXml } from "../src/lang/android.ts";
 
-const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
-export const COMMON = join(ROOT, "lang/common");
-export const TERMS = join(ROOT, "lang/hindi-terms.json");
+/** The ks-utility folder, for the shared catalogue and term list. */
+let ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
+const common = () => join(ROOT, "lang/common");
+const termsFile = () => join(ROOT, "lang/hindi-terms.json");
 
 function readJson(file: string): unknown {
   return JSON.parse(readFileSync(file, "utf8"));
@@ -51,10 +55,10 @@ function parse(argv: string[]): Args {
 
 /** Every problem in the given language folders and Chrome `_locales` folders. */
 export function check(dirs: string[], chrome: string[] = []): string[] {
-  const terms = readJson(TERMS) as Term[];
+  const terms = readJson(termsFile()) as Term[];
   const out: string[] = [];
   const english: Catalog[] = [];
-  for (const dir of [COMMON, ...dirs.map((d) => resolve(d))]) {
+  for (const dir of [common(), ...dirs.map((d) => resolve(d))]) {
     try {
       const en = readJson(join(dir, "en.json"));
       const hi = readJson(join(dir, "hi.json"));
@@ -81,7 +85,7 @@ export function check(dirs: string[], chrome: string[] = []): string[] {
 export function android(dirs: string[], out: string, name: string): string[] {
   const problems = check(dirs);
   if (problems.length) return problems;
-  const layers = [COMMON, ...dirs.map((d) => resolve(d))];
+  const layers = [common(), ...dirs.map((d) => resolve(d))];
   const en: Catalog = Object.assign({}, ...layers.map((d) => readJson(join(d, "en.json"))));
   const hi: Catalog = Object.assign({}, ...layers.map((d) => readJson(join(d, "hi.json"))));
   const names = resourceNameProblems(Object.keys(en));
@@ -93,7 +97,9 @@ export function android(dirs: string[], out: string, name: string): string[] {
   return [];
 }
 
-function main(argv: string[]): number {
+/** Runs the command; `root` is the ks-utility folder when this file is a copy. */
+export function main(argv: string[], root?: string): number {
+  if (root) ROOT = root;
   const [command, ...rest] = argv;
   let args: Args;
   try {
@@ -106,7 +112,7 @@ function main(argv: string[]): number {
   if (command === "check") problems = check(args.dirs, args.chrome);
   else if (command === "android" && args.out) problems = android(args.dirs, resolve(args.out), args.name);
   else {
-    console.error("usage: lang.ts check <dir>... [--chrome <_locales dir>]...\n       lang.ts android <dir>... --out <res dir> [--name <file>]");
+    console.error("usage: lang.mjs check <dir>... [--chrome <_locales dir>]...\n       lang.mjs android <dir>... --out <res dir> [--name <file>]");
     return 2;
   }
   for (const p of problems) console.error(p);

@@ -46,14 +46,14 @@ Every KS-Suite app keeps its interface text in language files of this format, on
 Rust never builds display sentences. It sends a **message code** (a key of the app's language files) and named parameters, `ks_utility::message::Message` (`Message::new("error.http").with("status", 404)`); the interface looks the code up and fills in the parameters. `Display` on a message is for logs only.
 
 ## Android
-The Kotlin apps use Android's own string resources, not a parallel runtime. `lang.ts android` ([usage](usage.md#language-files)) converts the shared catalogue and an app's files into `values/lang_strings.xml` and `values-hi/lang_strings.xml`:
+The Kotlin apps use Android's own string resources, not a parallel runtime. `lang.mjs android` ([usage](usage.md#language-files)) converts the shared catalogue and an app's files into `values/lang_strings.xml` and `values-hi/lang_strings.xml`:
 - Resource names: dots become `_` and capitals become `_` + lower case (`downloads.timeLeft` → `downloads_time_left`). Names that collide or are Java or Kotlin keywords fail.
 - Placeholders become positional string arguments numbered by first appearance in the English text (`{done} of {total}` → `%1$s of %2$s`; the Hindi text keeps the same numbers), so the app formats numbers before passing them. Plurals become `<plurals>` (`getQuantityString(id, count, formattedCount, …)`).
 - Text is escaped for Android (`'`, `"`, `\`, `@`/`?` at the start, `&`, `<`, `>`, newlines). In a text with arguments a literal `%` becomes `%%`.
 - The generated files carry a "do not edit" comment and are rebuilt from the language files.
 
 ## Check
-`lang.ts check` ([usage](usage.md#language-files)) runs on the shared catalogue, the app's folders and, optionally, Chrome `_locales` folders. It fails when:
+`lang.mjs check` ([usage](usage.md#language-files)) runs on the shared catalogue, the app's folders and, optionally, Chrome `_locales` folders. It fails when:
 - a key exists in one language and not the other;
 - a placeholder is missing, repeated or changed in the Hindi text;
 - a Hindi text uses a disallowed alternative from the term list (`lang/hindi-terms.json`, matched as whole words);

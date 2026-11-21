@@ -30,7 +30,7 @@ Standard library only, `#![forbid(unsafe_code)]`.
 | `formatBytes`, `formatSpeed`, `formatTimeLeft` | Human-readable sizes (binary units), speeds and durations. Without options the output is fixed English-style ("1.5 KB"); with `{ locale }` numbers go through the built-in `Intl` (Latin digits), and `unknown` sets the text for an unknown size. |
 | `createTranslator` | Look-up by key with placeholders, plurals (`Intl.PluralRules`) and English fallback ([format](translation-format.md#look-up-typescript)). |
 | `resolveLanguage`, `parseLanguageChoice`, `LANGUAGES` | The suite's language rule ([Languages](languages.md)). |
-| `checkCatalogs`, `fromChromeMessages`, `duplicateKeys`, `containsPhrase` | The language-file check, as functions; the command is `typescript/tools/lang.ts` ([usage](usage.md#language-files)). |
+| `checkCatalogs`, `fromChromeMessages`, `duplicateKeys`, `containsPhrase` | The language-file check, as functions; the command is `typescript/tools/lang.mjs` ([usage](usage.md#language-files)). |
 | `toAndroidXml`, `resourceName`, `resourceNameProblems`, `escapeAndroid`, `argumentOrder` | Conversion of language files into Android string resources. |
 
 ## Language data (`lang/`)

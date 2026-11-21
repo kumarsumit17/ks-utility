@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { spawnSync } from "node:child_process";
-import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from "node:fs";
+import { cpSync, mkdtempSync, mkdirSync, writeFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -185,7 +185,7 @@ test("the Hindi style guide table and the term data agree", () => {
 });
 
 test("the command line check and Android conversion", () => {
-  const tool = new URL("../tools/lang.ts", import.meta.url).pathname;
+  const tool = new URL("../tools/lang.mjs", import.meta.url).pathname;
   const dir = mkdtempSync(join(tmpdir(), "ks-lang-"));
   try {
     const app = join(dir, "app");
@@ -220,6 +220,14 @@ test("the command line check and Android conversion", () => {
     assert.match(chrome.stderr, /"name" is in en and not in hi/);
 
     assert.equal(spawnSync(process.execPath, [tool, "nonsense"], { encoding: "utf8" }).status, 2);
+
+    // Inside an app, the package is in node_modules, where Node strips no types.
+    const pkg = join(dir, "node_modules/ks-utility");
+    const repo = new URL("../../", import.meta.url).pathname;
+    for (const part of ["typescript/src/lang", "typescript/tools", "lang"]) cpSync(join(repo, part), join(pkg, part), { recursive: true });
+    const inModules = spawnSync(process.execPath, [join(pkg, "typescript/tools/lang.mjs"), "check", app], { encoding: "utf8" });
+    assert.equal(inModules.status, 0, inModules.stderr);
+    assert.match(inModules.stdout, /Language files: OK/);
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }
