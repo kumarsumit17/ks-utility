@@ -16,6 +16,7 @@ Every KS-Suite app offers English and Hindi ([Languages](languages.md)). This gu
 - Latin digits (0-9) and symbols (₹, %) stay as they are. Devanagari digits are never used.
 - One term per concept, everywhere, in every app.
 - Spell consistently with the term list: फ़ाइल, फ़ोल्डर, हटाएं, खोलें (with the nukta, and with the anusvara in हटाएं).
+- **One exception to the anusvara spelling:** "Yes" is हाँ, with the chandrabindu (owner, final Hindi review). It applies to this word only: हटाएं, यहां, वहां and the rest keep the anusvara. The check matches whole words, so the avoided हां never matches inside यहां.
 - **Remove** (हटाएं) takes something out of a list; **Delete** (डिलीट करें) deletes it permanently. A button that deletes from disk but is labelled Remove says so in its confirmation (डिलीट हो जाएंगे).
 - A term not in the list: choose one in the same style, add it to the table below **and** to `lang/hindi-terms.json`, and mark it **owner review** until the owner approves it.
 
@@ -66,49 +67,49 @@ The data file `lang/hindi-terms.json` holds the same rows; a test fails if this 
 | Video | वीडियो | — | approved |
 | Images | इमेज | छवियां, छवियाँ | approved |
 | Category | कैटेगरी | श्रेणी | approved |
-| OK | ठीक है | — | owner review |
-| Close | बंद करें | — | owner review |
-| Rename | नाम बदलें | — | owner review |
-| Add | जोड़ें | — | owner review |
-| Choose | चुनें | — | owner review |
-| Copy | कॉपी करें | — | owner review |
-| Yes | हां | — | owner review |
-| No | नहीं | — | owner review |
-| Back | वापस | — | owner review |
-| Next | आगे बढ़ें | — | owner review |
-| Done | हो गया | — | owner review |
-| Unknown | पता नहीं | अज्ञात | owner review |
-| Error | गड़बड़ी | त्रुटि | owner review |
-| Language | भाषा | — | owner review |
-| System | सिस्टम | — | owner review |
-| Waiting | इंतज़ार में | — | owner review |
-| Limit | लिमिट | — | owner review |
-| Main queue | मुख्य क्यू | — | owner review |
-| Connection | कनेक्शन | — | owner review |
-| Other | अन्य | — | owner review |
-| Prefer MP4 | MP4 को पहले चुनें | — | owner review |
-| Video component | वीडियो कंपोनेंट | — | owner review |
-| Leftover download files | बची हुई डाउनलोड फ़ाइलें | — | owner review |
-| Queued | क्यू में | — | owner review |
-| Paused | रुका हुआ | — | owner review |
-| Interrupted | बीच में रुका | — | owner review |
-| Unfinished | अधूरे | — | owner review |
-| Size | साइज़ | आकार | owner review |
+| OK | ठीक है | — | approved |
+| Close | बंद करें | — | approved |
+| Rename | नाम बदलें | — | approved |
+| Add | जोड़ें | — | approved |
+| Choose | चुनें | — | approved |
+| Copy | कॉपी करें | — | approved |
+| Yes | हाँ | हां | approved |
+| No | नहीं | — | approved |
+| Back | वापस | — | approved |
+| Next | आगे बढ़ें | — | approved |
+| Done | हो गया | — | approved |
+| Unknown | पता नहीं | अज्ञात | approved |
+| Error | गड़बड़ी | त्रुटि | approved |
+| Language | भाषा | — | approved |
+| System | सिस्टम | — | approved |
+| Waiting | इंतज़ार में | — | approved |
+| Limit | लिमिट | — | approved |
+| Main queue | मुख्य क्यू | — | approved |
+| Connection | कनेक्शन | — | approved |
+| Other | अन्य | — | approved |
+| Prefer MP4 | MP4 को पहले चुनें | — | approved |
+| Video component | वीडियो कंपोनेंट | — | approved |
+| Leftover download files | बची हुई डाउनलोड फ़ाइलें | — | approved |
+| Queued | क्यू में | — | approved |
+| Paused | रुका हुआ | — | approved |
+| Interrupted | बीच में रुका | — | approved |
+| Unfinished | अधूरे | — | approved |
+| Size | साइज़ | आकार | approved |
 | Status | स्टेटस | स्थिति | approved |
-| Progress | प्रोग्रेस | प्रगति | owner review |
-| Problem | दिक्कत | समस्या | owner review |
-| Filter | फ़िल्टर | फिल्टर | owner review |
-| Date added | जोड़ने की तारीख | दिनांक | owner review |
+| Progress | प्रोग्रेस | प्रगति | approved |
+| Problem | दिक्कत | समस्या | approved |
+| Filter | फ़िल्टर | फिल्टर | approved |
+| Date added | जोड़ने की तारीख | दिनांक | approved |
 | Temporary folder | टेंप फ़ोल्डर | अस्थायी | approved |
-| Server | सर्वर | — | owner review |
-| Checksum | चेकसम | — | owner review |
-| Version | वर्ज़न | संस्करण | owner review |
-| Quality | क्वालिटी | गुणवत्ता | owner review |
-| Sign-in (as a requirement) | लॉगिन | साइन इन | owner review |
-| Permission | इजाज़त | अनुमति | owner review |
-| Available | उपलब्ध | — | owner review |
-| Playlist | प्लेलिस्ट | सूची | owner review |
-| Thumbnail | थंबनेल | लघुचित्र | owner review |
-| Select all | सभी चुनें | — | owner review |
-| Hide | छिपाएं | छिपाएँ | owner review |
-| Show | दिखाएं | दिखाएँ | owner review |
+| Server | सर्वर | — | approved |
+| Checksum | चेकसम | — | approved |
+| Version | वर्ज़न | संस्करण | approved |
+| Quality | क्वालिटी | गुणवत्ता | approved |
+| Sign-in (as a requirement) | लॉगिन | साइन इन | approved |
+| Permission | इजाज़त | अनुमति | approved |
+| Available | उपलब्ध | — | approved |
+| Playlist | प्लेलिस्ट | सूची | approved |
+| Thumbnail | थंबनेल | लघुचित्र | approved |
+| Select all | सभी चुनें | — | approved |
+| Hide | छिपाएं | छिपाएँ | approved |
+| Show | दिखाएं | दिखाएँ | approved |

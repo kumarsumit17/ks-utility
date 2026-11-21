@@ -256,176 +256,150 @@
   {
     "en": "OK",
     "hi": "ठीक है",
-    "avoid": [],
-    "review": true
+    "avoid": []
   },
   {
     "en": "Close",
     "hi": "बंद करें",
-    "avoid": [],
-    "review": true
+    "avoid": []
   },
   {
     "en": "Rename",
     "hi": "नाम बदलें",
-    "avoid": [],
-    "review": true
+    "avoid": []
   },
   {
     "en": "Add",
     "hi": "जोड़ें",
-    "avoid": [],
-    "review": true
+    "avoid": []
   },
   {
     "en": "Choose",
     "hi": "चुनें",
-    "avoid": [],
-    "review": true
+    "avoid": []
   },
   {
     "en": "Copy",
     "hi": "कॉपी करें",
-    "avoid": [],
-    "review": true
+    "avoid": []
   },
   {
     "en": "Yes",
-    "hi": "हां",
-    "avoid": [],
-    "review": true
+    "hi": "हाँ",
+    "avoid": [
+      "हां"
+    ]
   },
   {
     "en": "No",
     "hi": "नहीं",
-    "avoid": [],
-    "review": true
+    "avoid": []
   },
   {
     "en": "Back",
     "hi": "वापस",
-    "avoid": [],
-    "review": true
+    "avoid": []
   },
   {
     "en": "Next",
     "hi": "आगे बढ़ें",
-    "avoid": [],
-    "review": true
+    "avoid": []
   },
   {
     "en": "Done",
     "hi": "हो गया",
-    "avoid": [],
-    "review": true
+    "avoid": []
   },
   {
     "en": "Unknown",
     "hi": "पता नहीं",
     "avoid": [
       "अज्ञात"
-    ],
-    "review": true
+    ]
   },
   {
     "en": "Error",
     "hi": "गड़बड़ी",
     "avoid": [
       "त्रुटि"
-    ],
-    "review": true
+    ]
   },
   {
     "en": "Language",
     "hi": "भाषा",
-    "avoid": [],
-    "review": true
+    "avoid": []
   },
   {
     "en": "System",
     "hi": "सिस्टम",
-    "avoid": [],
-    "review": true
+    "avoid": []
   },
   {
     "en": "Waiting",
     "hi": "इंतज़ार में",
-    "avoid": [],
-    "review": true
+    "avoid": []
   },
   {
     "en": "Limit",
     "hi": "लिमिट",
-    "avoid": [],
-    "review": true
+    "avoid": []
   },
   {
     "en": "Main queue",
     "hi": "मुख्य क्यू",
-    "avoid": [],
-    "review": true
+    "avoid": []
   },
   {
     "en": "Connection",
     "hi": "कनेक्शन",
-    "avoid": [],
-    "review": true
+    "avoid": []
   },
   {
     "en": "Other",
     "hi": "अन्य",
-    "avoid": [],
-    "review": true
+    "avoid": []
   },
   {
     "en": "Prefer MP4",
     "hi": "MP4 को पहले चुनें",
-    "avoid": [],
-    "review": true
+    "avoid": []
   },
   {
     "en": "Video component",
     "hi": "वीडियो कंपोनेंट",
-    "avoid": [],
-    "review": true
+    "avoid": []
   },
   {
     "en": "Leftover download files",
     "hi": "बची हुई डाउनलोड फ़ाइलें",
-    "avoid": [],
-    "review": true
+    "avoid": []
   },
   {
     "en": "Queued",
     "hi": "क्यू में",
-    "avoid": [],
-    "review": true
+    "avoid": []
   },
   {
     "en": "Paused",
     "hi": "रुका हुआ",
-    "avoid": [],
-    "review": true
+    "avoid": []
   },
   {
     "en": "Interrupted",
     "hi": "बीच में रुका",
-    "avoid": [],
-    "review": true
+    "avoid": []
   },
   {
     "en": "Unfinished",
     "hi": "अधूरे",
-    "avoid": [],
-    "review": true
+    "avoid": []
   },
   {
     "en": "Size",
     "hi": "साइज़",
     "avoid": [
       "आकार"
-    ],
-    "review": true
+    ]
   },
   {
     "en": "Status",
@@ -439,32 +413,28 @@
     "hi": "प्रोग्रेस",
     "avoid": [
       "प्रगति"
-    ],
-    "review": true
+    ]
   },
   {
     "en": "Problem",
     "hi": "दिक्कत",
     "avoid": [
       "समस्या"
-    ],
-    "review": true
+    ]
   },
   {
     "en": "Filter",
     "hi": "फ़िल्टर",
     "avoid": [
       "फिल्टर"
-    ],
-    "review": true
+    ]
   },
   {
     "en": "Date added",
     "hi": "जोड़ने की तारीख",
     "avoid": [
       "दिनांक"
-    ],
-    "review": true
+    ]
   },
   {
     "en": "Temporary folder",
@@ -476,89 +446,77 @@
   {
     "en": "Server",
     "hi": "सर्वर",
-    "avoid": [],
-    "review": true
+    "avoid": []
   },
   {
     "en": "Checksum",
     "hi": "चेकसम",
-    "avoid": [],
-    "review": true
+    "avoid": []
   },
   {
     "en": "Version",
     "hi": "वर्ज़न",
     "avoid": [
       "संस्करण"
-    ],
-    "review": true
+    ]
   },
   {
     "en": "Quality",
     "hi": "क्वालिटी",
     "avoid": [
       "गुणवत्ता"
-    ],
-    "review": true
+    ]
   },
   {
     "en": "Sign-in (as a requirement)",
     "hi": "लॉगिन",
     "avoid": [
       "साइन इन"
-    ],
-    "review": true
+    ]
   },
   {
     "en": "Permission",
     "hi": "इजाज़त",
     "avoid": [
       "अनुमति"
-    ],
-    "review": true
+    ]
   },
   {
     "en": "Available",
     "hi": "उपलब्ध",
-    "avoid": [],
-    "review": true
+    "avoid": []
   },
   {
     "en": "Playlist",
     "hi": "प्लेलिस्ट",
     "avoid": [
       "सूची"
-    ],
-    "review": true
+    ]
   },
   {
     "en": "Thumbnail",
     "hi": "थंबनेल",
     "avoid": [
       "लघुचित्र"
-    ],
-    "review": true
+    ]
   },
   {
     "en": "Select all",
     "hi": "सभी चुनें",
-    "avoid": [],
-    "review": true
+    "avoid": []
   },
   {
     "en": "Hide",
     "hi": "छिपाएं",
     "avoid": [
       "छिपाएँ"
-    ],
-    "review": true
+    ]
   },
   {
     "en": "Show",
     "hi": "दिखाएं",
     "avoid": [
       "दिखाएँ"
-    ],
-    "review": true
+    ]
   }
 ]

@@ -115,6 +115,10 @@ test("disallowed words match whole words only", () => {
   assert.ok(containsPhrase("कृपया पुनः प्रयास करें।", "पुनः प्रयास करें"));
   assert.ok(!containsPhrase("फ़ाइल", "फाइल"), "the nukta spelling is a different word");
   assert.ok(containsPhrase("नई फाइल", "फाइल"));
+  // "Yes" is हाँ (the one chandrabindu exception); the avoided हां never matches यहां.
+  assert.ok(!containsPhrase("हाँ", "हां"));
+  assert.ok(!containsPhrase("यहां से डाउनलोड करें", "हां"));
+  assert.ok(containsPhrase("हां, हटाएं", "हां"));
 });
 
 test("an app may not redefine a shared key", () => {
