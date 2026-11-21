@@ -94,12 +94,12 @@ The data file `lang/hindi-terms.json` holds the same rows; a test fails if this 
 | Interrupted | बीच में रुका | — | owner review |
 | Unfinished | अधूरे | — | owner review |
 | Size | साइज़ | आकार | owner review |
-| Status | स्थिति | — | owner review |
+| Status | स्टेटस | स्थिति | approved |
 | Progress | प्रोग्रेस | प्रगति | owner review |
 | Problem | दिक्कत | समस्या | owner review |
 | Filter | फ़िल्टर | फिल्टर | owner review |
 | Date added | जोड़ने की तारीख | दिनांक | owner review |
-| Temporary folder | अस्थायी फ़ोल्डर | — | owner review |
+| Temporary folder | टेंप फ़ोल्डर | अस्थायी | approved |
 | Server | सर्वर | — | owner review |
 | Checksum | चेकसम | — | owner review |
 | Version | वर्ज़न | संस्करण | owner review |

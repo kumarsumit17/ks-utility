@@ -1,5 +1,6 @@
 # 2026-11-21
 
+* **Update**: [Hindi style guide](hindi-style.md): owner's wording: Status is स्टेटस (avoid स्थिति), Temporary folder is टेंप फ़ोल्डर (avoid अस्थायी), both approved; `common.language.system` is सिस्टम की भाषा (`v0.2.2`).
 * **Update**: [Hindi style guide](hindi-style.md): 18 terms added from ks-download-manager (Queued, Paused, Size, Progress, Version, Quality, Permission and others), marked for the owner's review.
 * **Update**: [How apps depend on KS Utility](usage.md), [Translation file format](translation-format.md): the language-file command is `typescript/tools/lang.mjs`, which runs the TypeScript tool from a temporary copy, because Node does not strip types inside `node_modules` (`v0.2.1`).
 * **Creation**: [Translation file format](translation-format.md), [Languages](languages.md) and [Hindi style guide](hindi-style.md) added: every app supports English and Hindi through KS Utility; one JSON format with placeholders and CLDR plurals; shared catalogue in `lang/common`; the language rule (follow the system, allow a choice, remember it); the term list in `lang/hindi-terms.json`, checked against the guide's table.

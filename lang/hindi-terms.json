@@ -429,9 +429,10 @@
   },
   {
     "en": "Status",
-    "hi": "स्थिति",
-    "avoid": [],
-    "review": true
+    "hi": "स्टेटस",
+    "avoid": [
+      "स्थिति"
+    ]
   },
   {
     "en": "Progress",
@@ -467,9 +468,10 @@
   },
   {
     "en": "Temporary folder",
-    "hi": "अस्थायी फ़ोल्डर",
-    "avoid": [],
-    "review": true
+    "hi": "टेंप फ़ोल्डर",
+    "avoid": [
+      "अस्थायी"
+    ]
   },
   {
     "en": "Server",
