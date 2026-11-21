@@ -11,13 +11,17 @@ pub const MAX_NAME: usize = 200;
 pub const MAX_SUFFIX: u32 = 9_999;
 
 /// Makes a server- or user-supplied name safe to use as one file name inside a folder:
-/// no path separators or drive letters, no control characters, no characters Windows
+/// no path separators or drive letters, no control characters, no invisible format
+/// characters (bidirectional overrides and isolates, which can make "evil\u{202E}gpj.exe"
+/// look like "evilexe.jpg", and zero-width or byte-order marks), no characters Windows
 /// forbids, no "." / ".." or leading dots (hidden files), no trailing dots or spaces, no
-/// reserved Windows device names, and at most [`MAX_NAME`] bytes (extension kept).
+/// reserved Windows device names (matched on the part before the first dot, as Windows
+/// does: "CON.tar.gz" is reserved), and at most [`MAX_NAME`] bytes (extension kept).
 /// An empty result becomes "download".
 pub fn sanitize_file_name(raw: &str) -> String {
     let mut name: String = raw
         .chars()
+        .filter(|&c| !is_invisible_format(c))
         .map(|c| match c {
             '/' | '\\' | ':' | '<' | '>' | '"' | '|' | '?' | '*' => '_',
             c if c.is_control() => '_',
@@ -33,7 +37,8 @@ pub fn sanitize_file_name(raw: &str) -> String {
     if name.is_empty() {
         name = "download".to_owned();
     }
-    let stem = Path::new(&name).file_stem().and_then(|s| s.to_str()).unwrap_or("").to_ascii_uppercase();
+    // Windows treats "CON.txt", "CON.tar.gz" and "CON .txt" all as the device CON.
+    let stem = name.split('.').next().unwrap_or("").trim_end().to_ascii_uppercase();
     let reserved = matches!(stem.as_str(), "CON" | "PRN" | "AUX" | "NUL")
         || ((stem.starts_with("COM") || stem.starts_with("LPT"))
             && stem.len() == 4
@@ -42,6 +47,20 @@ pub fn sanitize_file_name(raw: &str) -> String {
         name.insert(0, '_');
     }
     truncate(&name, MAX_NAME)
+}
+
+/// Format characters that change how text is displayed without being visible: the
+/// bidirectional marks, embeddings, overrides and isolates, the Arabic letter mark, the
+/// Mongolian vowel separator, zero-width space, word joiner and invisible operators, and
+/// the byte-order mark. Zero-width (non-)joiners (U+200C, U+200D) are kept: some scripts
+/// and emoji need them, and they cannot reorder text.
+fn is_invisible_format(c: char) -> bool {
+    matches!(c,
+        '\u{061C}' | '\u{180E}' | '\u{200B}' | '\u{200E}' | '\u{200F}'
+        | '\u{202A}'..='\u{202E}'
+        | '\u{2060}'..='\u{2064}'
+        | '\u{2066}'..='\u{2069}'
+        | '\u{FEFF}')
 }
 
 /// Shortens `name` to at most `max` bytes, keeping the extension and whole characters.
@@ -127,6 +146,32 @@ mod tests {
             let n = sanitize_file_name(raw);
             assert!(!n.contains('/') && !n.contains('\\') && !n.contains(".."), "{raw} -> {n}");
         }
+    }
+
+    #[test]
+    fn invisible_format_characters_cannot_hide_the_extension() {
+        // Right-to-left override: displays as "invoice_exe.pdf"-like text but is an .exe.
+        assert_eq!(sanitize_file_name("invoice\u{202E}fdp.exe"), "invoicefdp.exe");
+        for c in ['\u{200E}', '\u{200F}', '\u{202A}', '\u{202B}', '\u{202C}', '\u{202D}', '\u{202E}', '\u{2066}', '\u{2067}', '\u{2068}', '\u{2069}', '\u{FEFF}', '\u{200B}', '\u{061C}'] {
+            assert_eq!(sanitize_file_name(&format!("a{c}b.txt")), "ab.txt", "U+{:04X}", c as u32);
+        }
+        assert_eq!(sanitize_file_name("\u{FEFF}report.pdf"), "report.pdf", "byte-order mark at the start");
+        assert_eq!(sanitize_file_name("\u{202E}\u{2066}"), "download", "nothing visible left");
+        // Joiners that scripts and emoji need are kept.
+        assert_eq!(sanitize_file_name("\u{1F468}\u{200D}\u{1F4BB}.png"), "\u{1F468}\u{200D}\u{1F4BB}.png");
+        assert_eq!(sanitize_file_name("می\u{200C}خواهم.txt"), "می\u{200C}خواهم.txt");
+    }
+
+    #[test]
+    fn reserved_names_are_matched_before_the_first_dot() {
+        assert_eq!(sanitize_file_name("CON.tar.gz"), "_CON.tar.gz");
+        assert_eq!(sanitize_file_name("nul.txt.bak"), "_nul.txt.bak");
+        assert_eq!(sanitize_file_name("LPT9.x.y"), "_LPT9.x.y");
+        assert_eq!(sanitize_file_name("con .txt"), "_con .txt");
+        assert_eq!(sanitize_file_name("aux"), "_aux");
+        assert_eq!(sanitize_file_name("CONSOLE.tar.gz"), "CONSOLE.tar.gz");
+        assert_eq!(sanitize_file_name("COM10.txt"), "COM10.txt");
+        assert_eq!(sanitize_file_name("data.CON"), "data.CON");
     }
 
     #[test]

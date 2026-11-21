@@ -8,9 +8,9 @@ pub struct Range {
 }
 
 impl Range {
-    /// Assumes `start <= end`.
+    /// Bytes in the range; 0 for an inverted one (`end < start`), never an overflow.
     pub fn len(self) -> u64 {
-        self.end - self.start
+        self.end.saturating_sub(self.start)
     }
 
     pub fn is_empty(self) -> bool {
@@ -105,6 +105,14 @@ mod tests {
         assert_eq!(t.as_slice(), &[Range { start: 0, end: 40 }]);
         t.insert(Range { start: 50, end: 50 });
         assert_eq!(t.covered(), 40, "empty ranges are ignored");
+    }
+
+    #[test]
+    fn length_never_underflows() {
+        assert_eq!(Range { start: 5, end: 10 }.len(), 5);
+        assert_eq!(Range { start: 10, end: 5 }.len(), 0);
+        assert!(Range { start: 10, end: 5 }.is_empty());
+        assert_eq!(Range { start: u64::MAX, end: 0 }.len(), 0);
     }
 
     #[test]

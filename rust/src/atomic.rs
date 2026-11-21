@@ -11,6 +11,10 @@ use std::path::{Path, PathBuf};
 ///
 /// Only `path` is covered: when it describes another file (an index, a map of what is on
 /// disk), sync that file yourself before calling this.
+///
+/// Not safe for two writers of the same `path` at once: both use the same `<path>.tmp`,
+/// so their writes can mix or one rename can fail. Callers must make sure only one
+/// thread or process writes a given path at a time (for example by holding a lock).
 pub fn write_atomic(path: &Path, contents: &[u8]) -> std::io::Result<()> {
     let tmp = temp_path(path);
     {
