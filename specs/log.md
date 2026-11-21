@@ -1,5 +1,6 @@
 # 2026-11-21
 
+* **Update**: [How apps depend on KS Utility](usage.md), [Rules](rules.md), [Overview](overview.md): apps pin a version tag instead of a raw commit (`v0.1.0` = `f772fa8`); versioning rules (MINOR for new helpers or behaviour changes in 0.x, PATCH for fixes, tags never moved, apps move tags in their own commit); registry publishing deferred.
 * **Update**: [Utilities](utilities.md): `parse_http_date` accepts only years 1970..=9999 and `parse_retry_after` returns `None` on overflow; `reserve_free_name` rejects anything but a single file name with `InvalidInput`; `gaps` clips every gap to `[0, size)`.
 * **Update**: [Utilities](utilities.md): file names lose invisible format characters, reserved Windows names are matched before the first dot, `Content-Disposition` quoted values may hold `;`, `=` and escapes, `Range::len` saturates, and `write_atomic` documents that it allows one writer per path.
 * **Creation**: [Utilities](utilities.md) added. Rust: HTTP-date and `Retry-After`, backoff with full jitter (jitter-only random source), `Content-Range`, `Content-Disposition` file name and percent-decoding, byte-range set, atomic file write, file-name sanitising and free-name reservation. TypeScript: byte, speed and time-left formatting. Moved from `ks-download-manager`.

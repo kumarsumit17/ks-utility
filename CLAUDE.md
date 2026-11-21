@@ -12,14 +12,14 @@ Common, generic utility functions for the KS-Suite apps. Part of KS-Suite; the s
 - `kotlin/`: Gradle build of a plain Kotlin/JVM library (`com.ks:utility`, package `com.ks.utility`, no Android SDK). Kotlin version in `kotlin/gradle/libs.versions.toml`, kept in step with the apps.
 - `typescript/`: TypeScript source, exported from `typescript/src/index.ts` through the root `package.json`.
 - `rust/`: crate `ks-utility`, no dependencies.
-- This is not an app: no release workflow, no signing, no version tags. The `0.0.0` in `package.json` and `rust/Cargo.toml` is a placeholder; apps pin a commit.
+- This is not an app: no release workflow and no signing. Releases are version tags (`vMAJOR.MINOR.PATCH`, rules in `specs/usage.md`); the `0.0.0` in `package.json` and `rust/Cargo.toml` is a placeholder.
 
 ## Rules (non-negotiable)
 - **Generic only.** A utility belongs here when it is reused across apps and knows nothing about any one of them. Application-specific logic or helpers stay in that app's repository.
 - **Drop-in.** Each utility is self-contained: once an app has `ks-utility` as a dependency, a utility is used by importing it. No utility needs setup or configuration of its own.
 - **No third-party dependencies.** A utility uses only its language's standard library. The Kotlin part is plain Kotlin/JVM with no Android SDK, so Android, TV and desktop apps can all use it.
 - **No app knowledge.** No app package names, resources, screens, storage schemas or feature flags. Anything a utility needs from the app comes in as a parameter.
-- **Pinned by commit.** Every app pins an exact `ks-utility` commit (see "How apps depend on it"). A change here reaches an app only when that app moves its pin, so apps still build and ship alone.
+- **Pinned by version tag.** Every app pins a `ks-utility` version tag; a pushed tag is never moved or deleted (see "How apps depend on it"). A change here reaches an app only when that app moves its pin, so apps still build and ship alone.
 - **No breaking changes in place.** Apps move their pins at different times: add a new function instead of changing the meaning or signature of one that is in use.
 - **No network, no analytics.** A utility never opens a connection or reports anything by itself, so it is safe for `ks-vault` and `ks-expense-manager`.
 - **Tested here.** Each utility has unit tests in this repository, in the same commit.

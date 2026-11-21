@@ -12,7 +12,7 @@ Common utility functions shared across the KS-Suite apps. Everything here is gen
 
 | | |
 |---|---|
-| **Used by** | Every KS-Suite app, as a dependency pinned to a commit ([usage](usage.md)) |
+| **Used by** | Every KS-Suite app, as a dependency pinned to a version tag ([usage](usage.md)) |
 | **Languages** | Kotlin, TypeScript, Rust |
 
 ## Layout
