@@ -8,6 +8,7 @@ okf_version: "0.2"
 
 # Reference
 
+* [Utilities](utilities.md) - The utilities KS Utility provides in each language, and what each one is for.
 * [How apps depend on KS Utility](usage.md) - The dependency mechanism for each kind of app, and the steps to move an app to a newer commit.
 
 # Policies
