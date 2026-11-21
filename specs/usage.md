@@ -59,14 +59,14 @@ node <ks-utility>/typescript/tools/lang.mjs android <dir>... --out <res dir> [--
 
 ## Versioning
 - Tags are `vMAJOR.MINOR.PATCH`. While in `0.x`: a new helper or a behaviour change raises MINOR; a fix raises PATCH.
-- A tag is never moved or deleted once pushed. A mistake gets a new tag.
+- A tag is never moved or deleted once pushed. A mistake gets a new tag. The single exception: on 2026-11-21 every tag was moved once, to the same files with tool attribution removed from the commit messages (history rewrite). Commit IDs from before that date no longer match.
 - Apps move to a newer tag deliberately, in their own commit, never mixed with other changes.
 - **Future step, not now:** publishing to public registries (crates.io, npm, Maven Central) is deferred until the helpers are stable.
 
 | Tag | Commit | What it holds |
 |---|---|---|
-| `v0.1.0` | `f772fa8` | The first generic helpers moved from `ks-download-manager` (HTTP dates, backoff, ranges, file names, atomic writes, formatting) |
-| `v0.2.0` | `6ea7fb4` | English and Hindi for every app: translation format, shared catalogue, translator, language rule, language-file check and Android conversion, Hindi style guide and term list; Rust message codes, token bucket, media-type extensions; locale-aware formatting |
+| `v0.1.0` | `4118c1e` | The first generic helpers moved from `ks-download-manager` (HTTP dates, backoff, ranges, file names, atomic writes, formatting) |
+| `v0.2.0` | `58ccb47` | English and Hindi for every app: translation format, shared catalogue, translator, language rule, language-file check and Android conversion, Hindi style guide and term list; Rust message codes, token bucket, media-type extensions; locale-aware formatting |
 | `v0.2.1` | the commit the tag names (each app's lock files record it) | Fix: the language-file command runs from `node_modules` (`typescript/tools/lang.mjs`) |
 
 A change to this contract is a cross-repo change: update the suite's `specs/cross-repo.md` and the `CLAUDE.md` of every app in the same cycle.

@@ -1,5 +1,6 @@
 # 2026-11-21
 
+* **Update**: [Usage](usage.md): tags moved once, on 2026-11-21, to remove tool attribution from the commit messages; the single exception to "tags never move". Tag table updated to the new commit IDs.
 * **Update**: [Hindi style guide](hindi-style.md): the owner's final review: every term approved with its current Hindi (इजाज़त, दिक्कत, इंतज़ार में, MP4 को पहले चुनें, जोड़ने की तारीख among them), except Yes, now हाँ (avoid हां): the one recorded exception to the anusvara spelling; `common.yes` is हाँ (`v0.2.4`).
 * **Update**: [Hindi style guide](hindi-style.md): 5 terms from ks-download-manager's playlists (Playlist प्लेलिस्ट, Thumbnail थंबनेल, Select all सभी चुनें, Hide छिपाएं, Show दिखाएं), marked for the owner's review (`v0.2.3`).
 * **Update**: [Hindi style guide](hindi-style.md): owner's wording: Status is स्टेटस (avoid स्थिति), Temporary folder is टेंप फ़ोल्डर (avoid अस्थायी), both approved; `common.language.system` is सिस्टम की भाषा (`v0.2.2`).
