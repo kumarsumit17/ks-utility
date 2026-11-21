@@ -72,13 +72,17 @@ impl FromIterator<Range> for RangeSet {
 }
 
 /// The parts of `[0, size)` not covered by `done` (which must be sorted and
-/// non-overlapping, as a [`RangeSet`] keeps it).
+/// non-overlapping, as a [`RangeSet`] keeps it). Every gap lies inside `[0, size)`, even
+/// when ranges in `done` start or end beyond `size`.
 pub fn gaps(done: &[Range], size: u64) -> Vec<Range> {
     let mut out = Vec::new();
     let mut at = 0;
     for d in done {
+        if at >= size {
+            break;
+        }
         if d.start > at {
-            out.push(Range { start: at, end: d.start });
+            out.push(Range { start: at, end: d.start.min(size) });
         }
         at = at.max(d.end);
     }
@@ -123,5 +127,18 @@ mod tests {
         assert_eq!(gaps(&[Range { start: 0, end: 7 }], 7), vec![]);
         let set: RangeSet = done.into_iter().collect();
         assert_eq!(set.gaps(25), gaps(&done, 25));
+    }
+
+    #[test]
+    fn gaps_stay_inside_the_size() {
+        let r = |start, end| Range { start, end };
+        assert_eq!(gaps(&[r(30, 40)], 25), vec![r(0, 25)]);
+        assert_eq!(gaps(&[r(10, 40)], 25), vec![r(0, 10)]);
+        assert_eq!(gaps(&[r(0, 40)], 25), vec![]);
+        assert_eq!(gaps(&[], 0), vec![]);
+        assert_eq!(gaps(&[r(5, 10)], 0), vec![]);
+        assert_eq!(gaps(&[r(5, 10), r(30, 40)], 25), vec![r(0, 5), r(10, 25)]);
+        let set: RangeSet = [r(10, 40)].into_iter().collect();
+        assert_eq!(set.gaps(25), vec![r(0, 10)]);
     }
 }

@@ -2,7 +2,7 @@
 
 use std::fs::OpenOptions;
 use std::io::ErrorKind;
-use std::path::{Path, PathBuf};
+use std::path::{Component, Path, PathBuf};
 
 /// Longest file name [`sanitize_file_name`] and [`numbered_name`] return, in bytes (most
 /// file systems allow 255).
@@ -97,7 +97,17 @@ pub fn numbered_name(name: &str, n: u32) -> String {
 /// and for which `skip` is false, and creates it as an empty file (`create_new`), so no
 /// one else can take it before the caller writes it. Never overwrites a file. `skip`
 /// lets the caller rule out names it knows are in use (for example by work in progress).
+///
+/// `name` must be a single file name: one normal path component, with no separator, no
+/// root, and not empty, "." or "..". Anything else is `ErrorKind::InvalidInput` and
+/// nothing is created, so the file always lands directly in `folder`. Sanitise untrusted
+/// names with [`sanitize_file_name`] first.
 pub fn reserve_free_name(folder: &Path, name: &str, skip: &dyn Fn(&Path) -> bool) -> std::io::Result<PathBuf> {
+    let mut parts = Path::new(name).components();
+    let single = matches!((parts.next(), parts.next()), (Some(Component::Normal(c)), None) if c == name);
+    if !single {
+        return Err(std::io::Error::new(ErrorKind::InvalidInput, "not a single file name"));
+    }
     for n in 0..=MAX_SUFFIX {
         let candidate = folder.join(if n == 0 { name.to_owned() } else { numbered_name(name, n) });
         if skip(&candidate) {
@@ -209,5 +219,31 @@ mod tests {
         assert_eq!(reserve_free_name(&dir, "README", &skip).unwrap(), dir.join("README (2)"));
         assert!(!dir.join("README").exists());
         std::fs::remove_dir_all(&dir).unwrap();
+    }
+
+    fn listing(dir: &Path) -> Vec<PathBuf> {
+        let mut v: Vec<PathBuf> = std::fs::read_dir(dir).unwrap().map(|e| e.unwrap().path()).collect();
+        v.sort();
+        v
+    }
+
+    #[test]
+    fn reserve_rejects_anything_but_a_single_file_name() {
+        // `folder` sits inside our own temp dir, so its parent is ours alone to check.
+        let outer = temp_dir();
+        let folder = outer.join("inner");
+        std::fs::create_dir(&folder).unwrap();
+        let none = |_: &Path| false;
+        let before = listing(&outer);
+        for name in ["../x", "/abs/x", "a/b", "..", ".", "", "a/", "./a"] {
+            let err = reserve_free_name(&folder, name, &none).unwrap_err();
+            assert_eq!(err.kind(), ErrorKind::InvalidInput, "{name:?}");
+        }
+        assert_eq!(listing(&outer), before, "nothing created next to the folder");
+        assert!(!outer.join("x").exists());
+        assert!(listing(&folder).is_empty(), "nothing created in the folder");
+        assert_eq!(reserve_free_name(&folder, "plain.txt", &none).unwrap(), folder.join("plain.txt"));
+        assert!(folder.join("plain.txt").exists());
+        std::fs::remove_dir_all(&outer).unwrap();
     }
 }

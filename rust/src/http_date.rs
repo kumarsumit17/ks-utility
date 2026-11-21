@@ -9,13 +9,15 @@ pub fn parse_retry_after(value: &str, now: SystemTime) -> Option<Duration> {
     if !value.is_empty() && value.bytes().all(|b| b.is_ascii_digit()) {
         return Some(Duration::from_secs(value.parse().unwrap_or(u64::MAX)));
     }
-    let at = UNIX_EPOCH + Duration::from_secs(parse_http_date(value)?);
+    let at = UNIX_EPOCH.checked_add(Duration::from_secs(parse_http_date(value)?))?;
     // A date in the past means "now".
     Some(at.duration_since(now).unwrap_or_default())
 }
 
 /// Seconds since 1970 for the three HTTP-date forms recipients must accept
-/// (RFC 9110, section 5.6.7): IMF-fixdate, RFC 850 and asctime.
+/// (RFC 9110, section 5.6.7): IMF-fixdate, RFC 850 and asctime. Only years
+/// 1970..=9999 are accepted (after the RFC 850 two-digit-year mapping); `None` for any
+/// other year, so a server's date can never overflow.
 pub fn parse_http_date(value: &str) -> Option<u64> {
     let parts: Vec<&str> = value.split_whitespace().collect();
     let (day, month, year, time) = match parts.as_slice() {
@@ -38,6 +40,10 @@ pub fn parse_http_date(value: &str) -> Option<u64> {
         _ => return None,
     };
     const MONTHS: [&str; 12] = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    let year: i64 = year;
+    if !(1970..=9999).contains(&year) {
+        return None;
+    }
     let month = MONTHS.iter().position(|m| *m == month)? as i64 + 1;
     let mut hms = time.split(':').map(|p| p.parse::<i64>().ok());
     let (h, mi, s) = (hms.next()??, hms.next()??, hms.next()??);
@@ -86,5 +92,34 @@ mod tests {
         assert_eq!(parse_retry_after("Sun, 06 Nov 1994 08:00:00 GMT", now), Some(Duration::ZERO), "past = now");
         assert_eq!(parse_retry_after("-5", now), None);
         assert_eq!(parse_retry_after("", now), None);
+    }
+
+    #[test]
+    fn years_outside_1970_to_9999_are_rejected() {
+        assert_eq!(parse_http_date("Fri, 31 Dec 9999 23:59:59 GMT"), Some(253_402_300_799));
+        for date in [
+            "Sun, 06 Nov 99999 08:49:37 GMT",
+            "Sun, 06 Nov 9223372036854775807 08:49:37 GMT",
+            "Sun Nov  6 08:49:37 9223372036854775807",
+            "Sunday, 06-Nov-9223372036854775807 08:49:37 GMT",
+            "Tue, 31 Dec 1969 23:59:59 GMT",
+        ] {
+            assert_eq!(parse_http_date(date), None, "{date}");
+        }
+        // Two-digit RFC 850 years are mapped first: 69 is 2069, 70 is 1970.
+        assert_eq!(parse_http_date("Thursday, 01-Jan-70 00:00:00 GMT"), Some(0));
+        assert!(parse_http_date("Tuesday, 01-Jan-69 00:00:00 GMT").is_some());
+    }
+
+    #[test]
+    fn retry_after_far_future_dates_do_not_panic() {
+        let now = UNIX_EPOCH + Duration::from_secs(784_111_777);
+        assert_eq!(parse_retry_after("Sun, 06 Nov 99999 08:49:37 GMT", now), None);
+        assert_eq!(parse_retry_after("Sun, 06 Nov 9223372036854775807 08:49:37 GMT", now), None);
+        assert_eq!(parse_retry_after("Tue, 31 Dec 1969 23:59:59 GMT", now), None);
+        assert_eq!(
+            parse_retry_after("Fri, 31 Dec 9999 23:59:59 GMT", now),
+            Some(Duration::from_secs(253_402_300_799 - 784_111_777))
+        );
     }
 }
