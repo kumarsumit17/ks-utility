@@ -28,3 +28,16 @@ test("formatTimeLeft", () => {
   assert.equal(formatTimeLeft(65), "1:05");
   assert.equal(formatTimeLeft(3600 + 2 * 60 + 3), "1:02:03");
 });
+
+test("formatting for a language uses Intl with Latin digits", () => {
+  assert.equal(formatBytes(1536, { locale: "en" }), "1.5 KB");
+  assert.equal(formatBytes(1536, { locale: "hi" }), "1.5 KB");
+  assert.equal(formatBytes(1023, { locale: "en" }), "1,023 B");
+  assert.equal(formatBytes(1.5 * 1024, { locale: "de" }), "1,5 KB");
+  assert.equal(formatBytes(null, { locale: "hi", unknown: "पता नहीं" }), "पता नहीं");
+  assert.equal(formatSpeed(18.4 * 1024 ** 2, { locale: "hi" }), "18.4 MB/s");
+  assert.equal(formatTimeLeft(3600 + 2 * 60 + 3, { locale: "hi" }), "1:02:03");
+  assert.equal(formatTimeLeft(65, { locale: "en" }), "1:05");
+  // Bengali would use its own digits; Latin digits are forced.
+  assert.equal(formatBytes(1536, { locale: "bn" }), "1.5 KB");
+});

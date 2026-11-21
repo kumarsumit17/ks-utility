@@ -9,6 +9,9 @@
 //! - [`ranges`]: half-open byte ranges and a merging range set.
 //! - [`atomic`]: replace a file atomically (temp file, sync, rename).
 //! - [`file_name`]: safe file names, "name (n).ext" numbering, and reserving a free name.
+//! - [`media_type`]: file extensions for media types (`Content-Type`).
+//! - [`message`]: message codes with parameters, so Rust never builds display sentences.
+//! - [`token_bucket`]: token-bucket arithmetic for rate limits.
 
 #![forbid(unsafe_code)]
 
@@ -18,4 +21,7 @@ pub mod content_disposition;
 pub mod content_range;
 pub mod file_name;
 pub mod http_date;
+pub mod media_type;
+pub mod message;
 pub mod ranges;
+pub mod token_bucket;

@@ -8,7 +8,8 @@ Common utility functions shared across the KS-Suite apps. Everything here is gen
 |---|---|
 | **Used by** | Every KS-Suite app, as a dependency pinned to a version tag |
 | **Languages** | Kotlin (`kotlin/`) · TypeScript (`typescript/`) · Rust (`rust/`) |
-| **Status** | Planned: the repository holds the structure and its rules, with utilities still to come |
+| **Status** | In use: helpers for HTTP, ranges, file names, formatting, rate limits, and English and Hindi for every app |
+| **Languages offered by every app** | English and Hindi, through this repository ([specs/languages.md](specs/languages.md)) |
 
 ## What belongs here
 
@@ -31,7 +32,8 @@ Details and the steps to move an app to a newer tag, and the versioning rules: [
 
 ```bash
 cargo test --manifest-path rust/Cargo.toml     # Rust
-npm test                                       # TypeScript (Node's built-in test runner)
+npm test                                       # TypeScript (Node's built-in test runner), incl. the language tools
+npm run check:lang                             # the shared catalogue and term list
 ./gradlew -p ks-utility/kotlin test            # Kotlin, run from a Kotlin app that has this repo as a submodule
 ```
 

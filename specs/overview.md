@@ -20,6 +20,7 @@ Common utility functions shared across the KS-Suite apps. Everything here is gen
 - `kotlin/`: Gradle build of a plain Kotlin/JVM library, `com.ks:utility`, package `com.ks.utility`. Used by the five Kotlin apps.
 - `typescript/`: TypeScript source, exported through the `package.json` in the repository root. Used by the `ks-download-manager` interface.
 - `rust/`: crate `ks-utility`. Used by the `ks-download-manager` engine.
+- `lang/`: the shared English and Hindi catalogue and the Hindi term list, used by every app ([Languages](languages.md)). `typescript/tools/lang.ts` checks any app's language files and converts them for Android.
 - The same utility may exist in more than one language; each copy is written and tested for its own language.
 
-The repository is planned: it holds the structure and its rules, with utilities still to come.
+Every KS-Suite app supports English and Hindi through this repository ([Languages](languages.md)).

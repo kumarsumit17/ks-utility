@@ -29,6 +29,34 @@ Every app pins one version tag of this repository (`vMAJOR.MINOR.PATCH`). Lock f
 - Cargo finds the `ks-utility` crate in `rust/` by its package name.
 - To move to a newer tag: change the tag in `package.json` and both `Cargo.toml` files, run `npm install` and `cargo check`, check that both lock files name the tag's commit, and commit both lock files.
 
+## Language files
+
+Every suite app supports English and Hindi ([Languages](languages.md)) and checks its language files ([format](translation-format.md#check)) with one command, from this repository:
+
+```bash
+node <ks-utility>/typescript/tools/lang.ts check <dir>... [--chrome <_locales dir>]...
+node <ks-utility>/typescript/tools/lang.ts android <dir>... --out <res dir> [--name lang_strings]
+```
+
+- Each `<dir>` holds `en.json` and `hi.json`. The shared catalogue (`lang/common`) is always included. Exit code 0 when everything passes, 1 with one line per problem, 2 for a usage mistake.
+- It needs Node 23.6 or later (it is TypeScript run as it is, with nothing installed). `<ks-utility>` is `node_modules/ks-utility` in a TypeScript app and the `ks-utility/` submodule in a Kotlin app.
+- **TypeScript app:** add it to the app's tests, for example `"test:lang": "node node_modules/ks-utility/typescript/tools/lang.ts check src/locales --chrome extension/_locales"`. Import the shared catalogue as `ks-utility/lang/common/en.json` and `ks-utility/lang/common/hi.json` and pass it to `createTranslator` before the app's own files.
+- **Kotlin app:** keep the language files in the app (for example `app/src/main/lang/`), and register two Gradle tasks: one running `check`, hooked into `check`; one running `android --out app/src/main/res`, hooked before `preBuild`. For example:
+
+  ```kotlin
+  val langTool = rootProject.file("ks-utility/typescript/tools/lang.ts")
+  val checkLanguageFiles by tasks.registering(Exec::class) {
+      commandLine("node", langTool, "check", file("src/main/lang"))
+  }
+  val languageResources by tasks.registering(Exec::class) {
+      commandLine("node", langTool, "android", file("src/main/lang"), "--out", file("src/main/res"))
+  }
+  tasks.named("check") { dependsOn(checkLanguageFiles) }
+  tasks.named("preBuild") { dependsOn(languageResources) }
+  ```
+
+  The generated `values/lang_strings.xml` and `values-hi/lang_strings.xml` are build output: git-ignore them.
+
 ## Versioning
 - Tags are `vMAJOR.MINOR.PATCH`. While in `0.x`: a new helper or a behaviour change raises MINOR; a fix raises PATCH.
 - A tag is never moved or deleted once pushed. A mistake gets a new tag.
@@ -38,5 +66,6 @@ Every app pins one version tag of this repository (`vMAJOR.MINOR.PATCH`). Lock f
 | Tag | Commit | What it holds |
 |---|---|---|
 | `v0.1.0` | `f772fa8` | The first generic helpers moved from `ks-download-manager` (HTTP dates, backoff, ranges, file names, atomic writes, formatting) |
+| `v0.2.0` | the commit the tag names (each app's lock files record it) | English and Hindi for every app: translation format, shared catalogue, translator, language rule, language-file check and Android conversion, Hindi style guide and term list; Rust message codes, token bucket, media-type extensions; locale-aware formatting |
 
 A change to this contract is a cross-repo change: update the suite's `specs/cross-repo.md` and the `CLAUDE.md` of every app in the same cycle.

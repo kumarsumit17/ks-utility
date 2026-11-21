@@ -1,0 +1,398 @@
+[
+  {
+    "en": "Settings",
+    "hi": "सेटिंग्स",
+    "avoid": [
+      "समायोजन"
+    ]
+  },
+  {
+    "en": "Account",
+    "hi": "अकाउंट",
+    "avoid": []
+  },
+  {
+    "en": "Profile",
+    "hi": "प्रोफ़ाइल",
+    "avoid": [
+      "प्रोफाइल"
+    ]
+  },
+  {
+    "en": "Backup",
+    "hi": "बैकअप",
+    "avoid": []
+  },
+  {
+    "en": "Restore",
+    "hi": "रीस्टोर",
+    "avoid": [
+      "पुनर्स्थापित करें"
+    ]
+  },
+  {
+    "en": "Update",
+    "hi": "अपडेट",
+    "avoid": [
+      "अद्यतन"
+    ]
+  },
+  {
+    "en": "Download",
+    "hi": "डाउनलोड",
+    "avoid": []
+  },
+  {
+    "en": "Upload",
+    "hi": "अपलोड",
+    "avoid": []
+  },
+  {
+    "en": "Login",
+    "hi": "लॉगिन",
+    "avoid": []
+  },
+  {
+    "en": "Sign out",
+    "hi": "लॉग आउट",
+    "avoid": []
+  },
+  {
+    "en": "Password",
+    "hi": "पासवर्ड",
+    "avoid": [
+      "कूटशब्द"
+    ]
+  },
+  {
+    "en": "OTP",
+    "hi": "ओटीपी",
+    "avoid": []
+  },
+  {
+    "en": "Search",
+    "hi": "खोजें",
+    "avoid": [
+      "सर्च करें"
+    ]
+  },
+  {
+    "en": "Save",
+    "hi": "सेव करें",
+    "avoid": [
+      "सहेजें"
+    ]
+  },
+  {
+    "en": "Cancel",
+    "hi": "रद्द करें",
+    "avoid": [
+      "कैंसल",
+      "कैंसिल"
+    ]
+  },
+  {
+    "en": "Remove (from a list)",
+    "hi": "हटाएं",
+    "avoid": [
+      "हटाएँ"
+    ]
+  },
+  {
+    "en": "Delete (permanently)",
+    "hi": "डिलीट करें",
+    "avoid": [
+      "मिटाएं",
+      "मिटाएँ"
+    ]
+  },
+  {
+    "en": "Retry",
+    "hi": "फिर से कोशिश करें",
+    "avoid": [
+      "पुनः प्रयास करें"
+    ]
+  },
+  {
+    "en": "Loading...",
+    "hi": "लोड हो रहा है...",
+    "avoid": []
+  },
+  {
+    "en": "Network",
+    "hi": "नेटवर्क",
+    "avoid": []
+  },
+  {
+    "en": "Offline",
+    "hi": "ऑफ़लाइन",
+    "avoid": [
+      "ऑफलाइन"
+    ]
+  },
+  {
+    "en": "Sync",
+    "hi": "सिंक करें",
+    "avoid": []
+  },
+  {
+    "en": "Subtitles",
+    "hi": "सबटाइटल",
+    "avoid": [
+      "उपशीर्षक"
+    ]
+  },
+  {
+    "en": "Audio",
+    "hi": "ऑडियो",
+    "avoid": []
+  },
+  {
+    "en": "Playback Speed",
+    "hi": "प्लेबैक स्पीड",
+    "avoid": []
+  },
+  {
+    "en": "Pause",
+    "hi": "रोकें",
+    "avoid": [
+      "पॉज़ करें"
+    ]
+  },
+  {
+    "en": "Resume",
+    "hi": "फिर शुरू करें",
+    "avoid": []
+  },
+  {
+    "en": "Open",
+    "hi": "खोलें",
+    "avoid": []
+  },
+  {
+    "en": "Open folder",
+    "hi": "फ़ोल्डर खोलें",
+    "avoid": []
+  },
+  {
+    "en": "File",
+    "hi": "फ़ाइल",
+    "avoid": [
+      "फाइल"
+    ]
+  },
+  {
+    "en": "Folder",
+    "hi": "फ़ोल्डर",
+    "avoid": [
+      "फोल्डर"
+    ]
+  },
+  {
+    "en": "Link",
+    "hi": "लिंक",
+    "avoid": []
+  },
+  {
+    "en": "Paste",
+    "hi": "पेस्ट करें",
+    "avoid": [
+      "चिपकाएं"
+    ]
+  },
+  {
+    "en": "Queue",
+    "hi": "क्यू",
+    "avoid": [
+      "कतार"
+    ]
+  },
+  {
+    "en": "Speed",
+    "hi": "स्पीड",
+    "avoid": [
+      "गति"
+    ]
+  },
+  {
+    "en": "Time left",
+    "hi": "बचा समय",
+    "avoid": [
+      "शेष समय"
+    ]
+  },
+  {
+    "en": "Finished",
+    "hi": "पूरा हुआ",
+    "avoid": []
+  },
+  {
+    "en": "Failed",
+    "hi": "नहीं हो पाया",
+    "avoid": [
+      "विफल"
+    ]
+  },
+  {
+    "en": "Video",
+    "hi": "वीडियो",
+    "avoid": []
+  },
+  {
+    "en": "Images",
+    "hi": "इमेज",
+    "avoid": [
+      "छवियां",
+      "छवियाँ"
+    ]
+  },
+  {
+    "en": "Category",
+    "hi": "कैटेगरी",
+    "avoid": [
+      "श्रेणी"
+    ]
+  },
+  {
+    "en": "OK",
+    "hi": "ठीक है",
+    "avoid": [],
+    "review": true
+  },
+  {
+    "en": "Close",
+    "hi": "बंद करें",
+    "avoid": [],
+    "review": true
+  },
+  {
+    "en": "Rename",
+    "hi": "नाम बदलें",
+    "avoid": [],
+    "review": true
+  },
+  {
+    "en": "Add",
+    "hi": "जोड़ें",
+    "avoid": [],
+    "review": true
+  },
+  {
+    "en": "Choose",
+    "hi": "चुनें",
+    "avoid": [],
+    "review": true
+  },
+  {
+    "en": "Copy",
+    "hi": "कॉपी करें",
+    "avoid": [],
+    "review": true
+  },
+  {
+    "en": "Yes",
+    "hi": "हां",
+    "avoid": [],
+    "review": true
+  },
+  {
+    "en": "No",
+    "hi": "नहीं",
+    "avoid": [],
+    "review": true
+  },
+  {
+    "en": "Back",
+    "hi": "वापस",
+    "avoid": [],
+    "review": true
+  },
+  {
+    "en": "Next",
+    "hi": "आगे बढ़ें",
+    "avoid": [],
+    "review": true
+  },
+  {
+    "en": "Done",
+    "hi": "हो गया",
+    "avoid": [],
+    "review": true
+  },
+  {
+    "en": "Unknown",
+    "hi": "पता नहीं",
+    "avoid": [
+      "अज्ञात"
+    ],
+    "review": true
+  },
+  {
+    "en": "Error",
+    "hi": "गड़बड़ी",
+    "avoid": [
+      "त्रुटि"
+    ],
+    "review": true
+  },
+  {
+    "en": "Language",
+    "hi": "भाषा",
+    "avoid": [],
+    "review": true
+  },
+  {
+    "en": "System",
+    "hi": "सिस्टम",
+    "avoid": [],
+    "review": true
+  },
+  {
+    "en": "Waiting",
+    "hi": "इंतज़ार में",
+    "avoid": [],
+    "review": true
+  },
+  {
+    "en": "Limit",
+    "hi": "लिमिट",
+    "avoid": [],
+    "review": true
+  },
+  {
+    "en": "Main queue",
+    "hi": "मुख्य क्यू",
+    "avoid": [],
+    "review": true
+  },
+  {
+    "en": "Connection",
+    "hi": "कनेक्शन",
+    "avoid": [],
+    "review": true
+  },
+  {
+    "en": "Other",
+    "hi": "अन्य",
+    "avoid": [],
+    "review": true
+  },
+  {
+    "en": "Prefer MP4",
+    "hi": "MP4 को पहले चुनें",
+    "avoid": [],
+    "review": true
+  },
+  {
+    "en": "Video component",
+    "hi": "वीडियो कंपोनेंट",
+    "avoid": [],
+    "review": true
+  },
+  {
+    "en": "Leftover download files",
+    "hi": "बची हुई डाउनलोड फ़ाइलें",
+    "avoid": [],
+    "review": true
+  }
+]

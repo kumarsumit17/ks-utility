@@ -18,10 +18,24 @@ Standard library only, `#![forbid(unsafe_code)]`.
 | `content_disposition` | `content_disposition_filename` (`filename*` over `filename`, RFC 6266/8187; quoted values may hold `;`, `=` and backslash escapes) and `percent_decode`. The name is returned as sent; sanitise it before use. |
 | `ranges` | `Range` (half-open, `len` never underflows), `RangeSet` (sorted, merging insert, gaps, bytes covered) and `gaps` (every gap lies inside `[0, size)`, even when covered ranges reach past `size`). |
 | `atomic` | `write_atomic`: temp file, sync, rename, sync folder. Covers only the file it writes; not safe for two writers of the same path at once. |
+| `media_type` | `extension_for` (the usual extension of a media type; parameters and case ignored; common, unambiguous types only) and `name_with_type` (adds that extension to a name that has none). |
+| `message` | `Message`: a message code (a language-file key) with named parameters, so Rust never builds display sentences ([format](translation-format.md#messages-from-rust)); `is_valid_code`, `is_valid_param`. `Display` is for logs only. |
+| `token_bucket` | `TokenBucket`: the arithmetic of a rate limit (rate, burst, debt paid by waiting). `take(n, now)` returns how long to wait; the caller sleeps however it likes. |
 | `file_name` | `sanitize_file_name` (also strips bidirectional and other invisible format characters; reserved Windows names matched before the first dot), `split_extension`, `numbered_name` ("name (n).ext"), `reserve_free_name` (creates the first free name with `create_new`; never overwrites; `name` must be a single file name, otherwise `InvalidInput` and nothing is created, so sanitise untrusted names first). |
 
 ## TypeScript (`typescript/src/`)
 
 | Export | What it does |
 |---|---|
-| `formatBytes`, `formatSpeed`, `formatTimeLeft` | Human-readable sizes (binary units), speeds and durations. |
+| `formatBytes`, `formatSpeed`, `formatTimeLeft` | Human-readable sizes (binary units), speeds and durations. Without options the output is fixed English-style ("1.5 KB"); with `{ locale }` numbers go through the built-in `Intl` (Latin digits), and `unknown` sets the text for an unknown size. |
+| `createTranslator` | Look-up by key with placeholders, plurals (`Intl.PluralRules`) and English fallback ([format](translation-format.md#look-up-typescript)). |
+| `resolveLanguage`, `parseLanguageChoice`, `LANGUAGES` | The suite's language rule ([Languages](languages.md)). |
+| `checkCatalogs`, `fromChromeMessages`, `duplicateKeys`, `containsPhrase` | The language-file check, as functions; the command is `typescript/tools/lang.ts` ([usage](usage.md#language-files)). |
+| `toAndroidXml`, `resourceName`, `resourceNameProblems`, `escapeAndroid`, `argumentOrder` | Conversion of language files into Android string resources. |
+
+## Language data (`lang/`)
+
+| File | What it holds |
+|---|---|
+| `lang/common/en.json`, `lang/common/hi.json` | The shared catalogue of common interface text (`common.*` keys). |
+| `lang/hindi-terms.json` | The Hindi term list with disallowed alternatives; the same rows as the table in the [Hindi style guide](hindi-style.md) (a test fails if they differ). |

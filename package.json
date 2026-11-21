@@ -6,12 +6,21 @@
   "license": "MIT",
   "type": "module",
   "exports": {
-    ".": "./typescript/src/index.ts"
+    ".": "./typescript/src/index.ts",
+    "./lang/common/en.json": "./lang/common/en.json",
+    "./lang/common/hi.json": "./lang/common/hi.json",
+    "./lang/hindi-terms.json": "./lang/hindi-terms.json"
   },
   "files": [
-    "typescript/src"
+    "typescript/src",
+    "typescript/tools",
+    "lang"
   ],
   "scripts": {
-    "test": "node --test typescript/test/"
+    "test": "node --test typescript/test/",
+    "check:lang": "node typescript/tools/lang.ts check"
+  },
+  "engines": {
+    "node": ">=23.6"
   }
 }

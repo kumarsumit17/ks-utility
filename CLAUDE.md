@@ -12,6 +12,8 @@ Common, generic utility functions for the KS-Suite apps. Part of KS-Suite; the s
 - `kotlin/`: Gradle build of a plain Kotlin/JVM library (`com.ks:utility`, package `com.ks.utility`, no Android SDK). Kotlin version in `kotlin/gradle/libs.versions.toml`, kept in step with the apps.
 - `typescript/`: TypeScript source, exported from `typescript/src/index.ts` through the root `package.json`.
 - `rust/`: crate `ks-utility`, no dependencies.
+- `lang/`: shared English and Hindi catalogue (`lang/common/`) and the Hindi term list (`lang/hindi-terms.json`, kept equal to the table in `specs/hindi-style.md`). `typescript/tools/lang.ts` is the language-file check and Android converter every app runs (`specs/usage.md`).
+- Every KS-Suite app supports English and Hindi through this repository (`specs/languages.md`).
 - This is not an app: no release workflow and no signing. Releases are version tags (`vMAJOR.MINOR.PATCH`, rules in `specs/usage.md`); the `0.0.0` in `package.json` and `rust/Cargo.toml` is a placeholder.
 
 ## Rules (non-negotiable)
@@ -33,6 +35,7 @@ Common, generic utility functions for the KS-Suite apps. Part of KS-Suite; the s
 ```bash
 cargo test --manifest-path rust/Cargo.toml     # Rust
 npm test                                       # TypeScript (Node's built-in test runner)
+npm run check:lang                             # language files: shared catalogue and term list
 ./gradlew -p ks-utility/kotlin test            # Kotlin, from a Kotlin app that has this repo as a submodule
 ```
 

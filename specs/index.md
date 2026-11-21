@@ -5,6 +5,7 @@ okf_version: "0.2"
 # Product specifications
 
 * [Overview](overview.md) - What KS Utility is for, who uses it and how it is laid out.
+* [Translation file format](translation-format.md) - The one format for interface text in every KS-Suite app (keys, placeholders, plural forms), how it is looked up, checked, converted for Android, and how Rust sends message codes.
 
 # Reference
 
@@ -15,3 +16,5 @@ okf_version: "0.2"
 
 * [Rules](rules.md) - What may go into KS Utility and the rules every utility must keep.
 * [Dependencies](dependencies.md) - Utilities use only the standard library; no third-party dependencies.
+* [Languages](languages.md) - Every KS-Suite app supports English and Hindi through KS Utility, and chooses between them by one rule.
+* [Hindi style guide](hindi-style.md) - How every KS-Suite app writes Hindi interface text, with the term list and the alternatives that are not used.
