@@ -89,3 +89,21 @@ The data file `lang/hindi-terms.json` holds the same rows; a test fails if this 
 | Prefer MP4 | MP4 को पहले चुनें | — | owner review |
 | Video component | वीडियो कंपोनेंट | — | owner review |
 | Leftover download files | बची हुई डाउनलोड फ़ाइलें | — | owner review |
+| Queued | क्यू में | — | owner review |
+| Paused | रुका हुआ | — | owner review |
+| Interrupted | बीच में रुका | — | owner review |
+| Unfinished | अधूरे | — | owner review |
+| Size | साइज़ | आकार | owner review |
+| Status | स्थिति | — | owner review |
+| Progress | प्रोग्रेस | प्रगति | owner review |
+| Problem | दिक्कत | समस्या | owner review |
+| Filter | फ़िल्टर | फिल्टर | owner review |
+| Date added | जोड़ने की तारीख | दिनांक | owner review |
+| Temporary folder | अस्थायी फ़ोल्डर | — | owner review |
+| Server | सर्वर | — | owner review |
+| Checksum | चेकसम | — | owner review |
+| Version | वर्ज़न | संस्करण | owner review |
+| Quality | क्वालिटी | गुणवत्ता | owner review |
+| Sign-in (as a requirement) | लॉगिन | साइन इन | owner review |
+| Permission | इजाज़त | अनुमति | owner review |
+| Available | उपलब्ध | — | owner review |

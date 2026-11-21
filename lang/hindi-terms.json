@@ -394,5 +394,131 @@
     "hi": "बची हुई डाउनलोड फ़ाइलें",
     "avoid": [],
     "review": true
+  },
+  {
+    "en": "Queued",
+    "hi": "क्यू में",
+    "avoid": [],
+    "review": true
+  },
+  {
+    "en": "Paused",
+    "hi": "रुका हुआ",
+    "avoid": [],
+    "review": true
+  },
+  {
+    "en": "Interrupted",
+    "hi": "बीच में रुका",
+    "avoid": [],
+    "review": true
+  },
+  {
+    "en": "Unfinished",
+    "hi": "अधूरे",
+    "avoid": [],
+    "review": true
+  },
+  {
+    "en": "Size",
+    "hi": "साइज़",
+    "avoid": [
+      "आकार"
+    ],
+    "review": true
+  },
+  {
+    "en": "Status",
+    "hi": "स्थिति",
+    "avoid": [],
+    "review": true
+  },
+  {
+    "en": "Progress",
+    "hi": "प्रोग्रेस",
+    "avoid": [
+      "प्रगति"
+    ],
+    "review": true
+  },
+  {
+    "en": "Problem",
+    "hi": "दिक्कत",
+    "avoid": [
+      "समस्या"
+    ],
+    "review": true
+  },
+  {
+    "en": "Filter",
+    "hi": "फ़िल्टर",
+    "avoid": [
+      "फिल्टर"
+    ],
+    "review": true
+  },
+  {
+    "en": "Date added",
+    "hi": "जोड़ने की तारीख",
+    "avoid": [
+      "दिनांक"
+    ],
+    "review": true
+  },
+  {
+    "en": "Temporary folder",
+    "hi": "अस्थायी फ़ोल्डर",
+    "avoid": [],
+    "review": true
+  },
+  {
+    "en": "Server",
+    "hi": "सर्वर",
+    "avoid": [],
+    "review": true
+  },
+  {
+    "en": "Checksum",
+    "hi": "चेकसम",
+    "avoid": [],
+    "review": true
+  },
+  {
+    "en": "Version",
+    "hi": "वर्ज़न",
+    "avoid": [
+      "संस्करण"
+    ],
+    "review": true
+  },
+  {
+    "en": "Quality",
+    "hi": "क्वालिटी",
+    "avoid": [
+      "गुणवत्ता"
+    ],
+    "review": true
+  },
+  {
+    "en": "Sign-in (as a requirement)",
+    "hi": "लॉगिन",
+    "avoid": [
+      "साइन इन"
+    ],
+    "review": true
+  },
+  {
+    "en": "Permission",
+    "hi": "इजाज़त",
+    "avoid": [
+      "अनुमति"
+    ],
+    "review": true
+  },
+  {
+    "en": "Available",
+    "hi": "उपलब्ध",
+    "avoid": [],
+    "review": true
   }
 ]
