@@ -1,5 +1,6 @@
 # 2026-11-21
 
+* **Update**: [Hindi style guide](hindi-style.md): 5 terms from ks-download-manager's playlists (Playlist प्लेलिस्ट, Thumbnail थंबनेल, Select all सभी चुनें, Hide छिपाएं, Show दिखाएं), marked for the owner's review (`v0.2.3`).
 * **Update**: [Hindi style guide](hindi-style.md): owner's wording: Status is स्टेटस (avoid स्थिति), Temporary folder is टेंप फ़ोल्डर (avoid अस्थायी), both approved; `common.language.system` is सिस्टम की भाषा (`v0.2.2`).
 * **Update**: [Hindi style guide](hindi-style.md): 18 terms added from ks-download-manager (Queued, Paused, Size, Progress, Version, Quality, Permission and others), marked for the owner's review.
 * **Update**: [How apps depend on KS Utility](usage.md), [Translation file format](translation-format.md): the language-file command is `typescript/tools/lang.mjs`, which runs the TypeScript tool from a temporary copy, because Node does not strip types inside `node_modules` (`v0.2.1`).

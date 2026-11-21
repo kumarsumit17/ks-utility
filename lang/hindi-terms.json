@@ -522,5 +522,43 @@
     "hi": "उपलब्ध",
     "avoid": [],
     "review": true
+  },
+  {
+    "en": "Playlist",
+    "hi": "प्लेलिस्ट",
+    "avoid": [
+      "सूची"
+    ],
+    "review": true
+  },
+  {
+    "en": "Thumbnail",
+    "hi": "थंबनेल",
+    "avoid": [
+      "लघुचित्र"
+    ],
+    "review": true
+  },
+  {
+    "en": "Select all",
+    "hi": "सभी चुनें",
+    "avoid": [],
+    "review": true
+  },
+  {
+    "en": "Hide",
+    "hi": "छिपाएं",
+    "avoid": [
+      "छिपाएँ"
+    ],
+    "review": true
+  },
+  {
+    "en": "Show",
+    "hi": "दिखाएं",
+    "avoid": [
+      "दिखाएँ"
+    ],
+    "review": true
   }
 ]

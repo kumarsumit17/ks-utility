@@ -107,3 +107,8 @@ The data file `lang/hindi-terms.json` holds the same rows; a test fails if this 
 | Sign-in (as a requirement) | लॉगिन | साइन इन | owner review |
 | Permission | इजाज़त | अनुमति | owner review |
 | Available | उपलब्ध | — | owner review |
+| Playlist | प्लेलिस्ट | सूची | owner review |
+| Thumbnail | थंबनेल | लघुचित्र | owner review |
+| Select all | सभी चुनें | — | owner review |
+| Hide | छिपाएं | छिपाएँ | owner review |
+| Show | दिखाएं | दिखाएँ | owner review |
