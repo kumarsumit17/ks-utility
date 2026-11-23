@@ -68,5 +68,6 @@ node <ks-utility>/typescript/tools/lang.mjs android <dir>... --out <res dir> [--
 | `v0.1.0` | `4118c1e` | The first generic helpers moved from `ks-download-manager` (HTTP dates, backoff, ranges, file names, atomic writes, formatting) |
 | `v0.2.0` | `58ccb47` | English and Hindi for every app: translation format, shared catalogue, translator, language rule, language-file check and Android conversion, Hindi style guide and term list; Rust message codes, token bucket, media-type extensions; locale-aware formatting |
 | `v0.2.1` | the commit the tag names (each app's lock files record it) | Fix: the language-file command runs from `node_modules` (`typescript/tools/lang.mjs`) |
+| `v0.3.0` | the commit the tag names | App updates ([spec](app-update.md)): Kotlin, Rust and TypeScript helpers, SHA-256, `createUpdateStore`, shared texts `common.appUpdate.*`; first Kotlin code |
 
 A change to this contract is a cross-repo change: update the suite's `specs/cross-repo.md` and the `CLAUDE.md` of every app in the same cycle.

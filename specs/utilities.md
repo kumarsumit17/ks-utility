@@ -2,7 +2,7 @@
 type: Reference
 title: Utilities
 description: The utilities KS Utility provides in each language, and what each one is for.
-tags: [reference, rust, typescript]
+tags: [reference, rust, typescript, kotlin]
 ---
 
 # Utilities
@@ -21,6 +21,8 @@ Standard library only, `#![forbid(unsafe_code)]`.
 | `media_type` | `extension_for` (the usual extension of a media type; parameters and case ignored; common, unambiguous types only) and `name_with_type` (adds that extension to a name that has none). |
 | `message` | `Message`: a message code (a language-file key) with named parameters, so Rust never builds display sentences ([format](translation-format.md#messages-from-rust)); `is_valid_code`, `is_valid_param`. `Display` is for logs only. |
 | `token_bucket` | `TokenBucket`: the arithmetic of a rate limit (rate, burst, debt paid by waiting). `take(n, now)` returns how long to wait; the caller sleeps however it likes. |
+| `app_update` | App updates ([spec](app-update.md)), no network: `parse_version`, `is_newer`, `is_dev_version`, `check_due` (daily schedule), `Repo` (request URL and headers, release page), `parse_release` (keeps only this repository's files with a GitHub `sha256:` digest), `Platform`, `pick_asset`, `evaluate` / `decide` → `Outcome`. |
+| `sha256` | `Sha256` (incremental), `sha256_hex`, `sha256_reader`, `sha256_file`, `sha256_matches`: to check a download against its published checksum. |
 | `file_name` | `sanitize_file_name` (also strips bidirectional and other invisible format characters; reserved Windows names matched before the first dot), `split_extension`, `numbered_name` ("name (n).ext"), `reserve_free_name` (creates the first free name with `create_new`; never overwrites; `name` must be a single file name, otherwise `InvalidInput` and nothing is created, so sanitise untrusted names first). |
 
 ## TypeScript (`typescript/src/`)
@@ -31,11 +33,21 @@ Standard library only, `#![forbid(unsafe_code)]`.
 | `createTranslator` | Look-up by key with placeholders, plurals (`Intl.PluralRules`) and English fallback ([format](translation-format.md#look-up-typescript)). |
 | `resolveLanguage`, `parseLanguageChoice`, `LANGUAGES` | The suite's language rule ([Languages](languages.md)). |
 | `checkCatalogs`, `fromChromeMessages`, `duplicateKeys`, `containsPhrase` | The language-file check, as functions; the command is `typescript/tools/lang.mjs` ([usage](usage.md#language-files)). |
+| `parseVersion`, `isNewerVersion`, `isDevVersion`, `isCheckDue`, `parseRepo`, `latestReleaseApiUrl`, `releasePageUrl`, `requestHeaders`, `parseRelease`, `pickAsset`, `evaluateRelease`, `decide`, `sha256Hex`, `sha256Matches` | App updates, no network ([spec](app-update.md)). |
+| `createUpdateStore`, `openedNote` | The state behind an "App updates" section and banner; notes are message keys with parameters. |
 | `toAndroidXml`, `resourceName`, `resourceNameProblems`, `escapeAndroid`, `argumentOrder` | Conversion of language files into Android string resources. |
+
+## Kotlin (`kotlin/`, package `com.ks.utility`)
+Plain Kotlin/JVM, no Android SDK.
+
+| Class | What it does |
+|---|---|
+| `appupdate.AppUpdate`, `GitHubRepo`, `UpdatePlatform`, `Release`, `ReleaseAsset`, `UpdateOutcome` | App updates, no network ([spec](app-update.md)): versions, daily schedule, request URL and headers, reading the release, choosing the file, deciding. |
+| `appupdate.Sha256` | SHA-256 of bytes, a stream or a file (`MessageDigest`), and `matches`. |
 
 ## Language data (`lang/`)
 
 | File | What it holds |
 |---|---|
-| `lang/common/en.json`, `lang/common/hi.json` | The shared catalogue of common interface text (`common.*` keys). |
+| `lang/common/en.json`, `lang/common/hi.json` | The shared catalogue of common interface text (`common.*` keys), including the App updates section (`common.appUpdate.*`). |
 | `lang/hindi-terms.json` | The Hindi term list with disallowed alternatives; the same rows as the table in the [Hindi style guide](hindi-style.md) (a test fails if they differ). |

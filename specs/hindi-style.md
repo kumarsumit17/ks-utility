@@ -113,3 +113,9 @@ The data file `lang/hindi-terms.json` holds the same rows; a test fails if this 
 | Select all | सभी चुनें | — | approved |
 | Hide | छिपाएं | छिपाएँ | approved |
 | Show | दिखाएं | दिखाएँ | approved |
+| App | ऐप | एप | owner review |
+| Install | इंस्टॉल करें | स्थापित | owner review |
+| Installer | इंस्टॉलर | — | owner review |
+| Check (for updates) | जांच करें | जाँच | owner review |
+| Disk image | डिस्क इमेज | — | owner review |
+| Unknown apps (Android) | अनजान ऐप | अज्ञात | owner review |

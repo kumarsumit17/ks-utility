@@ -12,9 +12,12 @@
 //! - [`media_type`]: file extensions for media types (`Content-Type`).
 //! - [`message`]: message codes with parameters, so Rust never builds display sentences.
 //! - [`token_bucket`]: token-bucket arithmetic for rate limits.
+//! - [`app_update`]: is a newer version of the app out, and which file installs it (no network).
+//! - [`sha256`]: SHA-256, to check a download against its published checksum.
 
 #![forbid(unsafe_code)]
 
+pub mod app_update;
 pub mod atomic;
 pub mod backoff;
 pub mod content_disposition;
@@ -24,4 +27,5 @@ pub mod http_date;
 pub mod media_type;
 pub mod message;
 pub mod ranges;
+pub mod sha256;
 pub mod token_bucket;

@@ -518,5 +518,49 @@
     "avoid": [
       "दिखाएँ"
     ]
+  },
+  {
+    "en": "App",
+    "hi": "ऐप",
+    "avoid": [
+      "एप"
+    ],
+    "review": true
+  },
+  {
+    "en": "Install",
+    "hi": "इंस्टॉल करें",
+    "avoid": [
+      "स्थापित"
+    ],
+    "review": true
+  },
+  {
+    "en": "Installer",
+    "hi": "इंस्टॉलर",
+    "avoid": [],
+    "review": true
+  },
+  {
+    "en": "Check (for updates)",
+    "hi": "जांच करें",
+    "avoid": [
+      "जाँच"
+    ],
+    "review": true
+  },
+  {
+    "en": "Disk image",
+    "hi": "डिस्क इमेज",
+    "avoid": [],
+    "review": true
+  },
+  {
+    "en": "Unknown apps (Android)",
+    "hi": "अनजान ऐप",
+    "avoid": [
+      "अज्ञात"
+    ],
+    "review": true
   }
 ]

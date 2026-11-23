@@ -1,3 +1,10 @@
+# 2026-11-23
+
+* **Creation**: [App updates](app-update.md) added: the shared behaviour of every app's update check (daily GitHub `releases/latest` request with a switch, version rules, asset matching per platform, GitHub `sha256:` digest required, never for `0.0.0`, privacy note), the "App updates" section, how macOS, Windows, Android and the Chrome extension install, and the API per language (`v0.3.0`).
+* **Update**: [Utilities](utilities.md): Rust `app_update` and `sha256`; TypeScript app-update helpers and `createUpdateStore`; the first Kotlin helpers (`com.ks.utility.appupdate`); shared texts `common.appUpdate.*` (`v0.3.0`).
+* **Update**: [Hindi style guide](hindi-style.md): 6 terms for app updates (App ऐप, Install इंस्टॉल करें, Installer इंस्टॉलर, Check जांच करें, Disk image डिस्क इमेज, Unknown apps अनजान ऐप), marked for the owner's review.
+* **Update**: [How apps depend on KS Utility](usage.md): tag `v0.3.0`.
+
 # 2026-11-21
 
 * **Update**: [Usage](usage.md): tags moved once, on 2026-11-21, to remove tool attribution from the commit messages; the single exception to "tags never move". Tag table updated to the new commit IDs.
