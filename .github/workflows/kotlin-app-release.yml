@@ -14,7 +14,8 @@ name: Kotlin app release (shared)
 #                                  KEYSTORE secrets and is verified before anything is published.
 #                                  The GitHub Release is published by a separate job, only when
 #                                  every platform built.
-#   Manual run                     Never publishes. Builds every platform for testing; without the
+#   Manual run (rehearsal)         Builds and checks everything exactly as a tag would, for the
+#                                  version given, and never publishes or attests. Without the
 #                                  signing secrets the APK is unsigned and named so.
 #
 # File names follow ks-utility's app-update rules (specs/app-update.md), so apps find their own
@@ -24,6 +25,10 @@ name: Kotlin app release (shared)
 on:
   workflow_call:
     inputs:
+      version:
+        description: "Rehearsal only: the version to build, X.Y.Z (a manual run passes its input). A tag run ignores it."
+        type: string
+        default: ""
       app-name:
         description: "Repository name, used as the file-name prefix (e.g. ks-jaiplayer)."
         type: string
@@ -88,7 +93,7 @@ jobs:
       code: ${{ steps.ver.outputs.code }}
       release: ${{ steps.ver.outputs.release }}
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
           persist-credentials: false
@@ -99,6 +104,7 @@ jobs:
         id: ver
         env:
           REQUIRE_MAIN: ${{ inputs.require-main }}
+          REHEARSE: ${{ inputs.version }}
         run: |
           if [ "$GITHUB_REF_TYPE" = "tag" ]; then
             tag="${GITHUB_REF_NAME#v}"
@@ -115,9 +121,12 @@ jobs:
             fi
             release=true
           else
-            tag="$(git describe --tags --abbrev=0 2> /dev/null || echo v0.0.0)"
-            tag="${tag#v}"
-            [[ "$tag" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || tag="0.0.0"
+            tag="${REHEARSE#v}"
+            if ! [[ "$tag" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+              echo "::error::A rehearsal needs a version input X.Y.Z (got '$REHEARSE')."
+              exit 1
+            fi
+            echo "::notice::Rehearsal of v$tag on $GITHUB_REF_NAME: no attestation, no release."
             release=false
           fi
           IFS='.' read -r major minor patch <<< "$tag"
@@ -169,21 +178,21 @@ jobs:
             echo "::warning::Missing signing secrets: ${missing[*]}. This test build is UNSIGNED."
           fi
 
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
           submodules: true
           persist-credentials: false
 
       # The release scripts come from ks-utility at the exact commit of this workflow.
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: kumarsumit17/ks-utility
           ref: ${{ github.job_workflow_sha }}
           path: .ks-utility-release
           persist-credentials: false
 
-      - uses: actions/setup-java@v6
+      - uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6.3.0
         with:
           distribution: temurin
           java-version: "17"
@@ -193,8 +202,8 @@ jobs:
         with:
           node-version: "24"
 
-      # v5 is the current MIT-licensed line.
-      - uses: gradle/actions/setup-gradle@v5
+      # v5 is the MIT-licensed line; v6 moves caching to a separately licensed component.
+      - uses: gradle/actions/setup-gradle@0723195856401067f7a2779048b490ace7a47d7c # v5.0.2
 
       # The keystore goes into the runner's temp folder, readable by this user only, and is
       # opened once here so a wrong password or alias fails before the build.
@@ -270,7 +279,7 @@ jobs:
           cp "${{ steps.out.outputs.apk }}" "dist/$BASE$SUFFIX.apk"
           cp "${{ steps.out.outputs.aab }}" "dist/$BASE$SUFFIX.aab"
 
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: android
           path: dist/
@@ -288,12 +297,12 @@ jobs:
     runs-on: macos-15
     timeout-minutes: 40
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
           submodules: true
           persist-credentials: false
-      - uses: actions/setup-java@v6
+      - uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6.3.0
         with:
           distribution: temurin
           java-version: "17"
@@ -301,7 +310,7 @@ jobs:
         if: inputs.node
         with:
           node-version: "24"
-      - uses: gradle/actions/setup-gradle@v5
+      - uses: gradle/actions/setup-gradle@0723195856401067f7a2779048b490ace7a47d7c # v5.0.2
       - name: Tests
         if: inputs.desktop-test-tasks != ''
         run: ./gradlew ${{ inputs.desktop-test-tasks }}
@@ -320,7 +329,7 @@ jobs:
           dmg="$(find "$dir/build/compose/binaries" -name '*.dmg' | sed -n '1p')"
           [ -s "$dmg" ] || { echo "::error::No dmg under $dir/build/compose/binaries."; exit 1; }
           mkdir -p dist && cp "$dmg" "dist/$NAME"
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: macos
           path: dist/
@@ -334,12 +343,12 @@ jobs:
     runs-on: windows-2025
     timeout-minutes: 40
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
           submodules: true
           persist-credentials: false
-      - uses: actions/setup-java@v6
+      - uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6.3.0
         with:
           distribution: temurin
           java-version: "17"
@@ -347,7 +356,7 @@ jobs:
         if: inputs.node
         with:
           node-version: "24"
-      - uses: gradle/actions/setup-gradle@v5
+      - uses: gradle/actions/setup-gradle@0723195856401067f7a2779048b490ace7a47d7c # v5.0.2
       - name: Tests
         if: inputs.desktop-test-tasks != ''
         run: ./gradlew ${{ inputs.desktop-test-tasks }}
@@ -365,7 +374,7 @@ jobs:
           msi="$(find "$dir/build/compose/binaries" -name '*.msi' | sed -n '1p')"
           [ -s "$msi" ] || { echo "::error::No msi under $dir/build/compose/binaries."; exit 1; }
           mkdir -p dist && cp "$msi" "dist/$NAME"
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: windows
           path: dist/
@@ -373,12 +382,14 @@ jobs:
           retention-days: 30
 
   # Publishing is its own job, so the write token never reaches a build. It runs only for a tag,
-  # only when every platform the app has built, and only with a signed, verified APK.
+  # only when every platform the app has built, and only with a signed, verified APK. It checks it
+  # got exactly the expected files, attests each one (build provenance), and publishes them with
+  # the preinstalled gh CLI: the release becomes public only once every file is up.
   publish:
-    name: Publish GitHub Release
+    name: Attest and publish
     needs: [version, android, mac, windows]
     if: >-
-      always() &&
+      !cancelled() &&
       needs.version.outputs.release == 'true' &&
       needs.version.result == 'success' &&
       (needs.android.result == 'success' || (needs.android.result == 'skipped' && inputs.android-module == '')) &&
@@ -386,31 +397,47 @@ jobs:
       (needs.windows.result == 'success' || (needs.windows.result == 'skipped' && inputs.windows-module == '')) &&
       (inputs.android-module == '' || (needs.android.outputs.signed == 'true' && needs.android.outputs.verified == 'true'))
     runs-on: ubuntu-24.04
-    timeout-minutes: 10
+    timeout-minutes: 15
     permissions:
       contents: write
+      id-token: write
+      attestations: write
     steps:
-      - uses: actions/download-artifact@v8
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           path: dist
           merge-multiple: true
 
-      - name: Check the files
+      - name: Exactly the expected files
+        env:
+          BASE: ${{ inputs.app-name }}-v${{ needs.version.outputs.name }}
+          ANDROID: ${{ inputs.android-module }}
+          MAC: ${{ inputs.mac-module }}
+          WINDOWS: ${{ inputs.windows-module }}
         run: |
-          ls -la dist
-          if ls dist | grep -qi 'unsigned'; then
-            echo "::error::An unsigned file reached the publish job."
+          expected=()
+          [ -z "$ANDROID" ] || expected+=("$BASE.apk" "$BASE.aab")
+          [ -z "$MAC" ] || expected+=("$BASE-macos-arm64.dmg")
+          [ -z "$WINDOWS" ] || expected+=("$BASE-windows-x64.msi")
+          got="$(cd dist && ls -1 | sort)"
+          want="$(printf '%s\n' "${expected[@]}" | sort)"
+          if [ "$got" != "$want" ]; then
+            echo "::error::Release files differ from the expected list."
+            echo "Expected:"; echo "$want"; echo "Got:"; echo "$got"
             exit 1
           fi
-          [ -n "$(ls -A dist)" ] || { echo "::error::Nothing to publish."; exit 1; }
-          (cd dist && sha256sum -- * > SHA256SUMS.txt)
+          for f in "${expected[@]}"; do [ -s "dist/$f" ] || { echo "::error::$f is empty."; exit 1; }; done
 
-      # Third-party action holding a write token: pinned to the exact commit of v3.0.4.
-      - name: Publish
-        uses: softprops/action-gh-release@8a0cd651e5b2365bd640854a3fa5dfc70e4875f3 # v3.0.4
+      - uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
         with:
-          name: ${{ inputs.display-name }} ${{ needs.version.outputs.name }}
-          generate_release_notes: true
-          fail_on_unmatched_files: true
-          make_latest: "true"
-          files: dist/*
+          subject-path: dist/*
+
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+          TITLE: ${{ inputs.display-name }} ${{ needs.version.outputs.name }}
+        run: |
+          gh release create "$TAG" --repo "$GITHUB_REPOSITORY" --verify-tag --latest --generate-notes --title "$TITLE" dist/*
+          [ "$(gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json isDraft --jq .isDraft)" = false ] || { echo "::error::The release was not published."; exit 1; }
+          gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json assets --jq '.assets[].name'
