@@ -51,6 +51,7 @@ jobs:
 | `app-name` | Repository name, the prefix of every file name | required |
 | `display-name` | The app's name, used for the release title | required |
 | `android-module` | Gradle path of the Android application module; Google TV apps use the same APK | none |
+| `android-file-name` | APK/AAB name without extension, for an app whose installed copies look for a fixed name (`ks-tv-launcher`: `app-release`) | `<app>-v<version>` |
 | `mac-module` | Gradle path of the Compose Desktop module packaged for macOS | none |
 | `windows-module` | Gradle path of the Compose Desktop module packaged for Windows | none |
 | `test-tasks` | Gradle tasks run before the Android build | `testDebugUnitTest` |
@@ -74,7 +75,7 @@ Every action is pinned to a full commit SHA with its version in a comment, runne
 
 | Platform | File |
 |---|---|
-| Android, Google TV | `<app>-v<version>.apk`, `<app>-v<version>.aab` |
+| Android, Google TV | `<app>-v<version>.apk`, `<app>-v<version>.aab` (`ks-tv-launcher` keeps `app-release.apk`, which its installed copies look for) |
 | macOS | `<app>-v<version>-macos-arm64.dmg` |
 | Windows | `<app>-v<version>-windows-x64.msi` |
 

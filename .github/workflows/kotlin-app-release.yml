@@ -41,6 +41,10 @@ on:
         description: "Gradle path of the Android application module (e.g. :app). Empty: no Android build."
         type: string
         default: ""
+      android-file-name:
+        description: "Name of the APK and AAB without extension. Empty: <app-name>-v<version>. Only for an app whose installed copies look for an older fixed name (ks-tv-launcher: app-release)."
+        type: string
+        default: ""
       mac-module:
         description: "Gradle path of the macOS Compose Desktop module (e.g. :desktop:mac). Empty: no macOS build."
         type: string
@@ -272,7 +276,7 @@ jobs:
 
       - name: Collect
         env:
-          BASE: ${{ inputs.app-name }}-v${{ needs.version.outputs.name }}
+          BASE: ${{ inputs.android-file-name != '' && inputs.android-file-name || format('{0}-v{1}', inputs.app-name, needs.version.outputs.name) }}
           SUFFIX: ${{ steps.signing.outputs.signed == 'true' && '' || '-UNSIGNED' }}
         run: |
           mkdir -p dist
@@ -411,12 +415,13 @@ jobs:
       - name: Exactly the expected files
         env:
           BASE: ${{ inputs.app-name }}-v${{ needs.version.outputs.name }}
+          APK_BASE: ${{ inputs.android-file-name != '' && inputs.android-file-name || format('{0}-v{1}', inputs.app-name, needs.version.outputs.name) }}
           ANDROID: ${{ inputs.android-module }}
           MAC: ${{ inputs.mac-module }}
           WINDOWS: ${{ inputs.windows-module }}
         run: |
           expected=()
-          [ -z "$ANDROID" ] || expected+=("$BASE.apk" "$BASE.aab")
+          [ -z "$ANDROID" ] || expected+=("$APK_BASE.apk" "$APK_BASE.aab")
           [ -z "$MAC" ] || expected+=("$BASE-macos-arm64.dmg")
           [ -z "$WINDOWS" ] || expected+=("$BASE-windows-x64.msi")
           got="$(cd dist && ls -1 | sort)"
