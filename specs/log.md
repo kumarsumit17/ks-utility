@@ -1,5 +1,6 @@
 # 2026-11-23
 
+* **Update**: [How apps depend on KS Utility](usage.md): tag `v0.4.0` (shared release workflow).
 * **Creation**: [Shared release workflow](release-workflow.md) added: `.github/workflows/kotlin-app-release.yml`, one reusable release workflow for the five Kotlin apps (Android, Google TV, macOS, Windows), with the signing check (moved here from `ks-tv-launcher`) embedded in it.
 * **Update**: [App updates](app-update.md): apps with no network access (`ks-vault`, `ks-expense-manager`) have no check; their section shows the version and a Get the new version link that opens in the browser.
 * **Creation**: [App updates](app-update.md) added: the shared behaviour of every app's update check (daily GitHub `releases/latest` request with a switch, version rules, asset matching per platform, GitHub `sha256:` digest required, never for `0.0.0`, privacy note), the "App updates" section, how macOS, Windows, Android and the Chrome extension install, and the API per language (`v0.3.0`).
