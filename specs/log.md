@@ -1,6 +1,10 @@
+# 2026-11-24
+
+* **Update**: [Usage](usage.md): `v0.5.0` tagged (Compose resource output, Kotlin `Translator`).
+
 # 2026-11-23
 
-* **Update**: [Translation file format](translation-format.md), [usage](usage.md), [utilities](utilities.md): `lang.mjs compose` writes string resources escaped for Compose Multiplatform (no `\'`, `\"`, `\@`, `\?` or `%%`, which Compose showed as typed); Kotlin look-up `com.ks.utility.lang.Translator` (moved from `ks-streamflix`). For `v0.5.0`, not tagged yet.
+* **Update**: [Translation file format](translation-format.md), [usage](usage.md), [utilities](utilities.md): `lang.mjs compose` writes string resources escaped for Compose Multiplatform (no `\'`, `\"`, `\@`, `\?` or `%%`, which Compose showed as typed); Kotlin look-up `com.ks.utility.lang.Translator` (moved from `ks-streamflix`).
 * **Update**: [Usage](usage.md): `v0.4.2` tagged (docs only: attestation check with `--signer-workflow`).
 * **Update**: [Shared release workflow](release-workflow.md): how to verify an attestation (`--signer-workflow` names this workflow).
 * **Update**: [Shared release workflow](release-workflow.md), [usage](usage.md): `v0.4.1` fixes the Android file names (a signed APK was named `-UNSIGNED`, so `ks-jaiplayer` v1.0.0's publish check stopped and nothing was released); `v0.4.0` is not to be used.
