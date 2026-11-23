@@ -1,8 +1,8 @@
 ---
 type: Specification
 title: Translation file format
-description: The one format for interface text in every KS-Suite app (keys, placeholders, plural forms), how it is looked up, checked, converted for Android, and how Rust sends message codes.
-tags: [language, translation, hindi, format, android, check]
+description: The one format for interface text in every KS-Suite app (keys, placeholders, plural forms), how it is looked up in TypeScript and Kotlin, checked, converted for Android and Compose Multiplatform, and how Rust sends message codes.
+tags: [language, translation, hindi, format, android, compose, kotlin, check]
 ---
 
 # Translation file format
@@ -42,6 +42,13 @@ Every KS-Suite app keeps its interface text in language files of this format, on
 - A key missing in the language is taken from English; a key missing everywhere is returned as it is, so it shows up in testing.
 - A placeholder without a value is left as it is.
 
+## Look-up (Kotlin)
+`com.ks.utility.lang.Translator(language, layers)` is the same look-up for Kotlin code that does not use Android or Compose resources (a server, a command-line tool). `Catalog.parse(json)` reads one language file; a layer is a map of language code to catalog (`mapOf("en" to …, "hi" to …)`).
+- Layers searched last to first, English fallback, a missing key returned as it is, a placeholder without a value left as it is: as in TypeScript.
+- `t(key, params)` or `tr(key, "name" to value)`. A number is formatted like `Intl.NumberFormat`: Latin digits, at most three decimals, thousands grouping, Indian grouping for Hindi (`12,34,567`). Other values are passed through `toString()`.
+- Plural forms follow the CLDR rules of English (`one` is exactly 1) and Hindi (`one` is 0 to 1); other languages use the English rule. Without a numeric `count`, `other` is used.
+- Interface text in Android and Compose apps comes from their resources (below), not from this class.
+
 ## Messages from Rust
 Rust never builds display sentences. It sends a **message code** (a key of the app's language files) and named parameters, `ks_utility::message::Message` (`Message::new("error.http").with("status", 404)`); the interface looks the code up and fills in the parameters. `Display` on a message is for logs only.
 
@@ -51,6 +58,11 @@ The Kotlin apps use Android's own string resources, not a parallel runtime. `lan
 - Placeholders become positional string arguments numbered by first appearance in the English text (`{done} of {total}` → `%1$s of %2$s`; the Hindi text keeps the same numbers), so the app formats numbers before passing them. Plurals become `<plurals>` (`getQuantityString(id, count, formattedCount, …)`).
 - Text is escaped for Android (`'`, `"`, `\`, `@`/`?` at the start, `&`, `<`, `>`, newlines). In a text with arguments a literal `%` becomes `%%`.
 - The generated files carry a "do not edit" comment and are rebuilt from the language files.
+
+## Compose Multiplatform
+Compose Multiplatform resources read the same `strings.xml` layout, but after reading the XML they undo only `\\`, `\n`, `\t` and `\uXXXX` (checked in Compose Multiplatform 1.12.2), so Android's `\'`, `\"`, `\@`, `\?` and `%%` would show their backslash or both percent signs ("You\'re offline"). Compose apps therefore use `lang.mjs compose` ([usage](usage.md#language-files)), which writes the same files and names with only that escaping: `\`, newlines, tabs and the XML characters `&`, `<`, `>`. Placeholders become `%1$s` as for Android.
+
+Write the straight `'` and `"` in the language files; each converter escapes them for its target. The typographic apostrophe ’ (U+2019) is allowed but not required.
 
 ## Check
 `lang.mjs check` ([usage](usage.md#language-files)) runs on the shared catalogue, the app's folders and, optionally, Chrome `_locales` folders. It fails when:

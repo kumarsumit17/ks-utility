@@ -13,6 +13,7 @@ import {
   createTranslator,
   duplicateKeys,
   escapeAndroid,
+  escapeCompose,
   fromChromeMessages,
   parseLanguageChoice,
   placeholders,
@@ -20,6 +21,7 @@ import {
   resourceName,
   resourceNameProblems,
   toAndroidXml,
+  toComposeXml,
   type Term,
 } from "../src/index.ts";
 
@@ -153,6 +155,19 @@ test("Android escaping", () => {
   assert.equal(escapeAndroid("50% done", false), "50% done");
 });
 
+test("Compose escaping leaves quotes, @, ? and % alone", () => {
+  // Compose Multiplatform 1.12 undoes only \\, \n, \t and \uXXXX after reading the XML.
+  assert.equal(escapeCompose(`It's "5" < 6 & 7\\ok\nnext\tend`), `It's "5" &lt; 6 &amp; 7\\\\ok\\nnext\\tend`);
+  assert.equal(escapeCompose("@home"), "@home");
+  assert.equal(escapeCompose("?x"), "?x");
+  assert.equal(escapeCompose("\\u0041"), "\\\\u0041", "a literal backslash-u stays literal");
+  const en = { "x.off": "You're offline", "x.pct": "{n}% of {total}" };
+  const xml = toComposeXml(en, en);
+  assert.match(xml, /<string name="x_off">You're offline<\/string>/);
+  assert.match(xml, /<string name="x_pct">%1\$s% of %2\$s<\/string>/, "% is not doubled");
+  assert.match(toAndroidXml(en, en), /<string name="x_off">You\\'re offline<\/string>/, "Android still escapes");
+});
+
 test("Android string resources keep argument numbers across languages", () => {
   const en = { "x.of": "{done} of {total}", "x.files": { one: "{count} file", other: "{count} files in {folder}" }, "x.pct": "100%" };
   const hi = { "x.of": "{total} में से {done}", "x.files": { one: "{count} फ़ाइल", other: "{folder} में {count} फ़ाइलें" }, "x.pct": "100%" };
@@ -213,6 +228,14 @@ test("the command line check and Android conversion", () => {
     assert.match(hiXml, /<string name="app_title">डाउनलोड: %1\$s<\/string>/);
     assert.match(hiXml, /<string name="common_cancel">रद्द करें<\/string>/, "the shared catalogue is included");
     assert.match(readFileSync(join(res, "values/lang_strings.xml"), "utf8"), /<string name="common_ok">OK<\/string>/);
+    assert.match(readFileSync(join(res, "values/lang_strings.xml"), "utf8"), /<string name="common_error_offline">You\\'re /);
+
+    const cmp = join(dir, "compose");
+    const compose = spawnSync(process.execPath, [tool, "compose", app, "--out", cmp, "--name", "strings"], { encoding: "utf8" });
+    assert.equal(compose.status, 0, compose.stderr);
+    const cmpEn = readFileSync(join(cmp, "values/strings.xml"), "utf8");
+    assert.match(cmpEn, /<string name="common_error_offline">You're offline/, "no backslash for Compose");
+    assert.match(readFileSync(join(cmp, "values-hi/strings.xml"), "utf8"), /<string name="app_title">डाउनलोड: %1\$s<\/string>/);
 
     const locales = join(dir, "_locales");
     mkdirSync(join(locales, "en"), { recursive: true });

@@ -1,6 +1,7 @@
 // Converts suite language files into Android string resources (`values/` for English,
 // `values-hi/` for Hindi), so the Kotlin apps use Android's own resource look-up and
-// plurals instead of a parallel runtime (specs/translation-format.md, "Android").
+// plurals instead of a parallel runtime (specs/translation-format.md, "Android"). The
+// same files for Compose Multiplatform resources differ only in escaping ("Compose").
 
 import { isPlural, placeholders, type Catalog, type Entry } from "./catalog.ts";
 
@@ -49,6 +50,24 @@ export function escapeAndroid(text: string, formatted: boolean): string {
 }
 
 /**
+ * Text escaped for a Compose Multiplatform string resource. Compose reads the XML and then
+ * turns only `\\`, `\n`, `\t` and `\uXXXX` back (checked in Compose Multiplatform 1.12),
+ * so `'`, `"`, `@`, `?` and `%` stay as they are: an Android escape would show its backslash.
+ */
+export function escapeCompose(text: string): string {
+  return text
+    .replace(/\\/g, "\\\\")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/\n/g, "\\n")
+    .replace(/\t/g, "\\t");
+}
+
+/** The two resource flavours: Android's own resources, and Compose Multiplatform's. */
+export type ResourceTarget = "android" | "compose";
+
+/**
  * The argument number of each placeholder of a key, from its English text: in order of
  * first appearance, so `{a} of {b}` is `%1$s` and `%2$s` in every language.
  */
@@ -59,22 +78,28 @@ export function argumentOrder(english: Entry): Map<string, number> {
   return order;
 }
 
-function convert(text: string, order: Map<string, number>): string {
+function convert(text: string, order: Map<string, number>, target: ResourceTarget): string {
   const formatted = order.size > 0;
+  const escape = target === "compose" ? escapeCompose : (t: string) => escapeAndroid(t, formatted);
   // Placeholders are swapped for markers first, so escaping cannot touch them.
   const marked = text.replace(/\{([A-Za-z][A-Za-z0-9]*)\}/g, (whole, name: string) => {
     const n = order.get(name);
     return n === undefined ? whole : `\u0000${n}\u0000`;
   });
-  return escapeAndroid(marked, formatted).replace(/\u0000(\d+)\u0000/g, (_, n: string) => `%${n}$s`);
+  return escape(marked).replace(/\u0000(\d+)\u0000/g, (_, n: string) => `%${n}$s`);
 }
 
 /**
  * One `strings` resource file for `catalog`. `english` gives the argument numbers and
  * the key order. Every argument is a string (`%1$s`): the app formats numbers for the
- * language before passing them. Plurals become `<plurals>`.
+ * language before passing them. Plurals become `<plurals>`. `target` picks the escaping.
  */
-export function toAndroidXml(catalog: Catalog, english: Catalog, source = "ks-utility"): string {
+export function toAndroidXml(
+  catalog: Catalog,
+  english: Catalog,
+  source = "ks-utility",
+  target: ResourceTarget = "android",
+): string {
   const lines = [
     '<?xml version="1.0" encoding="utf-8"?>',
     `<!-- Generated from ${source} language files by ks-utility. Do not edit; change the language files. -->`,
@@ -88,13 +113,18 @@ export function toAndroidXml(catalog: Catalog, english: Catalog, source = "ks-ut
     if (isPlural(entry)) {
       lines.push(`    <plurals name="${name}">`);
       for (const [cat, form] of Object.entries(entry)) {
-        if (typeof form === "string") lines.push(`        <item quantity="${cat}">${convert(form, order)}</item>`);
+        if (typeof form === "string") lines.push(`        <item quantity="${cat}">${convert(form, order, target)}</item>`);
       }
       lines.push("    </plurals>");
     } else {
-      lines.push(`    <string name="${name}">${convert(entry, order)}</string>`);
+      lines.push(`    <string name="${name}">${convert(entry, order, target)}</string>`);
     }
   }
   lines.push("</resources>", "");
   return lines.join("\n");
+}
+
+/** The same file for Compose Multiplatform resources ([escapeCompose]). */
+export function toComposeXml(catalog: Catalog, english: Catalog, source = "ks-utility"): string {
+  return toAndroidXml(catalog, english, source, "compose");
 }

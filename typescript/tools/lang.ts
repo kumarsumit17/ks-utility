@@ -4,6 +4,10 @@
 //
 //   node <ks-utility>/typescript/tools/lang.mjs check <dir>... [--chrome <_locales dir>]...
 //   node <ks-utility>/typescript/tools/lang.mjs android <dir>... --out <res dir> [--name <file>]
+//   node <ks-utility>/typescript/tools/lang.mjs compose <dir>... --out <res dir> [--name <file>]
+//
+// `android` writes Android string resources; `compose` writes the same files escaped for
+// Compose Multiplatform resources, which do not undo Android's `\'`, `\"` or `%%`.
 //
 // lang.mjs is the entry point: Node does not strip types from files inside node_modules,
 // so it runs a copy of this file and src/lang from a temporary folder.
@@ -17,7 +21,7 @@ import { fileURLToPath } from "node:url";
 
 import type { Catalog } from "../src/lang/catalog.ts";
 import { checkCatalogs, duplicateKeys, fromChromeMessages, type Term } from "../src/lang/check.ts";
-import { resourceNameProblems, toAndroidXml } from "../src/lang/android.ts";
+import { resourceNameProblems, toAndroidXml, type ResourceTarget } from "../src/lang/android.ts";
 
 /** The ks-utility folder, for the shared catalogue and term list. */
 let ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
@@ -81,8 +85,11 @@ export function check(dirs: string[], chrome: string[] = []): string[] {
   return out;
 }
 
-/** Writes `values/<name>.xml` and `values-hi/<name>.xml` under `out`. */
-export function android(dirs: string[], out: string, name: string): string[] {
+/**
+ * Writes `values/<name>.xml` and `values-hi/<name>.xml` under `out`, escaped for `target`:
+ * Android's own resources (default) or Compose Multiplatform resources.
+ */
+export function android(dirs: string[], out: string, name: string, target: ResourceTarget = "android"): string[] {
   const problems = check(dirs);
   if (problems.length) return problems;
   const layers = [common(), ...dirs.map((d) => resolve(d))];
@@ -92,7 +99,7 @@ export function android(dirs: string[], out: string, name: string): string[] {
   if (names.length) return names;
   for (const [folder, catalog] of [["values", en], ["values-hi", hi]] as const) {
     mkdirSync(join(out, folder), { recursive: true });
-    writeFileSync(join(out, folder, `${name}.xml`), toAndroidXml(catalog, en));
+    writeFileSync(join(out, folder, `${name}.xml`), toAndroidXml(catalog, en, "ks-utility", target));
   }
   return [];
 }
@@ -110,9 +117,11 @@ export function main(argv: string[], root?: string): number {
   }
   let problems: string[];
   if (command === "check") problems = check(args.dirs, args.chrome);
-  else if (command === "android" && args.out) problems = android(args.dirs, resolve(args.out), args.name);
+  else if ((command === "android" || command === "compose") && args.out) {
+    problems = android(args.dirs, resolve(args.out), args.name, command);
+  }
   else {
-    console.error("usage: lang.mjs check <dir>... [--chrome <_locales dir>]...\n       lang.mjs android <dir>... --out <res dir> [--name <file>]");
+    console.error("usage: lang.mjs check <dir>... [--chrome <_locales dir>]...\n       lang.mjs android|compose <dir>... --out <res dir> [--name <file>]");
     return 2;
   }
   for (const p of problems) console.error(p);

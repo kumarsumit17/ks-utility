@@ -36,6 +36,7 @@ Every suite app supports English and Hindi ([Languages](languages.md)) and check
 ```bash
 node <ks-utility>/typescript/tools/lang.mjs check <dir>... [--chrome <_locales dir>]...
 node <ks-utility>/typescript/tools/lang.mjs android <dir>... --out <res dir> [--name lang_strings]
+node <ks-utility>/typescript/tools/lang.mjs compose <dir>... --out <res dir> [--name lang_strings]
 ```
 
 - Each `<dir>` holds `en.json` and `hi.json`. The shared catalogue (`lang/common`) is always included. Exit code 0 when everything passes, 1 with one line per problem, 2 for a usage mistake.
@@ -56,6 +57,7 @@ node <ks-utility>/typescript/tools/lang.mjs android <dir>... --out <res dir> [--
   ```
 
   The generated `values/lang_strings.xml` and `values-hi/lang_strings.xml` are build output: git-ignore them.
+- **Compose Multiplatform app:** the same, with `compose` instead of `android`, written to a build folder that `compose.resources { customDirectory(...) }` reads. `android` output in a Compose app shows the escapes ("You\'re offline"); `compose` exists from `v0.5.0` ([format](translation-format.md#compose-multiplatform)).
 
 ## Versioning
 - Tags are `vMAJOR.MINOR.PATCH`. While in `0.x`: a new helper or a behaviour change raises MINOR; a fix raises PATCH.

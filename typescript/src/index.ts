@@ -22,7 +22,8 @@ export {
   type LanguageChoice,
 } from "./lang/language.ts";
 export { checkCatalogs, containsPhrase, duplicateKeys, fromChromeMessages, type Term } from "./lang/check.ts";
-export { argumentOrder, escapeAndroid, resourceName, resourceNameProblems, toAndroidXml } from "./lang/android.ts";
+export { argumentOrder, escapeAndroid, escapeCompose, resourceName, resourceNameProblems, toAndroidXml, toComposeXml } from "./lang/android.ts";
+export type { ResourceTarget } from "./lang/android.ts";
 export {
   CHECK_INTERVAL_MS,
   DEV_VERSION,
