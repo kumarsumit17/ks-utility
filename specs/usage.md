@@ -71,5 +71,6 @@ node <ks-utility>/typescript/tools/lang.mjs android <dir>... --out <res dir> [--
 | `v0.3.0` | the commit the tag names | App updates ([spec](app-update.md)): Kotlin, Rust and TypeScript helpers, SHA-256, `createUpdateStore`, shared texts `common.appUpdate.*`; first Kotlin code |
 | `v0.4.0` | the commit the tag names | The shared release workflow for the Kotlin apps ([spec](release-workflow.md)). Do not use: it names a signed APK `-UNSIGNED`, so the publish check stops every release |
 | `v0.4.1` | the commit the tag names | Fix: signed APK and AAB keep their release names; call `kotlin-app-release.yml@v0.4.1` |
+| `v0.4.2` | the commit the tag names | Docs: verify release attestations with `--signer-workflow`; the workflow is unchanged from `v0.4.1` |
 
 A change to this contract is a cross-repo change: update the suite's `specs/cross-repo.md` and the `CLAUDE.md` of every app in the same cycle.

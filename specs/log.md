@@ -1,5 +1,6 @@
 # 2026-11-23
 
+* **Update**: [Usage](usage.md): `v0.4.2` tagged (docs only: attestation check with `--signer-workflow`).
 * **Update**: [Shared release workflow](release-workflow.md): how to verify an attestation (`--signer-workflow` names this workflow).
 * **Update**: [Shared release workflow](release-workflow.md), [usage](usage.md): `v0.4.1` fixes the Android file names (a signed APK was named `-UNSIGNED`, so `ks-jaiplayer` v1.0.0's publish check stopped and nothing was released); `v0.4.0` is not to be used.
 * **Update**: [How apps depend on KS Utility](usage.md): tag `v0.4.0` (shared release workflow).
