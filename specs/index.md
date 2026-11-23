@@ -7,6 +7,7 @@ okf_version: "0.2"
 * [Overview](overview.md) - What KS Utility is for, who uses it and how it is laid out.
 * [Translation file format](translation-format.md) - The one format for interface text in every KS-Suite app (keys, placeholders, plural forms), how it is looked up, checked, converted for Android, and how Rust sends message codes.
 * [App updates](app-update.md) - How every KS-Suite app finds a newer version of itself on GitHub, shows it in an "App updates" section, and installs it on each platform, with the shared helpers in Kotlin, Rust and TypeScript.
+* [Shared release workflow](release-workflow.md) - The one GitHub Actions release workflow that every KS-Suite Kotlin app calls, for Android, Google TV, macOS and Windows, with its inputs, file names, signing checks and publishing rules.
 
 # Reference
 
