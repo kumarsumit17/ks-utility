@@ -424,8 +424,11 @@ jobs:
       - name: Collect
         env:
           BASE: ${{ inputs.android-file-name != '' && inputs.android-file-name || format('{0}-v{1}', inputs.app-name, needs.version.outputs.name) }}
-          SUFFIX: ${{ steps.signing.outputs.signed == 'true' && '' || '-UNSIGNED' }}
+          SIGNED: ${{ steps.signing.outputs.signed }}
         run: |
+          # Decided in the shell: in a GitHub expression `cond && '' || 'x'` is always 'x',
+          # because an empty string counts as false.
+          if [ "$SIGNED" = "true" ]; then SUFFIX=""; else SUFFIX="-UNSIGNED"; fi
           mkdir -p dist
           cp "${{ steps.out.outputs.apk }}" "dist/$BASE$SUFFIX.apk"
           cp "${{ steps.out.outputs.aab }}" "dist/$BASE$SUFFIX.aab"

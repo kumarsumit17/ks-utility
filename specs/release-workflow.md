@@ -29,7 +29,7 @@ permissions:
   contents: read
 jobs:
   release:
-    uses: kumarsumit17/ks-utility/.github/workflows/kotlin-app-release.yml@v0.4.0
+    uses: kumarsumit17/ks-utility/.github/workflows/kotlin-app-release.yml@v0.4.1
     permissions:           # only the publish job uses the write permissions
       contents: write
       id-token: write
