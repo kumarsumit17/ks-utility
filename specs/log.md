@@ -1,5 +1,6 @@
 # 2026-11-23
 
+* **Update**: [Shared release workflow](release-workflow.md): how to verify an attestation (`--signer-workflow` names this workflow).
 * **Update**: [Shared release workflow](release-workflow.md), [usage](usage.md): `v0.4.1` fixes the Android file names (a signed APK was named `-UNSIGNED`, so `ks-jaiplayer` v1.0.0's publish check stopped and nothing was released); `v0.4.0` is not to be used.
 * **Update**: [How apps depend on KS Utility](usage.md): tag `v0.4.0` (shared release workflow).
 * **Creation**: [Shared release workflow](release-workflow.md) added: `.github/workflows/kotlin-app-release.yml`, one reusable release workflow for the five Kotlin apps (Android, Google TV, macOS, Windows), with the signing check (moved here from `ks-tv-launcher`) embedded in it.
