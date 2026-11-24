@@ -1,5 +1,6 @@
 # 2026-11-24
 
+* **Update**: [Release workflow](release-workflow.md) and [Usage](usage.md) (`v0.7.0`): `play-build-type` makes each AAB the Google Play build (no in-app updater, no `REQUEST_INSTALL_PACKAGES`); the APKs stay the GitHub build.
 * **Update**: [App updates](app-update.md), [Release workflow](release-workflow.md) and [Usage](usage.md) (`v0.6.0`): separate Google TV builds. `UpdatePlatform.GOOGLE_TV` picks the TV APK (`…-google-tv.apk`, else a plain APK) and `ANDROID` never picks a TV build; the workflow's `tv-module` input builds, verifies and publishes `<app>-v<version>-google-tv.apk` and `.aab`.
 * **Update**: [Usage](usage.md): `v0.5.0` tagged (Compose resource output, Kotlin `Translator`).
 

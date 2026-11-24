@@ -40,6 +40,7 @@ jobs:
       display-name: KS JaiPlayer
       android-module: ":mobile:android"   # empty: no Android
       tv-module: ":tv:google-tv"          # only an app with a real TV version; empty: no TV APK
+      play-build-type: "play"             # the AAB is the Google Play build; empty: release
       mac-module: ":desktop:mac"          # empty: no macOS
       windows-module: ":desktop:windows"  # empty: no Windows
       test-tasks: ":shared:desktopTest"
@@ -52,6 +53,7 @@ jobs:
 | `app-name` | Repository name, the prefix of every file name | required |
 | `display-name` | The app's name, used for the release title | required |
 | `android-module` | Gradle path of the phone app module; a TV-only app (`ks-tv-launcher`) builds its TV app here | none |
+| `play-build-type` | Build type the AABs come from, for Google Play: no in-app updater and no `REQUEST_INSTALL_PACKAGES`, which Play forbids. The APKs stay the release build, with the updater, for GitHub | none (the AAB is the release build) |
 | `tv-module` | Gradle path of a separate Google TV app module, for an app with a real TV version (a `tv/google-tv` application module); signed with the same keystore | none |
 | `android-file-name` | APK/AAB name without extension, for an app whose installed copies look for a fixed name (`ks-tv-launcher`: `app-release`) | `<app>-v<version>` |
 | `mac-module` | Gradle path of the Compose Desktop module packaged for macOS | none |

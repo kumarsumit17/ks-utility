@@ -74,6 +74,7 @@ node <ks-utility>/typescript/tools/lang.mjs compose <dir>... --out <res dir> [--
 | `v0.4.0` | the commit the tag names | The shared release workflow for the Kotlin apps ([spec](release-workflow.md)). Do not use: it names a signed APK `-UNSIGNED`, so the publish check stops every release |
 | `v0.4.1` | the commit the tag names | Fix: signed APK and AAB keep their release names; call `kotlin-app-release.yml@v0.4.1` |
 | `v0.4.2` | the commit the tag names | Docs: verify release attestations with `--signer-workflow`; the workflow is unchanged from `v0.4.1` |
+| `v0.7.0` | the commit the tag names | Google Play: the shared release workflow's `play-build-type` input builds each AAB from that build type (no in-app updater), while the APKs stay the GitHub build ([release workflow](release-workflow.md)) |
 | `v0.6.0` | the commit the tag names | Google TV: `UpdatePlatform.GOOGLE_TV` picks `…-google-tv.apk` and `ANDROID` never picks it ([app updates](app-update.md)); the shared release workflow's `tv-module` input builds and publishes that separate TV APK and AAB ([release workflow](release-workflow.md)) |
 | `v0.5.0` | the commit the tag names | `lang.mjs compose`: string resources escaped for Compose Multiplatform ([format](translation-format.md#compose-multiplatform)); Kotlin look-up `com.ks.utility.lang.Translator` (layers, English fallback, placeholders, en/hi plurals, Indian grouping) |
 

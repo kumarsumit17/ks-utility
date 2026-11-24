@@ -8,6 +8,8 @@ name: Kotlin app release (shared)
 #                           (ks-tv-launcher) builds its TV app here and sets nothing else.
 #   Google TV               an app with a real TV version (a tv/google-tv application module)
 #                           also sets `tv-module`: a separate TV APK (+ AAB), <app>-v<version>-google-tv.apk.
+#   Google Play             with `play-build-type`, each AAB comes from that build type (no
+#                           in-app updater), so it can be uploaded to Play as it is.
 #   macOS                   a .dmg from `mac-module` (Compose Desktop / jpackage), Apple silicon.
 #   Windows                 an .msi from `windows-module`, x64.
 #
@@ -50,6 +52,10 @@ on:
         default: ""
       tv-module:
         description: "Gradle path of a separate Google TV application module (e.g. :tv:google-tv), built with the same keystore as android-module. Empty: no TV APK."
+        type: string
+        default: ""
+      play-build-type:
+        description: "Build type of the AAB, for Google Play (e.g. play: no in-app updater, no REQUEST_INSTALL_PACKAGES, which Play forbids). Empty: the AAB is the release build, like the APK."
         type: string
         default: ""
       mac-module:
@@ -400,9 +406,13 @@ jobs:
           SIGNING_KEY_PASSWORD: ${{ steps.signing.outputs.signed == 'true' && secrets.KEY_PASSWORD || '' }}
           MODULE: ${{ inputs.android-module }}
           TV_MODULE: ${{ inputs.tv-module }}
+          PLAY: ${{ inputs.play-build-type }}
         run: |
-          tasks=("$MODULE:assembleRelease" "$MODULE:bundleRelease")
-          [ -z "$TV_MODULE" ] || tasks+=("$TV_MODULE:assembleRelease" "$TV_MODULE:bundleRelease")
+          # The APK is always the release build (GitHub, with the in-app updater); the AAB is the
+          # Google Play build when play-build-type is set.
+          bundle="bundle$(echo "${PLAY:-release}" | awk '{print toupper(substr($0,1,1)) substr($0,2)}')"
+          tasks=("$MODULE:assembleRelease" "$MODULE:$bundle")
+          [ -z "$TV_MODULE" ] || tasks+=("$TV_MODULE:assembleRelease" "$TV_MODULE:$bundle")
           ./gradlew "${tasks[@]}" \
             "-PversionName=${{ needs.version.outputs.name }}" "-PversionCode=${{ needs.version.outputs.code }}"
 
@@ -411,12 +421,13 @@ jobs:
         env:
           MODULE: ${{ inputs.android-module }}
           TV_MODULE: ${{ inputs.tv-module }}
+          PLAY: ${{ inputs.play-build-type }}
         run: |
           find_outputs() { # <module> <output prefix>
             local dir apk aab
             dir="$(echo "${1#:}" | tr ':' '/')"
             apk="$(find "$dir/build/outputs/apk/release" -name '*.apk' | sort | sed -n '1p')"
-            aab="$(find "$dir/build/outputs/bundle/release" -name '*.aab' | sort | sed -n '1p')"
+            aab="$(find "$dir/build/outputs/bundle/${PLAY:-release}" -name '*.aab' | sort | sed -n '1p')"
             [ -s "$apk" ] && [ -s "$aab" ] || { echo "::error::No release APK/AAB under $dir/build/outputs."; exit 1; }
             echo "${2}apk=$apk" >> "$GITHUB_OUTPUT"
             echo "${2}aab=$aab" >> "$GITHUB_OUTPUT"
