@@ -10,7 +10,8 @@ name: Kotlin app release (shared)
 #                           also sets `tv-module`: a separate TV APK (+ AAB), <app>-v<version>-google-tv.apk.
 #   Google Play             with `play-build-type`, each AAB comes from that build type (no
 #                           in-app updater), so it can be uploaded to Play as it is.
-#   macOS                   a .dmg from `mac-module` (Compose Desktop / jpackage), Apple silicon.
+#   macOS                   a .dmg from `mac-module` (Compose Desktop / jpackage), Apple silicon;
+#                           with `mac-intel` also an Intel one (-macos-x64.dmg).
 #   Windows                 an .msi from `windows-module`, x64.
 #
 # Two ways in:
@@ -62,6 +63,10 @@ on:
         description: "Gradle path of the macOS Compose Desktop module (e.g. :desktop:mac). Empty: no macOS build."
         type: string
         default: ""
+      mac-intel:
+        description: "Also build an Intel (x64) dmg, <app>-v<version>-macos-x64.dmg, on GitHub's Intel macOS runner."
+        type: boolean
+        default: false
       windows-module:
         description: "Gradle path of the Windows Compose Desktop module (e.g. :desktop:windows). Empty: no Windows build."
         type: string
@@ -487,10 +492,15 @@ jobs:
         run: rm -rf "$RUNNER_TEMP/ks-signing"
 
   mac:
-    name: macOS
+    name: macOS ${{ matrix.arch }}
     needs: version
     if: inputs.mac-module != ''
-    runs-on: macos-15
+    strategy:
+      fail-fast: true
+      matrix:
+        arch: ${{ fromJSON(inputs.mac-intel && '["arm64","x64"]' || '["arm64"]') }}
+    # Each dmg is built on its own architecture: jpackage packages the JDK it runs on.
+    runs-on: ${{ matrix.arch == 'x64' && 'macos-15-intel' || 'macos-15' }}
     timeout-minutes: 40
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -519,7 +529,7 @@ jobs:
       - name: Collect
         env:
           MODULE: ${{ inputs.mac-module }}
-          NAME: ${{ inputs.app-name }}-v${{ needs.version.outputs.name }}-macos-arm64.dmg
+          NAME: ${{ inputs.app-name }}-v${{ needs.version.outputs.name }}-macos-${{ matrix.arch }}.dmg
         run: |
           dir="$(echo "${MODULE#:}" | tr ':' '/')"
           dmg="$(find "$dir/build/compose/binaries" -name '*.dmg' | sed -n '1p')"
@@ -527,7 +537,7 @@ jobs:
           mkdir -p dist && cp "$dmg" "dist/$NAME"
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: macos
+          name: macos-${{ matrix.arch }}
           path: dist/
           if-no-files-found: error
           retention-days: 30
@@ -611,12 +621,14 @@ jobs:
           ANDROID: ${{ inputs.android-module }}
           TV: ${{ inputs.tv-module }}
           MAC: ${{ inputs.mac-module }}
+          MAC_INTEL: ${{ inputs.mac-intel }}
           WINDOWS: ${{ inputs.windows-module }}
         run: |
           expected=()
           [ -z "$ANDROID" ] || expected+=("$APK_BASE.apk" "$APK_BASE.aab")
           [ -z "$ANDROID" ] || [ -z "$TV" ] || expected+=("$APK_BASE-google-tv.apk" "$APK_BASE-google-tv.aab")
           [ -z "$MAC" ] || expected+=("$BASE-macos-arm64.dmg")
+          [ -z "$MAC" ] || [ "$MAC_INTEL" != true ] || expected+=("$BASE-macos-x64.dmg")
           [ -z "$WINDOWS" ] || expected+=("$BASE-windows-x64.msi")
           got="$(cd dist && ls -1 | sort)"
           want="$(printf '%s\n' "${expected[@]}" | sort)"

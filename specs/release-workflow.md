@@ -53,6 +53,7 @@ jobs:
 | `app-name` | Repository name, the prefix of every file name | required |
 | `display-name` | The app's name, used for the release title | required |
 | `android-module` | Gradle path of the phone app module; a TV-only app (`ks-tv-launcher`) builds its TV app here | none |
+| `mac-intel` | Also an Intel dmg, built on GitHub's Intel macOS runner (`macos-15-intel`) | false |
 | `play-build-type` | Build type the AABs come from, for Google Play: no in-app updater and no `REQUEST_INSTALL_PACKAGES`, which Play forbids. The APKs stay the release build, with the updater, for GitHub | none (the AAB is the release build) |
 | `tv-module` | Gradle path of a separate Google TV app module, for an app with a real TV version (a `tv/google-tv` application module); signed with the same keystore | none |
 | `android-file-name` | APK/AAB name without extension, for an app whose installed copies look for a fixed name (`ks-tv-launcher`: `app-release`) | `<app>-v<version>` |
@@ -81,7 +82,7 @@ Every action is pinned to a full commit SHA with its version in a comment, runne
 |---|---|
 | Android | `<app>-v<version>.apk`, `<app>-v<version>.aab` (`ks-tv-launcher`, TV-only, keeps `app-release.apk`, which its installed copies look for) |
 | Google TV (`tv-module`) | `<app>-v<version>-google-tv.apk`, `<app>-v<version>-google-tv.aab` |
-| macOS | `<app>-v<version>-macos-arm64.dmg` |
+| macOS | `<app>-v<version>-macos-arm64.dmg`; with `mac-intel` also `<app>-v<version>-macos-x64.dmg` |
 | Windows | `<app>-v<version>-windows-x64.msi` |
 
 These match the asset rules of [App updates](app-update.md), so an app finds its own update file, and GitHub lists a SHA-256 digest for each.
