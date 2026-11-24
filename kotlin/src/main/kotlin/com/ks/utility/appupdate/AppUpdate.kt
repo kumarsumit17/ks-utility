@@ -38,9 +38,14 @@ class GitHubRepo private constructor(val owner: String, val name: String) {
     }
 }
 
-/** The system an installer is for. */
+/**
+ * The system an installer is for. [GOOGLE_TV] is never detected: an Android app that is
+ * running on a TV passes it, so it gets the TV build (`…-google-tv.apk`) and a phone never
+ * does. When a release has no TV build, a TV takes the plain APK (a TV-only app's one APK,
+ * or an app that still ships one APK for both).
+ */
 enum class UpdatePlatform {
-    MACOS_ARM64, MACOS_X64, WINDOWS_X64, ANDROID;
+    MACOS_ARM64, MACOS_X64, WINDOWS_X64, ANDROID, GOOGLE_TV;
 
     companion object {
         /** The platform from the JVM's `os.name`, `os.arch` and `java.vm.name`; null for others. */
@@ -114,6 +119,8 @@ object AppUpdate {
     private val DIGEST = Regex("^sha256:[0-9a-fA-F]{64}$")
     private val ARM = listOf("aarch64", "arm64", "apple-silicon")
     private val X64 = listOf("x64", "x86_64", "amd64", "intel")
+    /** A TV build names itself: `ks-app-v1.2.0-google-tv.apk` (also `googletv`, `android-tv`, `-tv.`). */
+    private val TV = Regex("google-?tv|android-?tv|[-_.]tv[-_.]")
 
     /** `vMAJOR.MINOR.PATCH` (one to four numeric parts, optional leading `v`) as numbers. */
     fun parseVersion(s: String): List<Long>? = VERSION.matchEntire(s.trim())?.groupValues?.get(1)?.split('.')?.map { it.toLong() }
@@ -183,7 +190,8 @@ object AppUpdate {
                     else -> 1
                 }
             }
-            UpdatePlatform.ANDROID -> if (n.endsWith(".apk")) 2 else 0
+            UpdatePlatform.ANDROID -> if (!n.endsWith(".apk") || TV.containsMatchIn(n)) 0 else 2
+            UpdatePlatform.GOOGLE_TV -> if (!n.endsWith(".apk")) 0 else if (TV.containsMatchIn(n)) 2 else 1
         }
     }
 

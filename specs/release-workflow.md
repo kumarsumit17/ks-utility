@@ -39,6 +39,7 @@ jobs:
       app-name: ks-jaiplayer
       display-name: KS JaiPlayer
       android-module: ":mobile:android"   # empty: no Android
+      tv-module: ":tv:google-tv"          # only an app with a real TV version; empty: no TV APK
       mac-module: ":desktop:mac"          # empty: no macOS
       windows-module: ":desktop:windows"  # empty: no Windows
       test-tasks: ":shared:desktopTest"
@@ -50,7 +51,8 @@ jobs:
 | `version` | Rehearsal only: the version to build (`X.Y.Z`); pass the manual run's input. A tag run ignores it | none |
 | `app-name` | Repository name, the prefix of every file name | required |
 | `display-name` | The app's name, used for the release title | required |
-| `android-module` | Gradle path of the Android application module; Google TV apps use the same APK | none |
+| `android-module` | Gradle path of the phone app module; a TV-only app (`ks-tv-launcher`) builds its TV app here | none |
+| `tv-module` | Gradle path of a separate Google TV app module, for an app with a real TV version (a `tv/google-tv` application module); signed with the same keystore | none |
 | `android-file-name` | APK/AAB name without extension, for an app whose installed copies look for a fixed name (`ks-tv-launcher`: `app-release`) | `<app>-v<version>` |
 | `mac-module` | Gradle path of the Compose Desktop module packaged for macOS | none |
 | `windows-module` | Gradle path of the Compose Desktop module packaged for Windows | none |
@@ -64,7 +66,7 @@ Secrets: `KEYSTORE_BASE64`, `KEYSTORE_PASSWORD`, `KEY_ALIAS`, `KEY_PASSWORD` ([v
 ## What it does
 
 1. **Version.** A tag `vMAJOR.MINOR.PATCH` (no suffix) on `main` gives `versionName` and `versionCode = MAJOR×10000 + MINOR×100 + PATCH` (MINOR and PATCH below 100); both are passed to every Gradle build as `-PversionName` and `-PversionCode`. A manual run is the **rehearsal** of the [release cycle](https://github.com/kumarsumit17/KS-Suite/blob/main/specs/release-cycle.md): it builds the version given as input exactly as a tag would, and never attests or publishes.
-2. **Android and Google TV** (Ubuntu). A tag release stops at once if a signing secret is missing. The keystore is decoded into the runner's temporary folder and opened once to check the password and alias. Tests, then `assembleRelease` and `bundleRelease`. The signing check embedded in the workflow proves both files are signed by the keystore's certificate, or, for a manual run without secrets, that they carry no signature and are named `-UNSIGNED`. The keystore is deleted when the job ends.
+2. **Android and Google TV** (Ubuntu). A tag release stops at once if a signing secret is missing. The keystore is decoded into the runner's temporary folder and opened once to check the password and alias. Tests, then `assembleRelease` and `bundleRelease` for the phone module and, if set, the TV module. The signing check embedded in the workflow proves each APK and AAB is signed by the keystore's certificate, or, for a manual run without secrets, that they carry no signature and are named `-UNSIGNED`. The keystore is deleted when the job ends.
 3. **macOS** (`macos-15`, Apple silicon): `packageReleaseDmg`. Not yet signed with a Developer ID or notarised: the first open needs System Settings › Privacy & Security › Open Anyway.
 4. **Windows** (`windows-2025`, x64): `packageReleaseMsi`. Not yet Authenticode-signed: SmartScreen asks once (More info › Run anyway).
 5. **Attest and publish** (Ubuntu, the only job with write access). Only for a tag, only when every platform the app names built, and only with a verified signed APK. It checks it received exactly the expected files, gives each a build-provenance attestation (`gh attestation verify <file> -R kumarsumit17/<app> --signer-workflow kumarsumit17/ks-utility/.github/workflows/kotlin-app-release.yml`; the signer is this shared workflow, not the app's own `release.yml`), and publishes them with the preinstalled `gh` CLI as a full release marked latest, with generated notes. `gh release create` with files keeps the release hidden until every file is up, so a failure publishes nothing.
@@ -75,7 +77,8 @@ Every action is pinned to a full commit SHA with its version in a comment, runne
 
 | Platform | File |
 |---|---|
-| Android, Google TV | `<app>-v<version>.apk`, `<app>-v<version>.aab` (`ks-tv-launcher` keeps `app-release.apk`, which its installed copies look for) |
+| Android | `<app>-v<version>.apk`, `<app>-v<version>.aab` (`ks-tv-launcher`, TV-only, keeps `app-release.apk`, which its installed copies look for) |
+| Google TV (`tv-module`) | `<app>-v<version>-google-tv.apk`, `<app>-v<version>-google-tv.aab` |
 | macOS | `<app>-v<version>-macos-arm64.dmg` |
 | Windows | `<app>-v<version>-windows-x64.msi` |
 

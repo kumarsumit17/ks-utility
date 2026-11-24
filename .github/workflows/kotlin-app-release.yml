@@ -4,8 +4,10 @@ name: Kotlin app release (shared)
 # ks-streamflix, ks-vault, ks-expense-manager). Each app calls it from its own
 # .github/workflows/release.yml, pinned to a ks-utility tag, and says which platforms it has:
 #
-#   Android and Google TV   one APK (+ AAB) from `android-module`; Google TV apps use the same
-#                           APK with a leanback entry, so they need nothing more.
+#   Android                 the phone APK (+ AAB) from `android-module`. A TV-only app
+#                           (ks-tv-launcher) builds its TV app here and sets nothing else.
+#   Google TV               an app with a real TV version (a tv/google-tv application module)
+#                           also sets `tv-module`: a separate TV APK (+ AAB), <app>-v<version>-google-tv.apk.
 #   macOS                   a .dmg from `mac-module` (Compose Desktop / jpackage), Apple silicon.
 #   Windows                 an .msi from `windows-module`, x64.
 #
@@ -19,7 +21,8 @@ name: Kotlin app release (shared)
 #                                  signing secrets the APK is unsigned and named so.
 #
 # File names follow ks-utility's app-update rules (specs/app-update.md), so apps find their own
-# updates: <app>-v<version>.apk, <app>-v<version>-macos-arm64.dmg, <app>-v<version>-windows-x64.msi.
+# updates: <app>-v<version>.apk, <app>-v<version>-google-tv.apk, <app>-v<version>-macos-arm64.dmg,
+# <app>-v<version>-windows-x64.msi.
 # See specs/release-workflow.md.
 
 on:
@@ -43,6 +46,10 @@ on:
         default: ""
       android-file-name:
         description: "Name of the APK and AAB without extension. Empty: <app-name>-v<version>. Only for an app whose installed copies look for an older fixed name (ks-tv-launcher: app-release)."
+        type: string
+        default: ""
+      tv-module:
+        description: "Gradle path of a separate Google TV application module (e.g. :tv:google-tv), built with the same keystore as android-module. Empty: no TV APK."
         type: string
         default: ""
       mac-module:
@@ -392,21 +399,30 @@ jobs:
           SIGNING_KEY_ALIAS: ${{ steps.signing.outputs.signed == 'true' && secrets.KEY_ALIAS || '' }}
           SIGNING_KEY_PASSWORD: ${{ steps.signing.outputs.signed == 'true' && secrets.KEY_PASSWORD || '' }}
           MODULE: ${{ inputs.android-module }}
+          TV_MODULE: ${{ inputs.tv-module }}
         run: |
-          ./gradlew "$MODULE:assembleRelease" "$MODULE:bundleRelease" \
+          tasks=("$MODULE:assembleRelease" "$MODULE:bundleRelease")
+          [ -z "$TV_MODULE" ] || tasks+=("$TV_MODULE:assembleRelease" "$TV_MODULE:bundleRelease")
+          ./gradlew "${tasks[@]}" \
             "-PversionName=${{ needs.version.outputs.name }}" "-PversionCode=${{ needs.version.outputs.code }}"
 
       - name: Find the outputs
         id: out
         env:
           MODULE: ${{ inputs.android-module }}
+          TV_MODULE: ${{ inputs.tv-module }}
         run: |
-          dir="$(echo "${MODULE#:}" | tr ':' '/')"
-          apk="$(find "$dir/build/outputs/apk/release" -name '*.apk' | sort | sed -n '1p')"
-          aab="$(find "$dir/build/outputs/bundle/release" -name '*.aab' | sort | sed -n '1p')"
-          [ -s "$apk" ] && [ -s "$aab" ] || { echo "::error::No release APK/AAB under $dir/build/outputs."; exit 1; }
-          echo "apk=$apk" >> "$GITHUB_OUTPUT"
-          echo "aab=$aab" >> "$GITHUB_OUTPUT"
+          find_outputs() { # <module> <output prefix>
+            local dir apk aab
+            dir="$(echo "${1#:}" | tr ':' '/')"
+            apk="$(find "$dir/build/outputs/apk/release" -name '*.apk' | sort | sed -n '1p')"
+            aab="$(find "$dir/build/outputs/bundle/release" -name '*.aab' | sort | sed -n '1p')"
+            [ -s "$apk" ] && [ -s "$aab" ] || { echo "::error::No release APK/AAB under $dir/build/outputs."; exit 1; }
+            echo "${2}apk=$apk" >> "$GITHUB_OUTPUT"
+            echo "${2}aab=$aab" >> "$GITHUB_OUTPUT"
+          }
+          find_outputs "$MODULE" ""
+          [ -z "$TV_MODULE" ] || find_outputs "$TV_MODULE" "tv_"
 
       # A finished Gradle build is not proof of signing: apksigner and jarsigner check both
       # files against the keystore's certificate.
@@ -415,16 +431,27 @@ jobs:
         if: steps.signing.outputs.signed == 'true'
         env:
           EXPECTED_CERT_SHA256: ${{ steps.keystore.outputs.cert_sha256 }}
-        run: bash "$RUNNER_TEMP/verify-release-signing.sh" signed "${{ steps.out.outputs.apk }}" "${{ steps.out.outputs.aab }}" "$EXPECTED_CERT_SHA256"
+          TV_APK: ${{ steps.out.outputs.tv_apk }}
+          TV_AAB: ${{ steps.out.outputs.tv_aab }}
+        run: |
+          bash "$RUNNER_TEMP/verify-release-signing.sh" signed "${{ steps.out.outputs.apk }}" "${{ steps.out.outputs.aab }}" "$EXPECTED_CERT_SHA256"
+          [ -z "$TV_APK" ] || bash "$RUNNER_TEMP/verify-release-signing.sh" signed "$TV_APK" "$TV_AAB" "$EXPECTED_CERT_SHA256"
 
       - name: Confirm the build is unsigned
         if: steps.signing.outputs.signed == 'false'
-        run: bash "$RUNNER_TEMP/verify-release-signing.sh" unsigned "${{ steps.out.outputs.apk }}" "${{ steps.out.outputs.aab }}"
+        env:
+          TV_APK: ${{ steps.out.outputs.tv_apk }}
+          TV_AAB: ${{ steps.out.outputs.tv_aab }}
+        run: |
+          bash "$RUNNER_TEMP/verify-release-signing.sh" unsigned "${{ steps.out.outputs.apk }}" "${{ steps.out.outputs.aab }}"
+          [ -z "$TV_APK" ] || bash "$RUNNER_TEMP/verify-release-signing.sh" unsigned "$TV_APK" "$TV_AAB"
 
       - name: Collect
         env:
           BASE: ${{ inputs.android-file-name != '' && inputs.android-file-name || format('{0}-v{1}', inputs.app-name, needs.version.outputs.name) }}
           SIGNED: ${{ steps.signing.outputs.signed }}
+          TV_APK: ${{ steps.out.outputs.tv_apk }}
+          TV_AAB: ${{ steps.out.outputs.tv_aab }}
         run: |
           # Decided in the shell: in a GitHub expression `cond && '' || 'x'` is always 'x',
           # because an empty string counts as false.
@@ -432,6 +459,10 @@ jobs:
           mkdir -p dist
           cp "${{ steps.out.outputs.apk }}" "dist/$BASE$SUFFIX.apk"
           cp "${{ steps.out.outputs.aab }}" "dist/$BASE$SUFFIX.aab"
+          if [ -n "$TV_APK" ]; then
+            cp "$TV_APK" "dist/$BASE-google-tv$SUFFIX.apk"
+            cp "$TV_AAB" "dist/$BASE-google-tv$SUFFIX.aab"
+          fi
 
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
@@ -567,11 +598,13 @@ jobs:
           BASE: ${{ inputs.app-name }}-v${{ needs.version.outputs.name }}
           APK_BASE: ${{ inputs.android-file-name != '' && inputs.android-file-name || format('{0}-v{1}', inputs.app-name, needs.version.outputs.name) }}
           ANDROID: ${{ inputs.android-module }}
+          TV: ${{ inputs.tv-module }}
           MAC: ${{ inputs.mac-module }}
           WINDOWS: ${{ inputs.windows-module }}
         run: |
           expected=()
           [ -z "$ANDROID" ] || expected+=("$APK_BASE.apk" "$APK_BASE.aab")
+          [ -z "$ANDROID" ] || [ -z "$TV" ] || expected+=("$APK_BASE-google-tv.apk" "$APK_BASE-google-tv.aab")
           [ -z "$MAC" ] || expected+=("$BASE-macos-arm64.dmg")
           [ -z "$WINDOWS" ] || expected+=("$BASE-windows-x64.msi")
           got="$(cd dist && ls -1 | sort)"

@@ -85,6 +85,18 @@ class AppUpdateTest {
     }
 
     @Test
+    fun phoneAndTvBuildsNeverSwap() {
+        val split = AppUpdate.parseRelease(release("1.2.0", asset("ks-app-v1.2.0.apk", 5), asset("ks-app-v1.2.0-google-tv.apk", 9), asset("ks-app-v1.2.0.aab", 20)), repo)!!
+        assertEquals("ks-app-v1.2.0.apk", AppUpdate.pickAsset(split.assets, UpdatePlatform.ANDROID, repo)?.name)
+        assertEquals("ks-app-v1.2.0-google-tv.apk", AppUpdate.pickAsset(split.assets, UpdatePlatform.GOOGLE_TV, repo)?.name)
+        // One APK for both (or a TV-only app): a TV takes it; a phone never takes a TV build.
+        val one = AppUpdate.parseRelease(release("1.2.0", asset("ks-app-v1.2.0.apk", 5)), repo)!!
+        assertEquals("ks-app-v1.2.0.apk", AppUpdate.pickAsset(one.assets, UpdatePlatform.GOOGLE_TV, repo)?.name)
+        val tvOnly = AppUpdate.parseRelease(release("1.2.0", asset("ks-app-v1.2.0-google-tv.apk", 5)), repo)!!
+        assertNull(AppUpdate.pickAsset(tvOnly.assets, UpdatePlatform.ANDROID, repo))
+    }
+
+    @Test
     fun universalFilesAndSize() {
         val r = AppUpdate.parseRelease(release("1.2.0", asset("ks-app.dmg", 5), asset("ks-app.msi", 6), asset("small.apk", 1), asset("universal.apk", 9)), repo)!!
         fun pick(p: UpdatePlatform) = AppUpdate.pickAsset(r.assets, p, repo)?.name

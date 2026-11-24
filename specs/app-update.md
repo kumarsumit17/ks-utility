@@ -37,7 +37,8 @@ Assets are matched by file name, case-insensitive, following the same rules as t
 | macOS Apple silicon | `.dmg` containing `aarch64`, `arm64` or `apple-silicon` | `.dmg` with no architecture in its name |
 | macOS Intel | `.dmg` containing `x64`, `x86_64`, `amd64` or `intel` | the same |
 | Windows x64 | `.msi`, or `.exe` with `setup` or `install` in its name or starting with the repository name, containing `x64`, `x86_64`, `amd64` or `intel`; never one naming `arm64`/`aarch64` | the same without an architecture |
-| Android | `.apk` (`.aab` ignored) | — |
+| Android | an `.apk` whose name is not a TV build (`.aab` ignored) | — |
+| Google TV | the TV build, an `.apk` named `…-google-tv.apk` (also `googletv`, `android-tv`, `-tv.`) | any other `.apk` (an app with one APK for phone and TV, or a TV-only app) |
 
 Of two matches of the same kind, the larger wins (a universal APK over a split one). An app with other names uses `Release.find(predicate)` instead of `pickAsset` and passes the result to `decide`.
 
@@ -82,7 +83,7 @@ Same names in each language, written in its own style. None of them opens a conn
 | Versions | `AppUpdate.parseVersion`, `isNewer`, `isDevVersion` | `parse_version`, `is_newer`, `is_dev_version` | `parseVersion`, `isNewerVersion`, `isDevVersion` |
 | Daily schedule | `AppUpdate.isCheckDue(enabled, current, lastCheckMs?, nowMs)` | `check_due(enabled, current, Option<SystemTime>, SystemTime)` | `isCheckDue(enabled, current, lastCheckMs \| null, nowMs)` |
 | Repository and request | `GitHubRepo.parse("owner/name")`, `.latestReleaseApiUrl`, `.latestReleasePageUrl`, `.downloadPrefix`, `.requestHeaders` | `Repo::parse`, `.latest_release_api_url()`, `.latest_release_page_url()`, `.download_prefix()`, `.request_headers()` | `parseRepo`, `latestReleaseApiUrl`, `releasePageUrl`, `downloadPrefix`, `requestHeaders` |
-| Platform | `UpdatePlatform` (`MACOS_ARM64`, `MACOS_X64`, `WINDOWS_X64`, `ANDROID`), `.current()`, `.detect(...)` | `Platform`, `Platform::current()` | `Platform` (`"macos-arm64"`, …); the app supplies it |
+| Platform | `UpdatePlatform` (`MACOS_ARM64`, `MACOS_X64`, `WINDOWS_X64`, `ANDROID`, `GOOGLE_TV`), `.current()`, `.detect(...)`; an Android app running on a TV passes `GOOGLE_TV` itself (never detected), so a phone never installs a TV build and a TV never a phone build. Kotlin only: the Rust and TypeScript helpers have no Android | `Platform`, `Platform::current()` | `Platform` (`"macos-arm64"`, …); the app supplies it |
 | Read the response | `AppUpdate.parseRelease(json, repo)` → `Release(version, assets)` | `parse_release(json, &repo)` → `Release` | `parseRelease(textOrObject, repo)` → `Release` |
 | Choose the file | `AppUpdate.pickAsset`, `Release.find` | `pick_asset`, `Release::find` | `pickAsset` |
 | Decide | `AppUpdate.evaluate` / `decide` → `UpdateOutcome` (`UpToDate`, `Available`, `NoInstaller`); null = unreadable | `evaluate` / `decide` → `Outcome`; `None` = unreadable | `evaluateRelease` / `decide` → `Outcome` (`result`: `upToDate`, `available`, `noInstaller`); null = unreadable |
