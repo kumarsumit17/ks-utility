@@ -132,3 +132,10 @@ The data file `lang/hindi-terms.json` holds the same rows; a test fails if this 
 | Health | सेहत | स्वास्थ्य | owner review |
 | Entertainment | मनोरंजन | — | owner review |
 | Hidden | छिपी हुई | — | owner review |
+| Vault | वॉल्ट | — | owner review |
+| Pattern | पैटर्न | — | owner review |
+| Lock | लॉक | — | owner review |
+| Unlock | अनलॉक करें | — | owner review |
+| Title | शीर्षक | — | owner review |
+| Encrypt | एन्क्रिप्ट | — | owner review |
+| Dot | बिंदु | — | owner review |

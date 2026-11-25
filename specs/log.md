@@ -1,5 +1,6 @@
 # 2026-11-25
 
+* **Update**: [Hindi style guide](hindi-style.md): 7 terms from KS Vault added for owner review (Vault वॉल्ट, Pattern पैटर्न, Lock लॉक, Unlock अनलॉक करें, Title शीर्षक, Encrypt एन्क्रिप्ट, Dot बिंदु), in the table and `lang/hindi-terms.json`.
 * **Update**: [Usage](usage.md): `v0.10.0` tagged (platform tags).
 * **Update**: [App updates](app-update.md) "Platform tags" and [Release workflow](release-workflow.md): an app's platforms may have their own versions, tagged `android-v…`, `google-tv-v…`, `mac-v…`, `windows-v…`. Kotlin, Rust and TypeScript helpers read the release list (`releasesApiUrl`, `parseReleases`, `evaluateReleases`, `tagVersion`, the release page by tag); the workflow builds only the tagged platform (`platform` input for rehearsals) and does not mark a platform release latest; the bridge release. For `v0.10.0`, not tagged yet.
 * **Update**: [Hindi style guide](hindi-style.md): 13 terms from KS Expense Manager added for owner review (Expense खर्च, Amount रकम, Note नोट, Date तारीख, Export एक्सपोर्ट, Spreadsheet स्प्रेडशीट, Food खाना, Transport ट्रांसपोर्ट, Shopping शॉपिंग, Bills बिल, Health सेहत, Entertainment मनोरंजन, Hidden छिपी हुई), in the table and `lang/hindi-terms.json`.

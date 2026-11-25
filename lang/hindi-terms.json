@@ -656,5 +656,47 @@
     "hi": "छिपी हुई",
     "avoid": [],
     "review": true
+  },
+  {
+    "en": "Vault",
+    "hi": "वॉल्ट",
+    "avoid": [],
+    "review": true
+  },
+  {
+    "en": "Pattern",
+    "hi": "पैटर्न",
+    "avoid": [],
+    "review": true
+  },
+  {
+    "en": "Lock",
+    "hi": "लॉक",
+    "avoid": [],
+    "review": true
+  },
+  {
+    "en": "Unlock",
+    "hi": "अनलॉक करें",
+    "avoid": [],
+    "review": true
+  },
+  {
+    "en": "Title",
+    "hi": "शीर्षक",
+    "avoid": [],
+    "review": true
+  },
+  {
+    "en": "Encrypt",
+    "hi": "एन्क्रिप्ट",
+    "avoid": [],
+    "review": true
+  },
+  {
+    "en": "Dot",
+    "hi": "बिंदु",
+    "avoid": [],
+    "review": true
   }
 ]
