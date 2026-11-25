@@ -698,5 +698,83 @@
     "hi": "बिंदु",
     "avoid": [],
     "review": true
+  },
+  {
+    "en": "Tab",
+    "hi": "टैब",
+    "avoid": [],
+    "review": true
+  },
+  {
+    "en": "Pane",
+    "hi": "पैनल",
+    "avoid": [],
+    "review": true
+  },
+  {
+    "en": "Split",
+    "hi": "बांटें",
+    "avoid": [],
+    "review": true
+  },
+  {
+    "en": "Terminal",
+    "hi": "टर्मिनल",
+    "avoid": [],
+    "review": true
+  },
+  {
+    "en": "Shell",
+    "hi": "शेल",
+    "avoid": [],
+    "review": true
+  },
+  {
+    "en": "Theme",
+    "hi": "थीम",
+    "avoid": [],
+    "review": true
+  },
+  {
+    "en": "Shortcut",
+    "hi": "शॉर्टकट",
+    "avoid": [],
+    "review": true
+  },
+  {
+    "en": "Font",
+    "hi": "फ़ॉन्ट",
+    "avoid": [],
+    "review": true
+  },
+  {
+    "en": "Command palette",
+    "hi": "कमांड पैलेट",
+    "avoid": [],
+    "review": true
+  },
+  {
+    "en": "Shell integration",
+    "hi": "शेल इंटीग्रेशन",
+    "avoid": [],
+    "review": true
+  },
+  {
+    "en": "Scrollback",
+    "hi": "स्क्रॉलबैक",
+    "avoid": [],
+    "review": true
+  },
+  {
+    "en": "Accent colour",
+    "hi": "मुख्य रंग",
+    "avoid": [],
+    "review": true
+  },
+  {
+    "en": "Appearance",
+    "hi": "रूप-रंग",
+    "avoid": [],
+    "review": true
   }
 ]

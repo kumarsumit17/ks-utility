@@ -139,3 +139,16 @@ The data file `lang/hindi-terms.json` holds the same rows; a test fails if this 
 | Title | शीर्षक | — | owner review |
 | Encrypt | एन्क्रिप्ट | — | owner review |
 | Dot | बिंदु | — | owner review |
+| Tab | टैब | — | owner review |
+| Pane | पैनल | — | owner review |
+| Split | बांटें | — | owner review |
+| Terminal | टर्मिनल | — | owner review |
+| Shell | शेल | — | owner review |
+| Theme | थीम | — | owner review |
+| Shortcut | शॉर्टकट | — | owner review |
+| Font | फ़ॉन्ट | — | owner review |
+| Command palette | कमांड पैलेट | — | owner review |
+| Shell integration | शेल इंटीग्रेशन | — | owner review |
+| Scrollback | स्क्रॉलबैक | — | owner review |
+| Accent colour | मुख्य रंग | — | owner review |
+| Appearance | रूप-रंग | — | owner review |

@@ -1,5 +1,6 @@
 # 2026-11-25
 
+* **Update**: [Hindi style guide](hindi-style.md): 13 terms from KS Forge added for owner review (Tab टैब, Pane पैनल, Split बांटें, Terminal टर्मिनल, Shell शेल, Theme थीम, Shortcut शॉर्टकट, Font फ़ॉन्ट, Command palette कमांड पैलेट, Shell integration शेल इंटीग्रेशन, Scrollback स्क्रॉलबैक, Accent colour मुख्य रंग, Appearance रूप-रंग), in the table and `lang/hindi-terms.json`.
 * **Update**: [Hindi style guide](hindi-style.md): 7 terms from KS Vault added for owner review (Vault वॉल्ट, Pattern पैटर्न, Lock लॉक, Unlock अनलॉक करें, Title शीर्षक, Encrypt एन्क्रिप्ट, Dot बिंदु), in the table and `lang/hindi-terms.json`.
 * **Update**: [Usage](usage.md): `v0.10.0` tagged (platform tags).
 * **Update**: [App updates](app-update.md) "Platform tags" and [Release workflow](release-workflow.md): an app's platforms may have their own versions, tagged `android-v…`, `google-tv-v…`, `mac-v…`, `windows-v…`. Kotlin, Rust and TypeScript helpers read the release list (`releasesApiUrl`, `parseReleases`, `evaluateReleases`, `tagVersion`, the release page by tag); the workflow builds only the tagged platform (`platform` input for rehearsals) and does not mark a platform release latest; the bridge release. For `v0.10.0`, not tagged yet.
