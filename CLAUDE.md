@@ -13,7 +13,7 @@ Common, generic utility functions for the KS-Suite apps. Part of KS-Suite; the s
 - `typescript/`: TypeScript source, exported from `typescript/src/index.ts` through the root `package.json`.
 - `rust/`: crate `ks-utility`, no dependencies.
 - `lang/`: shared English and Hindi catalogue (`lang/common/`) and the Hindi term list (`lang/hindi-terms.json`, kept equal to the table in `specs/hindi-style.md`). `typescript/tools/lang.mjs` is the language-file check and Android converter every app runs (`specs/usage.md`).
-- Every KS-Suite app supports English and Hindi through this repository, and may ship more languages translated in Crowdin (`specs/languages.md`, `specs/crowdin.md`).
+- Every KS-Suite app supports English and Hindi through this repository, and may ship more languages translated with its own tools, no outside service (`specs/languages.md`, `specs/translating.md`).
 - This is not an app: no release workflow and no signing. Releases are version tags (`vMAJOR.MINOR.PATCH`, rules in `specs/usage.md`); the `0.0.0` in `package.json` and `rust/Cargo.toml` is a placeholder.
 
 ## Rules (non-negotiable)

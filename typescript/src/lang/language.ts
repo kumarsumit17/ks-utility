@@ -14,7 +14,7 @@ export type LanguageChoice = Language | "system";
 
 /**
  * A language code as language files are named: a language (`fr`), optionally a script
- * (`zh-Hans`) and a region (`pt-BR`, `es-419`). The same tags Android and Crowdin use.
+ * (`zh-Hans`) and a region (`pt-BR`, `es-419`). The same tags Android and translation tools use.
  */
 export const LANGUAGE_CODE = /^[a-z]{2,3}(-[A-Z][a-z]{3})?(-([A-Z]{2}|[0-9]{3}))?$/;
 

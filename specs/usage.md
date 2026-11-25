@@ -35,13 +35,15 @@ Every suite app supports English and Hindi, and may ship more languages ([Langua
 
 ```bash
 node <ks-utility>/typescript/tools/lang.mjs check <dir>... [--chrome <_locales dir>]...
-node <ks-utility>/typescript/tools/lang.mjs android <dir>... --out <res dir> [--name lang_strings]
-node <ks-utility>/typescript/tools/lang.mjs compose <dir>... --out <res dir> [--name lang_strings]
-node <ks-utility>/typescript/tools/lang.mjs crowdin-export <dir> --out <file>
-node <ks-utility>/typescript/tools/lang.mjs crowdin-import <file> --lang <code> --into <dir>
+node <ks-utility>/typescript/tools/lang.mjs android <dir>... --out <res dir> [--name lang_strings] [--pseudo]
+node <ks-utility>/typescript/tools/lang.mjs compose <dir>... --out <res dir> [--name lang_strings] [--pseudo]
+node <ks-utility>/typescript/tools/lang.mjs status <dir>...
+node <ks-utility>/typescript/tools/lang.mjs translate <dir>... [--lang <code>]... [--memory <dir>]... [--port <n>]
+node <ks-utility>/typescript/tools/lang.mjs export-xliff <dir> --lang <code> --out <file> [--all]
+node <ks-utility>/typescript/tools/lang.mjs import-xliff <file> --lang <code> --into <dir>
 ```
 
-- Each `<dir>` holds one file per language: `en.json` and `hi.json` always, and any others (`fr.json`, `pt-BR.json`; from `v0.8.0`). `android` and `compose` write one `values-…` folder per language. `crowdin-export` and `crowdin-import` convert to and from the file [Crowdin](crowdin.md) translates (from `v0.8.0`; [format](translation-format.md#crowdin)). The shared catalogue (`lang/common`) is always included. Exit code 0 when everything passes, 1 with one line per problem, 2 for a usage mistake.
+- Each `<dir>` holds one file per language: `en.json` and `hi.json` always, and any others (`fr.json`, `pt-BR.json`; from `v0.8.0`). `android` and `compose` write one `values-…` folder per language. `status`, `translate`, `export-xliff`, `import-xliff` and `--pseudo` are the [translation tools](translating.md) (from `v0.9.0`). The shared catalogue (`lang/common`) is always included. Exit code 0 when everything passes, 1 with one line per problem, 2 for a usage mistake.
 - It needs Node 23.6 or later and nothing installed. `lang.mjs` is plain JavaScript: Node does not strip TypeScript types from files inside `node_modules`, so it copies the TypeScript tool (`lang.ts`) and `typescript/src/lang/` to a new temporary folder, runs it there and removes the folder (fixed in `v0.2.1`; with `v0.2.0` the command fails inside `node_modules`). `<ks-utility>` is `node_modules/ks-utility` in a TypeScript app and the `ks-utility/` submodule in a Kotlin app.
 - **TypeScript app:** add it to the app's tests, for example `"test:lang": "node node_modules/ks-utility/typescript/tools/lang.mjs check src/locales --chrome extension/_locales"`. Import the shared catalogue as `ks-utility/lang/common/en.json` and `ks-utility/lang/common/hi.json` and pass it to `createTranslator` before the app's own files.
 - **Kotlin app:** keep the language files in the app (for example `app/src/main/lang/`), and register two Gradle tasks: one running `check`, hooked into `check`; one running `android --out app/src/main/res`, hooked before `preBuild`. For example:
@@ -76,7 +78,7 @@ node <ks-utility>/typescript/tools/lang.mjs crowdin-import <file> --lang <code> 
 | `v0.4.0` | the commit the tag names | The shared release workflow for the Kotlin apps ([spec](release-workflow.md)). Do not use: it names a signed APK `-UNSIGNED`, so the publish check stops every release |
 | `v0.4.1` | the commit the tag names | Fix: signed APK and AAB keep their release names; call `kotlin-app-release.yml@v0.4.1` |
 | `v0.4.2` | the commit the tag names | Docs: verify release attestations with `--signer-workflow`; the workflow is unchanged from `v0.4.1` |
-| `v0.8.0` | the commit the tag names | More languages: one file per language code (English and Hindi required, others partial, fallback through the region to English), the check for every language, one Android/Compose `values-…` folder per language, `crowdin-export` / `crowdin-import` ([Crowdin](crowdin.md)), Kotlin `LanguageRules` for 28 languages |
+| `v0.8.0` | the commit the tag names | More languages: one file per language code (English and Hindi required, others partial, fallback through the region to English), the check for every language, one Android/Compose `values-…` folder per language, `crowdin-export` / `crowdin-import` (for Crowdin), Kotlin `LanguageRules` for 28 languages. `crowdin-export` / `crowdin-import` are removed in `v0.9.0`, which has its own translation tools instead |
 | `v0.7.0` | the commit the tag names | Google Play: the shared release workflow's `play-build-type` input builds each AAB from that build type (no in-app updater), while the APKs stay the GitHub build; `mac-intel` adds an Intel dmg (`-macos-x64.dmg`) ([release workflow](release-workflow.md)) |
 | `v0.6.0` | the commit the tag names | Google TV: `UpdatePlatform.GOOGLE_TV` picks `…-google-tv.apk` and `ANDROID` never picks it ([app updates](app-update.md)); the shared release workflow's `tv-module` input builds and publishes that separate TV APK and AAB ([release workflow](release-workflow.md)) |
 | `v0.5.0` | the commit the tag names | `lang.mjs compose`: string resources escaped for Compose Multiplatform ([format](translation-format.md#compose-multiplatform)); Kotlin look-up `com.ks.utility.lang.Translator` (layers, English fallback, placeholders, en/hi plurals, Indian grouping) |

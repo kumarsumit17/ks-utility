@@ -36,7 +36,11 @@ Standard library only, `#![forbid(unsafe_code)]`.
 | `parseVersion`, `isNewerVersion`, `isDevVersion`, `isCheckDue`, `parseRepo`, `latestReleaseApiUrl`, `releasePageUrl`, `requestHeaders`, `parseRelease`, `pickAsset`, `evaluateRelease`, `decide`, `sha256Hex`, `sha256Matches` | App updates, no network ([spec](app-update.md)). |
 | `createUpdateStore`, `openedNote` | The state behind an "App updates" section and banner; notes are message keys with parameters. |
 | `toAndroidXml`, `toComposeXml`, `resourceName`, `resourceNameProblems`, `resourceFolder`, `escapeAndroid`, `escapeCompose`, `argumentOrder` | Conversion of language files into Android string resources (one `values-…` folder per language), and the same files escaped for Compose Multiplatform resources. |
-| `toCrowdinSource`, `fromCrowdin` | Conversion to and from the file Crowdin translates: plural forms as `key_one`, `key_other` ([format](translation-format.md#crowdin)). |
+| `qaCheck` | Quality checks of one translation: the check's errors, and warnings (spaces, end punctuation, numbers, missing plural forms, length limit, glossary) ([translation tools](translating.md#quality-checks)). |
+| `buildMemory`, `lookUp`, `similarity`, `editDistance` | Translation memory: the same English translated elsewhere (100 %), then similar texts ([translation tools](translating.md#translation-memory)). |
+| `toXliff`, `fromXliff` | XLIFF 1.2 for translators' own tools, one unit per plural form of the target language ([format](translation-format.md#xliff)). |
+| `pseudoLocalize`, `pseudoCatalog`, `PSEUDO_LANGUAGE` | Pseudo-localisation (`en-XA`): accented, longer, bracketed text for layout tests. |
+| `hindiGlossary`, `GlossaryTerm` | Glossaries per language; the Hindi term list as one. |
 
 ## Kotlin (`kotlin/`, package `com.ks.utility`)
 Plain Kotlin/JVM, no Android SDK.

@@ -18,7 +18,8 @@
   ],
   "scripts": {
     "test": "node --test typescript/test/",
-    "check:lang": "node typescript/tools/lang.mjs check"
+    "check:lang": "node typescript/tools/lang.mjs check",
+    "translate": "node typescript/tools/lang.mjs translate lang/common"
   },
   "engines": {
     "node": ">=23.6"

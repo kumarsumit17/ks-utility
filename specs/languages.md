@@ -1,8 +1,8 @@
 ---
 type: Policy
 title: Languages
-description: Every KS-Suite app supports English and Hindi through KS Utility, may add more languages translated in Crowdin, and chooses among them by one rule.
-tags: [language, hindi, english, crowdin, policy]
+description: Every KS-Suite app supports English and Hindi through KS Utility, may add more languages with KS Utility's own translation tools, and chooses among them by one rule.
+tags: [language, hindi, english, translation, policy]
 ---
 
 # Languages
@@ -10,10 +10,11 @@ tags: [language, hindi, english, crowdin, policy]
 Every KS-Suite app supports **English and Hindi** through KS Utility: its interface text is in language files of the [suite format](translation-format.md), the shared text comes from this repository's catalogue, Hindi follows the [Hindi style guide](hindi-style.md), and the app runs the language-file check in its tests ([usage](usage.md#language-files)).
 
 ## More languages
-An app may ship more languages: one language file each, named by its code (`fr.json`, `pt-BR.json`), translated in the suite's [Crowdin](crowdin.md) project.
+An app may ship more languages: one language file each, named by its code (`fr.json`, `pt-BR.json`), translated with KS Utility's own [translation tools](translating.md): a local editor, translation memory, glossaries, quality checks, review, XLIFF and pseudo-localisation, with no outside service.
 - **English and Hindi stay required and complete**, and Hindi is written and reviewed by the owner against the style guide; the check fails without them.
 - **Other languages may be partial.** A text a language leaves out is shown in English, so a language can ship as soon as its main screens are translated. A language is offered in Settings once the owner decides it is good enough.
-- The same check applies to every language: placeholders as in English, only the plural forms the language uses, digits 0-9.
+- The same check applies to every language: placeholders as in English, only the plural forms the language uses, digits 0-9, and the words its glossary says to avoid.
+- Before shipping a language, test the layout with the pseudo-locale (`--pseudo`, [translation tools](translating.md#pseudo-localisation)): text about 40 % longer shows where a screen clips.
 
 ## The language rule
 One rule for every app:

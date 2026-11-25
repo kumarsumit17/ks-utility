@@ -26,7 +26,17 @@ export {
   type Language,
   type LanguageChoice,
 } from "./lang/language.ts";
-export { checkCatalogs, checkLanguages, containsPhrase, duplicateKeys, fromChromeMessages, type CheckOptions, type Term } from "./lang/check.ts";
+export {
+  checkCatalogs,
+  checkLanguages,
+  containsPhrase,
+  duplicateKeys,
+  fromChromeMessages,
+  hindiGlossary,
+  type CheckOptions,
+  type GlossaryTerm,
+  type Term,
+} from "./lang/check.ts";
 export {
   argumentOrder,
   escapeAndroid,
@@ -37,7 +47,10 @@ export {
   toAndroidXml,
   toComposeXml,
 } from "./lang/android.ts";
-export { fromCrowdin, toCrowdinSource, type CrowdinFile } from "./lang/crowdin.ts";
+export { qaCheck, type KeyContext, type QaResult } from "./lang/qa.ts";
+export { buildMemory, editDistance, lookUp, similarity, type MemoryMatch, type MemoryUnit } from "./lang/memory.ts";
+export { PSEUDO_LANGUAGE, pseudoCatalog, pseudoLocalize } from "./lang/pseudo.ts";
+export { fromXliff, toXliff, type XliffOptions } from "./lang/xliff.ts";
 export type { ResourceTarget } from "./lang/android.ts";
 export {
   CHECK_INTERVAL_MS,

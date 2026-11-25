@@ -1,0 +1,506 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KS translation editor</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg: #f6f7f9; --panel: #ffffff; --text: #1d2330; --muted: #5d6677; --line: #dde1e8;
+    --accent: #2f5bd3; --accent-text: #ffffff; --err: #b3261e; --err-bg: #fdecea; --warn: #8a5a00; --warn-bg: #fff4d6;
+    --ok: #1e7a3c; --ok-bg: #e3f4e8; --chip: #e9edf5; --focus: #2f5bd3;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #14171d; --panel: #1c2028; --text: #e6e9ef; --muted: #9aa3b2; --line: #2e3440;
+      --accent: #7c9cff; --accent-text: #0f1320; --err: #ff8a80; --err-bg: #3a1d1b; --warn: #ffd27a; --warn-bg: #3a2e14;
+      --ok: #7fd69a; --ok-bg: #16301f; --chip: #2a3040; --focus: #7c9cff;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 14px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", "Noto Sans Devanagari", sans-serif; background: var(--bg); color: var(--text); }
+  header { position: sticky; top: 0; z-index: 2; background: var(--panel); border-bottom: 1px solid var(--line); padding: 10px 16px; display: grid; gap: 8px; }
+  .bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  h1 { font-size: 15px; margin: 0 8px 0 0; font-weight: 650; }
+  select, input[type=search], button, textarea { font: inherit; color: inherit; }
+  select, input[type=search] { background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 5px 8px; }
+  input[type=search] { min-width: 220px; flex: 1; max-width: 360px; }
+  button { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 5px 10px; cursor: pointer; }
+  button:hover { border-color: var(--muted); }
+  button.primary { background: var(--accent); color: var(--accent-text); border-color: var(--accent); font-weight: 600; }
+  button:disabled { opacity: .5; cursor: default; }
+  button.small { padding: 2px 8px; font-size: 12px; }
+  :focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
+  .filters button[aria-pressed=true] { background: var(--chip); border-color: var(--muted); font-weight: 600; }
+  .progress { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 13px; }
+  .meter { width: 160px; height: 8px; border-radius: 4px; background: var(--chip); overflow: hidden; display: flex; }
+  .meter span { display: block; height: 100%; }
+  .m-approved { background: var(--ok); } .m-translated { background: var(--accent); } .m-outdated { background: var(--warn); }
+  main { padding: 12px 16px 80px; display: grid; gap: 10px; max-width: 1400px; margin: 0 auto; }
+  .row { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr); gap: 6px 16px; }
+  .row.dirty { border-color: var(--accent); }
+  .row.has-errors { border-left: 4px solid var(--err); }
+  .meta { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-size: 12px; color: var(--muted); }
+  .key { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--text); }
+  .badge { border-radius: 999px; padding: 0 8px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .03em; }
+  .b-untranslated { background: var(--chip); color: var(--muted); }
+  .b-translated { background: var(--chip); color: var(--accent); }
+  .b-outdated { background: var(--warn-bg); color: var(--warn); }
+  .b-approved { background: var(--ok-bg); color: var(--ok); }
+  .b-unsaved { background: var(--accent); color: var(--accent-text); }
+  .note { grid-column: 1 / -1; font-size: 12.5px; color: var(--muted); }
+  .note b { color: var(--text); font-weight: 600; }
+  .source { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .source .form { display: block; margin-bottom: 4px; }
+  .label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; margin-right: 6px; }
+  .ph { background: var(--chip); border-radius: 4px; padding: 0 4px; font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 12.5px; }
+  .target { display: grid; gap: 6px; }
+  .field { display: grid; gap: 2px; }
+  textarea { width: 100%; min-height: 38px; resize: vertical; background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 6px 8px; line-height: 1.4; }
+  .tools { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: 12px; color: var(--muted); }
+  .tools .ph { cursor: pointer; border: 1px dashed var(--muted); }
+  .count.over { color: var(--err); font-weight: 600; }
+  .issues { grid-column: 2; display: grid; gap: 3px; font-size: 12.5px; }
+  .issue { padding: 2px 8px; border-radius: 4px; }
+  .issue.err { background: var(--err-bg); color: var(--err); }
+  .issue.warn { background: var(--warn-bg); color: var(--warn); }
+  .suggest { grid-column: 2; font-size: 12.5px; display: grid; gap: 4px; }
+  .sugg { display: flex; gap: 8px; align-items: baseline; background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 4px 8px; }
+  .sugg .score { font-weight: 700; min-width: 38px; }
+  .sugg .text { flex: 1; overflow-wrap: anywhere; }
+  .sugg .from { color: var(--muted); font-size: 11.5px; }
+  .gloss { grid-column: 2; font-size: 12px; color: var(--muted); }
+  .gloss b { color: var(--text); }
+  .empty { text-align: center; color: var(--muted); padding: 40px; }
+  #toast { position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); background: var(--text); color: var(--bg); padding: 8px 14px; border-radius: 8px; display: none; max-width: 90vw; }
+  #problems { display: none; background: var(--err-bg); color: var(--err); border-radius: 6px; padding: 8px 12px; font-size: 13px; white-space: pre-wrap; }
+  @media (max-width: 800px) { .row { grid-template-columns: 1fr; } .issues, .suggest, .gloss { grid-column: 1; } }
+</style>
+</head>
+<body>
+<header>
+  <div class="bar">
+    <h1>Translation editor</h1>
+    <label>Folder <select id="folder" aria-label="Language folder"></select></label>
+    <label>Language <select id="lang" aria-label="Language"></select></label>
+    <button id="addLang" title="Start a new language">Add language…</button>
+    <div class="progress" id="progress" aria-live="polite"></div>
+  </div>
+  <div class="bar">
+    <div class="filters" role="group" aria-label="Show">
+      <button data-filter="all" aria-pressed="true">All</button>
+      <button data-filter="todo" aria-pressed="false">To translate</button>
+      <button data-filter="outdated" aria-pressed="false">Outdated</button>
+      <button data-filter="problems" aria-pressed="false">With problems</button>
+      <button data-filter="unapproved" aria-pressed="false">Not approved</button>
+    </div>
+    <input type="search" id="search" placeholder="Search keys, English or translations" aria-label="Search">
+    <button id="fill" title="Fill every untranslated text whose English is already translated elsewhere">Fill from memory</button>
+    <button id="save" class="primary" disabled title="Save (Ctrl+S or ⌘S)">Save</button>
+  </div>
+  <div id="problems" role="alert"></div>
+</header>
+<main id="rows" aria-live="polite"></main>
+<div id="toast" role="status"></div>
+<script>
+"use strict";
+const TOKEN = new URLSearchParams(location.search).get("t");
+const $ = (id) => document.getElementById(id);
+const PH = /\{([A-Za-z][A-Za-z0-9]*)\}/g;
+
+let project = null;
+let view = null;          // the folder view from the server
+let edits = new Map();    // key -> entry (text, plural object, or null for cleared)
+let flags = { approve: new Set(), unapprove: new Set(), confirm: new Set() };
+let filter = "all";
+const qaCache = new Map(); // key -> { errors, warnings } for edited rows
+
+async function api(path, body) {
+  const res = await fetch(path, {
+    method: body ? "POST" : "GET",
+    headers: body ? { "x-ks-token": TOKEN, "content-type": "application/json" } : { "x-ks-token": TOKEN },
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  const data = await res.json().catch(() => ({ error: res.statusText }));
+  if (!res.ok) throw new Error(data.error || res.statusText);
+  return data;
+}
+
+function toast(text) {
+  const t = $("toast");
+  t.textContent = text;
+  t.style.display = "block";
+  clearTimeout(toast.timer);
+  toast.timer = setTimeout(() => (t.style.display = "none"), 3500);
+}
+
+function el(tag, attrs = {}, ...children) {
+  const e = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) {
+    if (k === "class") e.className = v;
+    else if (k.startsWith("on")) e.addEventListener(k.slice(2), v);
+    else if (v !== null && v !== undefined && v !== false) e.setAttribute(k, v === true ? "" : v);
+  }
+  for (const c of children.flat(Infinity)) if (c !== null && c !== undefined) e.append(c instanceof Node ? c : document.createTextNode(String(c)));
+  return e;
+}
+
+/** Text with each {placeholder} as a chip. */
+function withPlaceholders(text) {
+  const out = [];
+  let last = 0;
+  for (const m of text.matchAll(PH)) {
+    if (m.index > last) out.push(text.slice(last, m.index));
+    out.push(el("span", { class: "ph" }, m[0]));
+    last = m.index + m[0].length;
+  }
+  if (last < text.length) out.push(text.slice(last));
+  return out;
+}
+
+const isPlural = (e) => typeof e === "object" && e !== null;
+const current = (row) => (edits.has(row.key) ? edits.get(row.key) : row.translation);
+const dirtyCount = () => edits.size + flags.approve.size + flags.unapprove.size + flags.confirm.size;
+
+function issuesOf(row) {
+  if (edits.has(row.key)) return qaCache.get(row.key) || { errors: [], warnings: [] };
+  return { errors: row.errors, warnings: row.warnings };
+}
+
+function statusOf(row) {
+  if (edits.has(row.key)) return "unsaved";
+  if (flags.approve.has(row.key)) return "approved";
+  return row.status;
+}
+
+function matches(row) {
+  const q = $("search").value.trim().toLowerCase();
+  if (q) {
+    const hay = [row.key, JSON.stringify(row.en), JSON.stringify(current(row) ?? "")].join(" ").toLowerCase();
+    if (!hay.includes(q)) return false;
+  }
+  const t = current(row);
+  const s = statusOf(row);
+  const iss = issuesOf(row);
+  switch (filter) {
+    case "todo": return t === null || t === undefined;
+    case "outdated": return row.status === "outdated" && !flags.confirm.has(row.key) && !edits.has(row.key);
+    case "problems": return iss.errors.length > 0 || iss.warnings.filter((w) => w !== "not translated yet").length > 0;
+    case "unapproved": return t !== null && t !== undefined && s !== "approved";
+    default: return true;
+  }
+}
+
+function setEdit(row, entry) {
+  const empty = entry === null || (typeof entry === "string" && entry === "") || (isPlural(entry) && Object.values(entry).every((v) => !v));
+  const value = empty ? null : entry;
+  if (JSON.stringify(value) === JSON.stringify(row.translation ?? null)) edits.delete(row.key);
+  else edits.set(row.key, value);
+  flags.approve.delete(row.key);
+  scheduleQa(row);
+  updateChrome();
+}
+
+const qaTimers = new Map();
+function scheduleQa(row) {
+  clearTimeout(qaTimers.get(row.key));
+  qaTimers.set(row.key, setTimeout(async () => {
+    if (!edits.has(row.key)) { refreshRow(row); return; }
+    try {
+      const r = await api("/api/qa", { folder: view.folder.id, lang: view.lang, key: row.key, entry: edits.get(row.key) ?? "" });
+      qaCache.set(row.key, r);
+    } catch (e) { qaCache.set(row.key, { errors: [e.message], warnings: [] }); }
+    refreshRow(row);
+  }, 250));
+}
+
+function insertAt(textarea, text) {
+  const s = textarea.selectionStart ?? textarea.value.length;
+  const e = textarea.selectionEnd ?? s;
+  textarea.setRangeText(text, s, e, "end");
+  textarea.dispatchEvent(new Event("input"));
+  textarea.focus();
+}
+
+function fieldFor(row, cat, value, placeholders) {
+  const ta = el("textarea", {
+    rows: 1, dir: "auto", lang: view.lang, spellcheck: "true",
+    "aria-label": `${view.langName}${cat ? `, form ${cat}` : ""}, ${row.key}`,
+    "data-key": row.key,
+  });
+  ta.value = value ?? "";
+  const count = el("span", { class: "count" });
+  const updateCount = () => {
+    const n = [...ta.value.replace(PH, "")].length;
+    count.textContent = row.maxLength ? `${n} / ${row.maxLength}` : `${n} characters`;
+    count.classList.toggle("over", !!row.maxLength && n > row.maxLength);
+    ta.style.height = "auto";
+    ta.style.height = Math.min(ta.scrollHeight + 2, 240) + "px";
+  };
+  ta.addEventListener("input", () => {
+    updateCount();
+    const prev = current(row);
+    if (cat) {
+      const forms = isPlural(prev) ? { ...prev } : {};
+      forms[cat] = ta.value;
+      setEdit(row, forms);
+    } else setEdit(row, ta.value);
+    const card = ta.closest(".row");
+    card.classList.toggle("dirty", edits.has(row.key));
+    card.querySelector(".badge").replaceWith(badge(row));
+  });
+  requestAnimationFrame(updateCount);
+  const tools = el("div", { class: "tools" },
+    placeholders.map((p) => el("span", { class: "ph", role: "button", tabindex: "0", title: "Insert", onclick: () => insertAt(ta, `{${p}}`), onkeydown: (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); insertAt(ta, `{${p}}`); } } }, `{${p}}`)),
+    count,
+  );
+  return el("div", { class: "field" }, cat ? el("span", { class: "label" }, cat) : null, ta, tools);
+}
+
+function badge(row) {
+  const s = statusOf(row);
+  const names = { untranslated: "to translate", translated: "translated", outdated: "outdated", approved: "approved", unsaved: "unsaved" };
+  return el("span", { class: `badge b-${s}` }, names[s]);
+}
+
+function glossaryFor(row) {
+  const src = (isPlural(row.en) ? Object.values(row.en).join(" ") : row.en).toLowerCase();
+  return (view.glossary || []).filter((t) => new RegExp(`(^|[^\\p{L}])${t.en.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}([^\\p{L}]|$)`, "u").test(src));
+}
+
+function renderRow(row) {
+  const en = row.en;
+  const placeholders = [...new Set([...(isPlural(en) ? Object.values(en).join(" ") : en).matchAll(PH)].map((m) => m[1]))];
+  const value = current(row);
+  const card = el("article", { class: "row" + (edits.has(row.key) ? " dirty" : ""), "data-key": row.key });
+  const actions = [];
+  const hasText = value !== null && value !== undefined;
+  if (row.status === "outdated" && !edits.has(row.key)) {
+    actions.push(el("button", { class: "small", title: "The translation still fits the new English", onclick: () => { flags.confirm.add(row.key); updateChrome(); refreshRow(row); } }, flags.confirm.has(row.key) ? "Confirmed ✓" : "Still right"));
+  }
+  if (hasText && statusOf(row) !== "approved") actions.push(el("button", { class: "small", title: "Mark as reviewed", onclick: () => { flags.approve.add(row.key); flags.unapprove.delete(row.key); updateChrome(); refreshRow(row); } }, "Approve"));
+  if (statusOf(row) === "approved") actions.push(el("button", { class: "small", onclick: () => { if (flags.approve.has(row.key)) flags.approve.delete(row.key); else flags.unapprove.add(row.key); updateChrome(); refreshRow(row); } }, flags.approve.has(row.key) ? "Undo approve" : "Unapprove"));
+  actions.push(el("button", { class: "small", title: "Copy the English into the translation", onclick: () => {
+    setEdit(row, isPlural(en) ? Object.fromEntries(view.categories.map((c) => [c, en[c] ?? en.other])) : en);
+    refreshRow(row);
+  } }, "Copy English"));
+  actions.push(el("button", { class: "small", title: "Similar texts translated elsewhere", onclick: () => similar(row, card) }, "Similar…"));
+  card.append(el("div", { class: "meta" }, el("span", { class: "key" }, row.key), badge(row), ...actions));
+  if (row.note || row.maxLength) {
+    card.append(el("div", { class: "note" }, row.note ? [el("b", {}, "Note: "), row.note] : null, row.maxLength ? ` (at most ${row.maxLength} characters)` : null));
+  }
+  const source = el("div", { class: "source", lang: "en", dir: "ltr" });
+  if (isPlural(en)) for (const [c, t] of Object.entries(en)) source.append(el("span", { class: "form" }, el("span", { class: "label" }, c), ...withPlaceholders(t)));
+  else source.append(...withPlaceholders(en));
+  card.append(source);
+  const target = el("div", { class: "target" });
+  if (isPlural(en)) for (const c of view.categories) target.append(fieldFor(row, c, isPlural(value) ? value[c] : "", placeholders));
+  else target.append(fieldFor(row, "", typeof value === "string" ? value : "", placeholders));
+  card.append(target);
+  const iss = issuesOf(row);
+  const shown = iss.warnings.filter((w) => w !== "not translated yet");
+  if (iss.errors.length || shown.length) {
+    card.classList.add("has-errors");
+    if (!iss.errors.length) card.classList.remove("has-errors");
+    card.append(el("div", { class: "issues" },
+      iss.errors.map((e) => el("div", { class: "issue err" }, "✗ " + e)),
+      shown.map((w) => el("div", { class: "issue warn" }, "! " + w))));
+  }
+  const gl = glossaryFor(row);
+  if (gl.length) card.append(el("div", { class: "gloss" }, "Glossary: ", gl.map((t, i) => [i ? " · " : "", el("b", {}, t.en), " → ", t.text, t.note ? ` (${t.note})` : ""])));
+  if (row.suggestion && !hasText) {
+    card.append(el("div", { class: "suggest" }, suggestionView({ score: 100, translation: row.suggestion, source: "translation memory" }, row)));
+  }
+  return card;
+}
+
+function suggestionView(m, row) {
+  const text = isPlural(m.translation) ? Object.entries(m.translation).map(([c, t]) => `${c}: ${t}`).join("  ·  ") : m.translation;
+  return el("div", { class: "sugg" },
+    el("span", { class: "score" }, `${m.score}%`),
+    el("span", { class: "text", dir: "auto", lang: view.lang }, text),
+    el("span", { class: "from" }, m.source),
+    el("button", { class: "small", onclick: () => { setEdit(row, m.translation); refreshRow(row); } }, "Use"));
+}
+
+async function similar(row, card) {
+  let box = card.querySelector(".suggest");
+  if (!box) { box = el("div", { class: "suggest" }); card.append(box); }
+  box.replaceChildren(el("div", { class: "from" }, "Looking in translation memory…"));
+  try {
+    const list = await api("/api/suggestions", { folder: view.folder.id, lang: view.lang, key: row.key });
+    box.replaceChildren(...(list.length ? list.map((m) => suggestionView(m, row)) : [el("div", { class: "from" }, "No similar text is translated yet.")]));
+  } catch (e) { box.replaceChildren(el("div", { class: "issue err" }, e.message)); }
+}
+
+function refreshRow(row) {
+  const old = document.querySelector(`article.row[data-key="${CSS.escape(row.key)}"]`);
+  if (!old) return;
+  const focused = document.activeElement;
+  const focusIndex = focused && old.contains(focused) ? [...old.querySelectorAll("textarea")].indexOf(focused) : -1;
+  const pos = focusIndex >= 0 ? [focused.selectionStart, focused.selectionEnd] : null;
+  const next = renderRow(row);
+  old.replaceWith(next);
+  if (focusIndex >= 0) {
+    const ta = next.querySelectorAll("textarea")[focusIndex];
+    if (ta) { ta.focus(); ta.setSelectionRange(pos[0], pos[1]); }
+  }
+}
+
+function render() {
+  const list = $("rows");
+  if (!view) { list.replaceChildren(el("div", { class: "empty" }, "Choose a folder and a language.")); return; }
+  const rows = view.rows.filter(matches);
+  list.replaceChildren(...(rows.length ? rows.map(renderRow) : [el("div", { class: "empty" }, "Nothing to show here.")]));
+  updateChrome();
+}
+
+function updateChrome() {
+  const n = dirtyCount();
+  $("save").disabled = n === 0;
+  $("save").textContent = n ? `Save (${n})` : "Save";
+  if (!view) { $("progress").replaceChildren(); return; }
+  const total = view.rows.length;
+  let done = 0, outdated = 0, approved = 0;
+  for (const r of view.rows) {
+    const t = current(r);
+    if (t === null || t === undefined) continue;
+    done++;
+    const s = statusOf(r);
+    if (s === "approved") approved++;
+    else if (r.status === "outdated" && !edits.has(r.key) && !flags.confirm.has(r.key)) outdated++;
+  }
+  const pct = (x) => (total ? (100 * x) / total : 0);
+  $("progress").replaceChildren(
+    el("span", { class: "meter", role: "img", "aria-label": `${done} of ${total} translated` },
+      el("span", { class: "m-approved", style: `width:${pct(approved)}%` }),
+      el("span", { class: "m-translated", style: `width:${pct(done - approved - outdated)}%` }),
+      el("span", { class: "m-outdated", style: `width:${pct(outdated)}%` })),
+    `${done} of ${total} translated (${Math.floor(pct(done))}%)`,
+    outdated ? ` · ${outdated} outdated` : "",
+    ` · ${approved} approved`,
+    view.required ? " · Hindi must be complete" : "",
+  );
+}
+
+function confirmDiscard() {
+  return dirtyCount() === 0 || confirm("Discard the changes you have not saved?");
+}
+
+async function loadProject(keep) {
+  project = await api("/api/project");
+  const folderSel = $("folder");
+  folderSel.replaceChildren(...project.folders.map((f) => el("option", { value: f.id }, f.name)));
+  if (keep) folderSel.value = keep.folder;
+  fillLanguages(keep?.lang);
+}
+
+function fillLanguages(selected) {
+  const sel = $("lang");
+  const f = project.folders[Number($("folder").value)] || project.folders[0];
+  const codes = new Map(project.languages.map((l) => [l.code, l.name]));
+  for (const p of f?.progress || []) if (!codes.has(p.lang)) codes.set(p.lang, p.lang);
+  if (selected && !codes.has(selected)) codes.set(selected, selected);
+  sel.replaceChildren(...[...codes].map(([code, name]) => {
+    const p = f?.progress.find((x) => x.lang === code);
+    return el("option", { value: code }, `${name} (${code})${p ? ` · ${Math.floor((100 * p.done) / (p.total || 1))}%` : " · new"}`);
+  }));
+  if (selected) sel.value = selected;
+}
+
+async function loadView() {
+  edits = new Map();
+  flags = { approve: new Set(), unapprove: new Set(), confirm: new Set() };
+  qaCache.clear();
+  $("problems").style.display = "none";
+  const lang = $("lang").value;
+  if (!lang) { view = null; render(); return; }
+  view = await api(`/api/folder?folder=${encodeURIComponent($("folder").value)}&lang=${encodeURIComponent(lang)}`);
+  document.documentElement.lang = "en";
+  render();
+}
+
+async function save() {
+  if (!view || dirtyCount() === 0) return;
+  $("save").disabled = true;
+  try {
+    const changes = Object.fromEntries([...edits].map(([k, v]) => [k, v ?? ""]));
+    const r = await api("/api/save", {
+      folder: view.folder.id, lang: view.lang, changes,
+      approve: [...flags.approve], unapprove: [...flags.unapprove], confirm: [...flags.confirm],
+    });
+    if (!r.saved) {
+      $("problems").textContent = "Not saved. Fix these first:\n" + r.problems.join("\n");
+      $("problems").style.display = "block";
+      toast("Not saved: the file would not pass the check.");
+      updateChrome();
+      return;
+    }
+    $("problems").style.display = "none";
+    view = r.view;
+    edits = new Map();
+    flags = { approve: new Set(), unapprove: new Set(), confirm: new Set() };
+    qaCache.clear();
+    const keep = { folder: $("folder").value, lang: view.lang };
+    await loadProject(keep);
+    render();
+    toast(`Saved ${view.lang}.json`);
+  } catch (e) {
+    toast(e.message);
+    updateChrome();
+  }
+}
+
+$("folder").addEventListener("change", async (e) => {
+  if (!confirmDiscard()) { e.target.value = view?.folder.id ?? 0; return; }
+  fillLanguages($("lang").value);
+  await loadView();
+});
+$("lang").addEventListener("change", async (e) => {
+  if (!confirmDiscard()) { e.target.value = view?.lang ?? ""; return; }
+  await loadView();
+});
+$("addLang").addEventListener("click", async () => {
+  const code = (prompt("Language code to add (for example fr, de, pt-BR, zh-Hans, ta):") || "").trim();
+  if (!code) return;
+  if (!/^[a-z]{2,3}(-[A-Z][a-z]{3})?(-([A-Z]{2}|[0-9]{3}))?$/.test(code) || code === "en") { toast(`"${code}" is not a language code like fr, pt-BR or zh-Hans.`); return; }
+  if (!confirmDiscard()) return;
+  fillLanguages(code);
+  await loadView().catch((e) => toast(e.message));
+});
+document.querySelectorAll(".filters button").forEach((b) => b.addEventListener("click", () => {
+  filter = b.dataset.filter;
+  document.querySelectorAll(".filters button").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+  render();
+}));
+let searchTimer;
+$("search").addEventListener("input", () => { clearTimeout(searchTimer); searchTimer = setTimeout(render, 150); });
+$("save").addEventListener("click", save);
+$("fill").addEventListener("click", async () => {
+  if (!view) return;
+  try {
+    const { changes } = await api("/api/pretranslate", { folder: view.folder.id, lang: view.lang });
+    const keys = Object.keys(changes);
+    for (const k of keys) { const row = view.rows.find((r) => r.key === k); if (row) setEdit(row, changes[k]); }
+    render();
+    toast(keys.length ? `Filled ${keys.length} text${keys.length === 1 ? "" : "s"} from memory. Check them, then save.` : "Translation memory has nothing more for this language.");
+  } catch (e) { toast(e.message); }
+});
+document.addEventListener("keydown", (e) => {
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") { e.preventDefault(); save(); }
+  if ((e.ctrlKey || e.metaKey) && e.key === "Enter" && e.target.tagName === "TEXTAREA") {
+    e.preventDefault();
+    const all = [...document.querySelectorAll("textarea")];
+    const next = all.slice(all.indexOf(e.target) + 1).find((t) => t.value === "") || all[all.indexOf(e.target) + 1];
+    next?.focus();
+  }
+});
+window.addEventListener("beforeunload", (e) => { if (dirtyCount()) { e.preventDefault(); e.returnValue = ""; } });
+
+loadProject().then(() => loadView()).catch((e) => {
+  $("rows").replaceChildren(el("div", { class: "empty" }, `The editor could not start: ${e.message}`));
+});
+</script>
+</body>
+</html>

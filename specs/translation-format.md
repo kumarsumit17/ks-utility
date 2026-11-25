@@ -1,17 +1,17 @@
 ---
 type: Specification
 title: Translation file format
-description: The one format for interface text in every KS-Suite app (keys, placeholders, plural forms, any number of languages), how it is looked up in TypeScript and Kotlin, checked, converted for Android, Compose Multiplatform and Crowdin, and how Rust sends message codes.
-tags: [language, translation, hindi, format, android, compose, kotlin, check, crowdin]
+description: The one format for interface text in every KS-Suite app (keys, placeholders, plural forms, any number of languages), how it is looked up in TypeScript and Kotlin, checked, converted for Android, Compose Multiplatform and XLIFF, and how Rust sends message codes.
+tags: [language, translation, hindi, format, android, compose, kotlin, check, xliff]
 ---
 
 # Translation file format
 
-Every KS-Suite app keeps its interface text in language files of this format, one per language, side by side in one folder: English (`en.json`, the source) and Hindi (`hi.json`) always, and any other language the app ships (`fr.json`, `pt-BR.json`), usually translated in [Crowdin](crowdin.md) ([Languages](languages.md)). No translation library is used anywhere; the helpers are in this repository.
+Every KS-Suite app keeps its interface text in language files of this format, one per language, side by side in one folder: English (`en.json`, the source) and Hindi (`hi.json`) always, and any other language the app ships (`fr.json`, `pt-BR.json`), translated with KS Utility's own [translation tools](translating.md) ([Languages](languages.md)). No translation library is used anywhere; the helpers are in this repository.
 
 ## Files
 - One JSON object per language. Each member is a **key** and its **text**, or a key and its **plural forms**.
-- A file is named by its **language code**: a language (`fr`), optionally a script (`zh-Hans`) and a region (`pt-BR`, `es-419`). Every `.json` file in a language folder is a language file.
+- A file is named by its **language code**: a language (`fr`), optionally a script (`zh-Hans`) and a region (`pt-BR`, `es-419`). Every `.json` file in a language folder is a language file, except files whose name starts with `_`: `_context.json` (notes and length limits for translators) and `_state.json` (what each translation was made from, and approvals), both [described with the translation tools](translating.md).
 - English and Hindi have exactly the same keys. Another language may leave keys out (English is shown for them, after a less specific form: `pt-BR`, then `pt`) but never adds one.
 - UTF-8, NFC. Hindi text in Devanagari, following the [Hindi style guide](hindi-style.md). Every language writes numbers with the digits 0-9.
 - Shared text, used by every app, is in this repository: `lang/common/en.json` and `lang/common/hi.json` (OK, Cancel, Remove, Delete, Settings, Pause, Resume, common errors and confirmations). Its keys start with `common.`. App-specific text stays in each app's repository, and an app never redefines a shared key (the check fails).
@@ -79,8 +79,5 @@ Write the straight `'` and `"` in the language files; each converter escapes the
 
 Chrome `_locales/<lang>/messages.json` files are checked the same way, every language folder in it (`pt_BR` is `pt-BR`): `$name$` placeholders count as `{name}` (and must be defined in that file's `placeholders`), `$1`–`$9` as `{arg1}`–`{arg9}`; their keys follow Chrome's own rule.
 
-## Crowdin
-Translators work in [Crowdin](crowdin.md), whose "i18next JSON" parser knows plural forms only as sibling keys with a CLDR suffix and then asks each translator for exactly the forms their language uses. So the language files are converted on the way in and out ([usage](usage.md#language-files)):
-- `lang.mjs crowdin-export <dir> --out <file>` writes the Crowdin source file of `<dir>/en.json`: texts as they are, plural forms as `key_one`, `key_other`, … (`{"downloads.count_one": "{count} download", "downloads.count_other": "{count} downloads"}`). A text key that already ends in `_one`, `_other` (or another category) fails: rename it.
-- `lang.mjs crowdin-import <file> --lang <code> --into <dir>` turns a translated file back into `<dir>/<code>.json`, in the key order of English, with the suffixed keys gathered into plural forms. Empty (untranslated) texts are left out. The folder with the new file must pass the check; otherwise nothing is written and the problems are listed. `en` is never imported.
-- Placeholders stay `{name}`; Crowdin shows them as placeholders and its own QA check flags a changed one.
+## XLIFF
+For translators who work in their own tool (Poedit, OmegaT, memoQ, Trados, Xcode), `lang.mjs export-xliff` writes an XLIFF 1.2 file and `lang.mjs import-xliff` reads it back ([translation tools](translating.md#xliff)). Each text is one unit with the key as its id; a plural key is one unit per form the target language uses (`downloads.count#few`, its source the English form of that name or `other`); `_context.json` notes become `<note>`s. Placeholders stay `{name}` in the text; a target with XML markup in it is refused.

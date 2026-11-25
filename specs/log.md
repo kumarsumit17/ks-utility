@@ -1,7 +1,9 @@
 # 2026-11-25
 
+* **Creation**: [Translation tools](translating.md) added: KS Utility's own translation tools, with no outside service: the translation editor (`lang.mjs translate`, served on 127.0.0.1 behind a token), quality checks, translation memory, glossaries per language (`lang/glossary/<code>.json`), translators' notes and length limits (`_context.json`), outdated and approved texts (`_state.json`), XLIFF export and import, pseudo-localisation (`--pseudo`, `en-XA`) and `lang.mjs status`. For `v0.9.0`, not tagged yet.
+* **Update**: [Translation file format](translation-format.md), [Languages](languages.md), [usage](usage.md), [utilities](utilities.md), [rules](rules.md): Crowdin removed (`crowdin-export`, `crowdin-import`, `toCrowdinSource`, `fromCrowdin` and the Crowdin playbook); `_`-files in a language folder are not languages; XLIFF section; the development tools are not shipped and the editor listens on 127.0.0.1 only.
 * **Update**: [Usage](usage.md): `v0.8.0` tagged (more languages, Crowdin conversion).
-* **Creation**: [Translating in Crowdin](crowdin.md) added: one Crowdin project for the suite, the owner's one-time setup, `crowdin.yml` and the sync steps.
+* **Creation**: Translating in Crowdin (`crowdin.md`, removed later the same day) added: one Crowdin project for the suite, the owner's one-time setup, `crowdin.yml` and the sync steps.
 * **Update**: [Translation file format](translation-format.md), [Languages](languages.md), [usage](usage.md), [utilities](utilities.md): any number of languages (one file per language code; English and Hindi required, others partial), fallback through the region to English, the check for every language (plural forms per language, digits 0-9), one Android/Compose `values-…` folder per language, `crowdin-export` and `crowdin-import`, Kotlin `LanguageRules` for 28 languages checked against `Intl`.
 
 # 2026-11-24

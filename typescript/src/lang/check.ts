@@ -17,11 +17,31 @@ export interface Term {
   review?: boolean;
 }
 
+/**
+ * One glossary entry of a language (`lang/glossary/<code>.json`): the English term, the
+ * agreed translation, and alternatives that must not be used. Hindi's glossary is the term
+ * list (`lang/hindi-terms.json`, `Term`).
+ */
+export interface GlossaryTerm {
+  en: string;
+  text: string;
+  avoid?: string[];
+  /** When to use it, for the translator. */
+  note?: string;
+}
+
+/** The Hindi term list as a glossary. */
+export function hindiGlossary(terms: readonly Term[]): GlossaryTerm[] {
+  return terms.map((t) => ({ en: t.en, text: t.hi, avoid: t.avoid }));
+}
+
 export interface CheckOptions {
   /** Skip the key-name rule (Chrome `_locales` keys follow Chrome's own rule). */
   anyKeys?: boolean;
   /** Languages that must be present and complete. Default: English and Hindi. */
   required?: readonly string[];
+  /** Glossaries by language code; their `avoid` words fail the check. Hindi's comes from `terms`. */
+  glossaries?: Record<string, readonly GlossaryTerm[]>;
 }
 
 const DEVANAGARI_DIGIT = /[०-९]/;
@@ -155,10 +175,16 @@ export function checkLanguages(catalogs: Record<string, unknown>, terms: readonl
       for (const text of forms(entry)) {
         if (DEVANAGARI_DIGIT.test(text)) out.push(`${lang}: "${key}" uses Devanagari digits; use 0-9`);
         else if (OTHER_DIGIT.test(text)) out.push(`${lang}: "${key}" uses digits other than 0-9; use 0-9`);
-        if (primary(lang) !== "hi") continue;
-        for (const term of terms) {
-          for (const bad of term.avoid) {
-            if (containsPhrase(text, bad)) out.push(`${lang}: "${key}" uses "${bad}"; the term list says "${term.hi}" (${term.en})`);
+        if (primary(lang) === "hi") {
+          for (const term of terms) {
+            for (const bad of term.avoid) {
+              if (containsPhrase(text, bad)) out.push(`${lang}: "${key}" uses "${bad}"; the term list says "${term.hi}" (${term.en})`);
+            }
+          }
+        }
+        for (const term of options.glossaries?.[lang] ?? []) {
+          for (const bad of term.avoid ?? []) {
+            if (containsPhrase(text, bad)) out.push(`${lang}: "${key}" uses "${bad}"; the glossary says "${term.text}" (${term.en})`);
           }
         }
       }
