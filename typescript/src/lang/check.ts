@@ -1,9 +1,11 @@
 // The language-file check every suite app runs (specs/translation-format.md, "Check").
-// It fails when a key is in one language and not the other, when a placeholder is
-// missing, repeated or changed in the Hindi text, when Hindi text uses a disallowed
-// alternative from the term list, or when it contains Devanagari digits.
+// It fails when a required language (English, Hindi) lacks a key, when a translation has a
+// key English does not, when a placeholder is missing, repeated or changed in a translation,
+// when a plural form is one the language does not use, when Hindi text uses a disallowed
+// alternative from the term list, or when a text uses digits other than 0-9.
 
 import { COUNT, KEY_PATTERN, PLURAL_CATEGORIES, bracesAreValid, isPlural, placeholders, type Catalog } from "./catalog.ts";
+import { REQUIRED_LANGUAGES, isLanguageCode } from "./language.ts";
 
 /** One row of the Hindi term list (`lang/hindi-terms.json`). */
 export interface Term {
@@ -18,9 +20,18 @@ export interface Term {
 export interface CheckOptions {
   /** Skip the key-name rule (Chrome `_locales` keys follow Chrome's own rule). */
   anyKeys?: boolean;
+  /** Languages that must be present and complete. Default: English and Hindi. */
+  required?: readonly string[];
 }
 
 const DEVANAGARI_DIGIT = /[०-९]/;
+/** A decimal digit that is not 0-9 (Devanagari, Bengali, Arabic-Indic, …). */
+const OTHER_DIGIT = /(?![0-9])\p{Nd}/u;
+
+/** The language part of a code: `pt-BR` → `pt`. */
+function primary(code: string): string {
+  return code.split("-")[0];
+}
 
 /** Words of `text` (letters, marks, digits), NFC-normalised. */
 function words(text: string): string[] {
@@ -80,26 +91,26 @@ function checkShape(lang: string, catalog: unknown, options: CheckOptions): stri
   return out;
 }
 
-/** Placeholder problems of one key: Hindi must use English's placeholders, each as often. */
-function checkPlaceholders(key: string, en: unknown, hi: unknown): string[] {
+/** Placeholder problems of one key: a translation must use English's placeholders, each as often. */
+function checkPlaceholders(lang: string, key: string, en: unknown, hi: unknown): string[] {
   if (isPlural(en) !== isPlural(hi)) return [`"${key}" is plural forms in one language and a text in the other`];
   if (typeof en === "string" && typeof hi === "string") {
     const a = placeholders(en);
     const b = placeholders(hi);
-    return sameMultiset(a, b) ? [] : [`hi: "${key}" has placeholders ${show(b)}, English has ${show(a)}`];
+    return sameMultiset(a, b) ? [] : [`${lang}: "${key}" has placeholders ${show(b)}, English has ${show(a)}`];
   }
   if (!isPlural(en) || !isPlural(hi) || typeof en.other !== "string" || typeof hi.other !== "string") return [];
   const out: string[] = [];
   const a = placeholders(en.other);
   if (!sameMultiset(a, placeholders(hi.other))) {
-    out.push(`hi: "${key}" form "other" has placeholders ${show(placeholders(hi.other))}, English has ${show(a)}`);
+    out.push(`${lang}: "${key}" form "other" has placeholders ${show(placeholders(hi.other))}, English has ${show(a)}`);
   }
   // Other forms may leave a placeholder out ("One file"), never add or repeat one.
   for (const [cat, form] of Object.entries(hi)) {
     if (cat === "other" || typeof form !== "string") continue;
     const p = placeholders(form);
     if (p.some((x) => !a.includes(x)) || new Set(p).size !== p.length) {
-      out.push(`hi: "${key}" form "${cat}" has placeholders ${show(p)}, English "other" has ${show(a)}`);
+      out.push(`${lang}: "${key}" form "${cat}" has placeholders ${show(p)}, English "other" has ${show(a)}`);
     }
   }
   return out;
@@ -111,19 +122,44 @@ function show(p: string[]): string {
 
 /** Every problem in a pair of English and Hindi catalogs. Empty when they pass. */
 export function checkCatalogs(en: unknown, hi: unknown, terms: readonly Term[], options: CheckOptions = {}): string[] {
-  const out = [...checkShape("en", en, options), ...checkShape("hi", hi, options)];
-  if (out.some((p) => p.endsWith("one JSON object"))) return out;
-  const e = en as Catalog;
-  const h = hi as Catalog;
-  for (const key of Object.keys(e)) if (!(key in h)) out.push(`"${key}" is in en and not in hi`);
-  for (const key of Object.keys(h)) if (!(key in e)) out.push(`"${key}" is in hi and not in en`);
-  for (const key of Object.keys(e)) if (key in h) out.push(...checkPlaceholders(key, e[key], h[key]));
-  for (const [key, entry] of Object.entries(h)) {
-    for (const text of forms(entry)) {
-      if (DEVANAGARI_DIGIT.test(text)) out.push(`hi: "${key}" uses Devanagari digits; use 0-9`);
-      for (const term of terms) {
-        for (const bad of term.avoid) {
-          if (containsPhrase(text, bad)) out.push(`hi: "${key}" uses "${bad}"; the term list says "${term.hi}" (${term.en})`);
+  return checkLanguages({ en, hi }, terms, options);
+}
+
+/**
+ * Every problem in the catalogs of one folder, by language code (`{ en, hi, fr, … }`).
+ * English is the source. The `required` languages (English and Hindi) must be present and
+ * have every English key; other languages may leave keys out (English is shown for them)
+ * but may not add any. Empty when they pass.
+ */
+export function checkLanguages(catalogs: Record<string, unknown>, terms: readonly Term[], options: CheckOptions = {}): string[] {
+  const required = options.required ?? REQUIRED_LANGUAGES;
+  const out: string[] = [];
+  for (const lang of required) if (!(lang in catalogs)) out.push(`${lang}: the language file is missing`);
+  const langs = Object.keys(catalogs);
+  for (const lang of langs) {
+    if (!isLanguageCode(lang)) out.push(`${lang}: not a language code (use "fr", "pt-BR", "zh-Hans")`);
+    else out.push(...checkShape(lang, catalogs[lang], options));
+  }
+  if (out.length && (out.some((p) => p.endsWith("one JSON object")) || !("en" in catalogs))) return out;
+  const e = catalogs.en as Catalog;
+  for (const lang of langs) {
+    if (lang === "en" || !isLanguageCode(lang)) continue;
+    const t = catalogs[lang] as Catalog;
+    if (required.includes(lang)) for (const key of Object.keys(e)) if (!(key in t)) out.push(`"${key}" is in en and not in ${lang}`);
+    for (const key of Object.keys(t)) if (!(key in e)) out.push(`"${key}" is in ${lang} and not in en`);
+    for (const key of Object.keys(e)) if (key in t) out.push(...checkPlaceholders(lang, key, e[key], t[key]));
+  }
+  for (const lang of langs) {
+    if (!isLanguageCode(lang)) continue;
+    for (const [key, entry] of Object.entries(catalogs[lang] as Catalog)) {
+      for (const text of forms(entry)) {
+        if (DEVANAGARI_DIGIT.test(text)) out.push(`${lang}: "${key}" uses Devanagari digits; use 0-9`);
+        else if (OTHER_DIGIT.test(text)) out.push(`${lang}: "${key}" uses digits other than 0-9; use 0-9`);
+        if (primary(lang) !== "hi") continue;
+        for (const term of terms) {
+          for (const bad of term.avoid) {
+            if (containsPhrase(text, bad)) out.push(`${lang}: "${key}" uses "${bad}"; the term list says "${term.hi}" (${term.en})`);
+          }
         }
       }
     }

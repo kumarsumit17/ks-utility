@@ -30,12 +30,13 @@ Standard library only, `#![forbid(unsafe_code)]`.
 | Export | What it does |
 |---|---|
 | `formatBytes`, `formatSpeed`, `formatTimeLeft` | Human-readable sizes (binary units), speeds and durations. Without options the output is fixed English-style ("1.5 KB"); with `{ locale }` numbers go through the built-in `Intl` (Latin digits), and `unknown` sets the text for an unknown size. |
-| `createTranslator` | Look-up by key with placeholders, plurals (`Intl.PluralRules`) and English fallback ([format](translation-format.md#look-up-typescript)). |
-| `resolveLanguage`, `parseLanguageChoice`, `LANGUAGES` | The suite's language rule ([Languages](languages.md)). |
-| `checkCatalogs`, `fromChromeMessages`, `duplicateKeys`, `containsPhrase` | The language-file check, as functions; the command is `typescript/tools/lang.mjs` ([usage](usage.md#language-files)). |
+| `createTranslator` | Look-up by key with placeholders, plurals (`Intl.PluralRules`) and fallback through the region to English ([format](translation-format.md#look-up-typescript)). |
+| `resolveLanguage`, `parseLanguageChoice`, `LANGUAGES`, `REQUIRED_LANGUAGES`, `languageFallbacks`, `nativeLanguageName`, `isLanguageCode` | The suite's language rule for any list of languages, and each language's own name for the menu ([Languages](languages.md)). |
+| `checkCatalogs`, `checkLanguages`, `fromChromeMessages`, `duplicateKeys`, `containsPhrase` | The language-file check, as functions; the command is `typescript/tools/lang.mjs` ([usage](usage.md#language-files)). |
 | `parseVersion`, `isNewerVersion`, `isDevVersion`, `isCheckDue`, `parseRepo`, `latestReleaseApiUrl`, `releasePageUrl`, `requestHeaders`, `parseRelease`, `pickAsset`, `evaluateRelease`, `decide`, `sha256Hex`, `sha256Matches` | App updates, no network ([spec](app-update.md)). |
 | `createUpdateStore`, `openedNote` | The state behind an "App updates" section and banner; notes are message keys with parameters. |
-| `toAndroidXml`, `toComposeXml`, `resourceName`, `resourceNameProblems`, `escapeAndroid`, `escapeCompose`, `argumentOrder` | Conversion of language files into Android string resources, and the same files escaped for Compose Multiplatform resources. |
+| `toAndroidXml`, `toComposeXml`, `resourceName`, `resourceNameProblems`, `resourceFolder`, `escapeAndroid`, `escapeCompose`, `argumentOrder` | Conversion of language files into Android string resources (one `values-…` folder per language), and the same files escaped for Compose Multiplatform resources. |
+| `toCrowdinSource`, `fromCrowdin` | Conversion to and from the file Crowdin translates: plural forms as `key_one`, `key_other` ([format](translation-format.md#crowdin)). |
 
 ## Kotlin (`kotlin/`, package `com.ks.utility`)
 Plain Kotlin/JVM, no Android SDK.
@@ -44,7 +45,7 @@ Plain Kotlin/JVM, no Android SDK.
 |---|---|
 | `appupdate.AppUpdate`, `GitHubRepo`, `UpdatePlatform`, `Release`, `ReleaseAsset`, `UpdateOutcome` | App updates, no network ([spec](app-update.md)): versions, daily schedule, request URL and headers, reading the release, choosing the file, deciding. |
 | `appupdate.Sha256` | SHA-256 of bytes, a stream or a file (`MessageDigest`), and `matches`. |
-| `lang.Translator`, `lang.Catalog`, `lang.Entry` | Look-up in the suite's language files for code without Android or Compose resources: layers, English fallback, `{name}` placeholders, `one`/`other` plurals for English and Hindi, Latin digits with Indian grouping for Hindi ([format](translation-format.md#look-up-kotlin)). |
+| `lang.Translator`, `lang.Catalog`, `lang.Entry` | Look-up in the suite's language files for code without Android or Compose resources: layers, English fallback, `{name}` placeholders, CLDR plurals and number formats of 28 languages (`LanguageRules`), Latin digits with Indian grouping for Hindi ([format](translation-format.md#look-up-kotlin)). |
 
 ## Language data (`lang/`)
 

@@ -1,5 +1,5 @@
 // Converts suite language files into Android string resources (`values/` for English,
-// `values-hi/` for Hindi), so the Kotlin apps use Android's own resource look-up and
+// `values-hi/` for Hindi, `values-pt-rBR/` for Brazilian Portuguese, …), so the Kotlin apps use Android's own resource look-up and
 // plurals instead of a parallel runtime (specs/translation-format.md, "Android"). The
 // same files for Compose Multiplatform resources differ only in escaping ("Compose").
 
@@ -66,6 +66,20 @@ export function escapeCompose(text: string): string {
 
 /** The two resource flavours: Android's own resources, and Compose Multiplatform's. */
 export type ResourceTarget = "android" | "compose";
+
+/**
+ * The resource folder of a language: `values` for English (the default resources), else
+ * `values-` and the qualifier: `hi`, `pt-rBR`, and for a script or a numeric region the
+ * BCP 47 form `b+zh+Hans` / `b+es+419`, which Android reads but Compose Multiplatform does
+ * not (null for Compose then).
+ */
+export function resourceFolder(code: string, target: ResourceTarget = "android"): string | null {
+  if (code === "en") return "values";
+  const [lang, ...rest] = code.split("-");
+  if (rest.length === 0) return `values-${lang}`;
+  if (rest.length === 1 && /^[A-Z]{2}$/.test(rest[0])) return `values-${lang}-r${rest[0]}`;
+  return target === "android" ? `values-b+${[lang, ...rest].join("+")}` : null;
+}
 
 /**
  * The argument number of each placeholder of a key, from its English text: in order of

@@ -2,13 +2,19 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { spawnSync } from "node:child_process";
-import { cpSync, mkdtempSync, mkdirSync, writeFileSync, rmSync } from "node:fs";
+import { cpSync, mkdtempSync, mkdirSync, readdirSync, writeFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 import {
   argumentOrder,
   checkCatalogs,
+  checkLanguages,
+  fromCrowdin,
+  languageFallbacks,
+  nativeLanguageName,
+  resourceFolder,
+  toCrowdinSource,
   containsPhrase,
   createTranslator,
   duplicateKeys,
@@ -255,6 +261,160 @@ test("the command line check and Android conversion", () => {
     const inModules = spawnSync(process.execPath, [join(pkg, "typescript/tools/lang.mjs"), "check", app], { encoding: "utf8" });
     assert.equal(inModules.status, 0, inModules.stderr);
     assert.match(inModules.stdout, /Language files: OK/);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("more languages: the language rule with a supported list", () => {
+  const supported = ["en", "hi", "fr", "pt", "pt-BR", "zh-Hans"];
+  assert.equal(resolveLanguage("fr", ["en"], supported), "fr", "a remembered choice wins");
+  assert.equal(resolveLanguage("system", ["de-DE", "fr-CA"], supported), "fr", "by language part");
+  assert.equal(resolveLanguage(undefined, ["pt_br"], supported), "pt-BR", "exact, after normalising");
+  assert.equal(resolveLanguage(undefined, ["pt-PT"], supported), "pt");
+  assert.equal(resolveLanguage(undefined, ["zh-Hans-CN"], supported), "zh-Hans");
+  assert.equal(resolveLanguage(undefined, ["de", "en-GB", "fr"], supported), "en", "English in the system list counts");
+  assert.equal(resolveLanguage(undefined, ["de"], supported), "en", "otherwise English");
+  assert.equal(resolveLanguage("fr", ["en"]), "en", "without a list, only English and Hindi");
+  assert.equal(parseLanguageChoice("fr", supported), "fr");
+  assert.equal(parseLanguageChoice("de", supported), "system");
+  assert.deepEqual(languageFallbacks("zh-Hans-CN"), ["zh-Hans-CN", "zh-Hans", "zh", "en"]);
+  assert.deepEqual(languageFallbacks("en"), ["en"]);
+  assert.equal(nativeLanguageName("hi"), "हिन्दी");
+  assert.equal(nativeLanguageName("fr"), "Français");
+  assert.equal(nativeLanguageName("pt-BR"), "Português (Brasil)");
+});
+
+test("more languages: look-up falls back through the region to English", () => {
+  const layer = {
+    en: { a: "A", b: "B", c: "C", files: { one: "{count} file", other: "{count} files" } },
+    pt: { a: "A-pt", b: "B-pt" },
+    "pt-BR": { a: "A-br" },
+    ru: { files: { one: "{count} файл", few: "{count} файла", many: "{count} файлов", other: "{count} файла" } },
+  };
+  const br = createTranslator("pt-BR", layer);
+  assert.deepEqual([br("a"), br("b"), br("c")], ["A-br", "B-pt", "C"]);
+  const ru = createTranslator("ru", layer);
+  assert.deepEqual([1, 3, 5, 21, 1.5].map((count) => ru("files", { count })), ["1 файл", "3 файла", "5 файлов", "21 файл", "1,5 файла"]);
+});
+
+test("more languages: the check", () => {
+  const en = { a: "Hello {name}", b: "Bye", files: { one: "{count} file", other: "{count} files" } };
+  const hi = { a: "नमस्ते {name}", b: "अलविदा", files: { one: "{count} फ़ाइल", other: "{count} फ़ाइलें" } };
+  assert.deepEqual(checkLanguages({ en, hi, fr: { a: "Bonjour {name}" } }, terms), [], "a partial translation passes");
+  assert.deepEqual(checkLanguages({ en, hi, ru: { files: { one: "{count} файл", few: "{count} файла", many: "{count} файлов", other: "{count} файла" } } }, terms), []);
+  const p = checkLanguages(
+    {
+      en,
+      hi,
+      fr: { a: "Bonjour {nom}", extra: "x" },
+      de: { files: { one: "1 Datei", few: "{count} Dateien", other: "{count} Dateien" } },
+      ar: { b: "وداعا ٣" },
+      pt_BR: { b: "Tchau" },
+    },
+    terms,
+  ).join("\n");
+  assert.match(p, /fr: "a" has placeholders \{nom\}, English has \{name\}/);
+  assert.match(p, /"extra" is in fr and not in en/);
+  assert.match(p, /de: "files" has plural form "few", which de does not use/);
+  assert.match(p, /ar: "b" uses digits other than 0-9/);
+  assert.match(p, /pt_BR: not a language code/);
+  assert.doesNotMatch(p, /"b" is in en and not in fr/, "only English and Hindi must be complete");
+  assert.match(checkLanguages({ en }, terms).join(), /hi: the language file is missing/);
+  // The Hindi term list is for Hindi only.
+  assert.deepEqual(checkLanguages({ en: { e: "Cancel" }, hi: { e: "रद्द करें" }, mr: { e: "कैंसल" } }, terms), []);
+});
+
+test("more languages: resource folders", () => {
+  assert.equal(resourceFolder("en"), "values");
+  assert.equal(resourceFolder("hi"), "values-hi");
+  assert.equal(resourceFolder("pt-BR"), "values-pt-rBR");
+  assert.equal(resourceFolder("zh-Hans"), "values-b+zh+Hans");
+  assert.equal(resourceFolder("es-419"), "values-b+es+419");
+  assert.equal(resourceFolder("pt-BR", "compose"), "values-pt-rBR");
+  assert.equal(resourceFolder("zh-Hans", "compose"), null);
+});
+
+test("Crowdin: plural forms become suffixed keys and come back", () => {
+  const en = { "app.title": "Downloads", "app.files": { one: "{count} file", other: "{count} files" } };
+  const { file, problems } = toCrowdinSource(en);
+  assert.deepEqual(problems, []);
+  assert.deepEqual(file, { "app.title": "Downloads", "app.files_one": "{count} file", "app.files_other": "{count} files" });
+  const translated = { "app.title": "Загрузки", "app.files_one": "{count} файл", "app.files_few": "{count} файла", "app.files_many": "{count} файлов", "app.files_other": "{count} файла" };
+  const back = fromCrowdin(translated, en);
+  assert.deepEqual(back.problems, []);
+  assert.deepEqual(back.catalog, { "app.title": "Загрузки", "app.files": { one: "{count} файл", few: "{count} файла", many: "{count} файлов", other: "{count} файла" } });
+  assert.deepEqual(fromCrowdin({ "app.title": "" }, en).catalog, {}, "an untranslated text is left out");
+  assert.match(fromCrowdin({ stray: "x" }, en).problems.join(), /"stray" is in the Crowdin file and not in English/);
+  assert.match(toCrowdinSource({ "app.size_other": "x" }).problems.join(), /ends in a plural suffix/);
+});
+
+/** The numbers the Kotlin `Translator` is checked against (kotlin/src/test/resources). */
+const VECTOR_LANGUAGES = "en hi bn mr gu pa ta te kn ml ur es fr de pt pt-PT it nl ru uk pl ar ja zh ko tr id vi".split(" ");
+const VECTOR_NUMBERS = ["0", "1", "2", "3", "4", "5", "10", "11", "12", "14", "21", "22", "25", "100", "101", "102", "111", "999", "1000", "1234", "12345", "123456", "1234567", "1000000", "2000000", "1000001", "0.5", "1.5", "2.5", "1.0001", "0.9996", "0.0005", "-1", "-2.5", "-1234567.5", "1234.5678"];
+
+function intlVectors() {
+  const plural: Record<string, string[]> = {};
+  const format: Record<string, string[]> = {};
+  for (const lang of VECTOR_LANGUAGES) {
+    const pr = new Intl.PluralRules(lang);
+    const nf = new Intl.NumberFormat(lang, { numberingSystem: "latn" });
+    plural[lang] = VECTOR_NUMBERS.map((n) => pr.select(Number(n)));
+    format[lang] = VECTOR_NUMBERS.map((n) => nf.format(Number(n)));
+  }
+  return { note: "Generated from Intl by typescript/test/lang.test.ts (UPDATE_VECTORS=1 npm test). Do not edit.", numbers: VECTOR_NUMBERS, plural, format };
+}
+
+test("the Kotlin translator's expected values are what Intl says", () => {
+  const file = new URL("kotlin/src/test/resources/intl-vectors.json", root);
+  const now = JSON.stringify(intlVectors(), null, 1) + "\n";
+  if (process.env.UPDATE_VECTORS) writeFileSync(file, now);
+  assert.equal(readFileSync(file, "utf8"), now, "run UPDATE_VECTORS=1 npm test after a Node update, then fix the Kotlin rules");
+});
+
+test("the command line with more languages and Crowdin", () => {
+  const tool = new URL("../tools/lang.mjs", import.meta.url).pathname;
+  const run = (...args: string[]) => spawnSync(process.execPath, [tool, ...args], { encoding: "utf8" });
+  const dir = mkdtempSync(join(tmpdir(), "ks-lang-"));
+  try {
+    const app = join(dir, "app");
+    mkdirSync(app);
+    writeFileSync(join(app, "en.json"), JSON.stringify({ "app.title": "Hello {name}", "app.files": { one: "{count} file", other: "{count} files" } }));
+    writeFileSync(join(app, "hi.json"), JSON.stringify({ "app.title": "नमस्ते {name}", "app.files": { one: "{count} फ़ाइल", other: "{count} फ़ाइलें" } }));
+    writeFileSync(join(app, "fr.json"), JSON.stringify({ "app.title": "Bonjour {name}" }));
+    assert.equal(run("check", app).status, 0);
+
+    const res = join(dir, "res");
+    const conv = run("android", app, "--out", res);
+    assert.equal(conv.status, 0, conv.stderr);
+    assert.match(conv.stdout, /values-fr\/lang_strings\.xml/);
+    const fr = readFileSync(join(res, "values-fr/lang_strings.xml"), "utf8");
+    assert.match(fr, /<string name="app_title">Bonjour %1\$s<\/string>/);
+    assert.doesNotMatch(fr, /app_files/, "a missing text comes from the default (English) resources");
+
+    const source = join(dir, "crowdin/en.json");
+    assert.equal(run("crowdin-export", app, "--out", source).status, 0);
+    assert.deepEqual(JSON.parse(readFileSync(source, "utf8")), { "app.title": "Hello {name}", "app.files_one": "{count} file", "app.files_other": "{count} files" });
+
+    const ru = join(dir, "crowdin/ru.json");
+    writeFileSync(ru, JSON.stringify({ "app.title": "Привет {name}", "app.files_one": "{count} файл", "app.files_few": "{count} файла", "app.files_many": "{count} файлов", "app.files_other": "{count} файла" }));
+    const imp = run("crowdin-import", ru, "--lang", "ru", "--into", app);
+    assert.equal(imp.status, 0, imp.stderr);
+    assert.deepEqual(Object.keys(JSON.parse(readFileSync(join(app, "ru.json"), "utf8"))["app.files"]), ["one", "few", "many", "other"]);
+
+    writeFileSync(ru, JSON.stringify({ "app.title": "Привет {imya}" }));
+    const bad = run("crowdin-import", ru, "--lang", "uk", "--into", app);
+    assert.equal(bad.status, 1);
+    assert.match(bad.stderr, /uk: "app.title" has placeholders \{imya\}/);
+    assert.ok(!readdirSync(app).includes("uk.json"), "nothing is written when the check fails");
+    assert.equal(run("crowdin-import", ru, "--lang", "en", "--into", app).status, 1, "English is never imported");
+
+    const cmp = run("compose", app, "--out", join(dir, "compose"));
+    assert.equal(cmp.status, 0, cmp.stderr);
+    writeFileSync(join(app, "zh-Hans.json"), JSON.stringify({ "app.title": "你好 {name}" }));
+    assert.match(run("compose", app, "--out", join(dir, "compose")).stderr, /no folder for a script/);
+    assert.equal(run("android", app, "--out", res).status, 0);
+    assert.match(readFileSync(join(res, "values-b+zh+Hans/lang_strings.xml"), "utf8"), /你好 %1\$s/);
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }

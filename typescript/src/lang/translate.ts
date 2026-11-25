@@ -2,8 +2,9 @@
 // Intl.PluralRules, and English when a key is missing (specs/translation-format.md).
 
 import { COUNT, fill, isPlural, type Catalog, type Params } from "./catalog.ts";
+import { languageFallbacks } from "./language.ts";
 
-/** Catalogs per language code, for example `{ en, hi }`. */
+/** Catalogs per language code, for example `{ en, hi, fr }`. */
 export type Translations = Partial<Record<string, Catalog>>;
 
 export type Translate = (key: string, params?: Params) => string;
@@ -14,11 +15,12 @@ export const FALLBACK_LANGUAGE = "en";
 /**
  * A look-up function for `language`. `layers` are searched from last to first, so an
  * app's own texts (last) come before the shared catalogue (first). A key missing in
- * `language` is taken from English; a key missing everywhere is returned as it is, so a
- * mistake shows up instead of an empty label.
+ * `language` is taken from its less specific forms (`pt-BR`, then `pt`) and then from
+ * English; a key missing everywhere is returned as it is, so a mistake shows up instead of
+ * an empty label.
  */
 export function createTranslator(language: string, ...layers: Translations[]): Translate {
-  const order = language === FALLBACK_LANGUAGE ? [language] : [language, FALLBACK_LANGUAGE];
+  const order = languageFallbacks(language);
   const numbers = new Map<string, Intl.NumberFormat>();
   const plurals = new Map<string, Intl.PluralRules>();
   const numberFormat = (lang: string) => {

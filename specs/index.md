@@ -5,7 +5,7 @@ okf_version: "0.2"
 # Product specifications
 
 * [Overview](overview.md) - What KS Utility is for, who uses it and how it is laid out.
-* [Translation file format](translation-format.md) - The one format for interface text in every KS-Suite app (keys, placeholders, plural forms), how it is looked up in TypeScript and Kotlin, checked, converted for Android and Compose Multiplatform, and how Rust sends message codes.
+* [Translation file format](translation-format.md) - The one format for interface text in every KS-Suite app (keys, placeholders, plural forms, any number of languages), how it is looked up in TypeScript and Kotlin, checked, converted for Android, Compose Multiplatform and Crowdin, and how Rust sends message codes.
 * [App updates](app-update.md) - How every KS-Suite app finds a newer version of itself on GitHub, shows it in an "App updates" section, and installs it on each platform, with the shared helpers in Kotlin, Rust and TypeScript.
 * [Shared release workflow](release-workflow.md) - The one GitHub Actions release workflow that every KS-Suite Kotlin app calls, for Android, Google TV, macOS and Windows, with its inputs, file names, signing checks and publishing rules.
 
@@ -18,5 +18,9 @@ okf_version: "0.2"
 
 * [Rules](rules.md) - What may go into KS Utility and the rules every utility must keep.
 * [Dependencies](dependencies.md) - Utilities use only the standard library; no third-party dependencies.
-* [Languages](languages.md) - Every KS-Suite app supports English and Hindi through KS Utility, and chooses between them by one rule.
+* [Languages](languages.md) - Every KS-Suite app supports English and Hindi through KS Utility, may add more languages translated in Crowdin, and chooses among them by one rule.
 * [Hindi style guide](hindi-style.md) - How every KS-Suite app writes Hindi interface text, with the term list and the alternatives that are not used.
+
+# Playbooks
+
+* [Translating in Crowdin](crowdin.md) - How the KS-Suite apps get more languages through one Crowdin project, with KS Utility converting the language files on the way in and out, and what the owner sets up once.

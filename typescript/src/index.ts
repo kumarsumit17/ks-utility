@@ -15,14 +15,29 @@ export {
 export { FALLBACK_LANGUAGE, createTranslator, type Translate, type Translations } from "./lang/translate.ts";
 export {
   LANGUAGES,
+  LANGUAGE_CODE,
+  REQUIRED_LANGUAGES,
   isLanguage,
+  isLanguageCode,
+  languageFallbacks,
+  nativeLanguageName,
   parseLanguageChoice,
   resolveLanguage,
   type Language,
   type LanguageChoice,
 } from "./lang/language.ts";
-export { checkCatalogs, containsPhrase, duplicateKeys, fromChromeMessages, type Term } from "./lang/check.ts";
-export { argumentOrder, escapeAndroid, escapeCompose, resourceName, resourceNameProblems, toAndroidXml, toComposeXml } from "./lang/android.ts";
+export { checkCatalogs, checkLanguages, containsPhrase, duplicateKeys, fromChromeMessages, type CheckOptions, type Term } from "./lang/check.ts";
+export {
+  argumentOrder,
+  escapeAndroid,
+  escapeCompose,
+  resourceFolder,
+  resourceName,
+  resourceNameProblems,
+  toAndroidXml,
+  toComposeXml,
+} from "./lang/android.ts";
+export { fromCrowdin, toCrowdinSource, type CrowdinFile } from "./lang/crowdin.ts";
 export type { ResourceTarget } from "./lang/android.ts";
 export {
   CHECK_INTERVAL_MS,

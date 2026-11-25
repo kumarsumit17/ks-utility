@@ -1,3 +1,8 @@
+# 2026-11-25
+
+* **Creation**: [Translating in Crowdin](crowdin.md) added: one Crowdin project for the suite, the owner's one-time setup, `crowdin.yml` and the sync steps.
+* **Update**: [Translation file format](translation-format.md), [Languages](languages.md), [usage](usage.md), [utilities](utilities.md): any number of languages (one file per language code; English and Hindi required, others partial), fallback through the region to English, the check for every language (plural forms per language, digits 0-9), one Android/Compose `values-…` folder per language, `crowdin-export` and `crowdin-import`, Kotlin `LanguageRules` for 28 languages checked against `Intl`. For `v0.6.0`, not tagged yet.
+
 # 2026-11-24
 
 * **Update**: [Release workflow](release-workflow.md) and [Usage](usage.md) (`v0.7.0`): `play-build-type` makes each AAB the Google Play build (no in-app updater, no `REQUEST_INSTALL_PACKAGES`); the APKs stay the GitHub build. `mac-intel` adds an Intel dmg (`-macos-x64.dmg`) built on the `macos-15-intel` runner.

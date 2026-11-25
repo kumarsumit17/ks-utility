@@ -31,15 +31,17 @@ Every app pins one version tag of this repository (`vMAJOR.MINOR.PATCH`). Lock f
 
 ## Language files
 
-Every suite app supports English and Hindi ([Languages](languages.md)) and checks its language files ([format](translation-format.md#check)) with one command, from this repository:
+Every suite app supports English and Hindi, and may ship more languages ([Languages](languages.md)), and checks its language files ([format](translation-format.md#check)) with one command, from this repository:
 
 ```bash
 node <ks-utility>/typescript/tools/lang.mjs check <dir>... [--chrome <_locales dir>]...
 node <ks-utility>/typescript/tools/lang.mjs android <dir>... --out <res dir> [--name lang_strings]
 node <ks-utility>/typescript/tools/lang.mjs compose <dir>... --out <res dir> [--name lang_strings]
+node <ks-utility>/typescript/tools/lang.mjs crowdin-export <dir> --out <file>
+node <ks-utility>/typescript/tools/lang.mjs crowdin-import <file> --lang <code> --into <dir>
 ```
 
-- Each `<dir>` holds `en.json` and `hi.json`. The shared catalogue (`lang/common`) is always included. Exit code 0 when everything passes, 1 with one line per problem, 2 for a usage mistake.
+- Each `<dir>` holds one file per language: `en.json` and `hi.json` always, and any others (`fr.json`, `pt-BR.json`; from `v0.6.0`). `android` and `compose` write one `values-…` folder per language. `crowdin-export` and `crowdin-import` convert to and from the file [Crowdin](crowdin.md) translates (from `v0.6.0`; [format](translation-format.md#crowdin)). The shared catalogue (`lang/common`) is always included. Exit code 0 when everything passes, 1 with one line per problem, 2 for a usage mistake.
 - It needs Node 23.6 or later and nothing installed. `lang.mjs` is plain JavaScript: Node does not strip TypeScript types from files inside `node_modules`, so it copies the TypeScript tool (`lang.ts`) and `typescript/src/lang/` to a new temporary folder, runs it there and removes the folder (fixed in `v0.2.1`; with `v0.2.0` the command fails inside `node_modules`). `<ks-utility>` is `node_modules/ks-utility` in a TypeScript app and the `ks-utility/` submodule in a Kotlin app.
 - **TypeScript app:** add it to the app's tests, for example `"test:lang": "node node_modules/ks-utility/typescript/tools/lang.mjs check src/locales --chrome extension/_locales"`. Import the shared catalogue as `ks-utility/lang/common/en.json` and `ks-utility/lang/common/hi.json` and pass it to `createTranslator` before the app's own files.
 - **Kotlin app:** keep the language files in the app (for example `app/src/main/lang/`), and register two Gradle tasks: one running `check`, hooked into `check`; one running `android --out app/src/main/res`, hooked before `preBuild`. For example:
