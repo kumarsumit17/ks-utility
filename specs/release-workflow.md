@@ -12,7 +12,6 @@ The five Kotlin apps (`ks-tv-launcher`, `ks-jaiplayer`, `ks-streamflix`, `ks-vau
 `ks-download-manager` (Rust, Tauri, Chrome extension) keeps its own workflow: its build (Tauri bundles, bundled programs, the extension zip) shares no steps with the Kotlin apps. Its release files follow the same names, so the [app-update](app-update.md) rules hold for it too.
 
 ## How an app calls it
-The suite does not use platform tags for now: an app releases every build with one plain `vMAJOR.MINOR.PATCH` tag ([platform tags](app-update.md#platform-tags)). The platform parts below stay in the workflow, unused.
 
 ```yaml
 # .github/workflows/release.yml in the app
