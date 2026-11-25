@@ -1,5 +1,6 @@
 # 2026-11-25
 
+* **Update**: [App updates](app-update.md) "Platform tags" and [Release workflow](release-workflow.md): the suite does not use platform tags for now (one plain `vX.Y.Z` tag releases all of an app's builds); the `v0.10.0` helpers stay, unused.
 * **Update**: [Hindi style guide](hindi-style.md): 13 terms from KS Forge added for owner review (Tab टैब, Pane पैनल, Split बांटें, Terminal टर्मिनल, Shell शेल, Theme थीम, Shortcut शॉर्टकट, Font फ़ॉन्ट, Command palette कमांड पैलेट, Shell integration शेल इंटीग्रेशन, Scrollback स्क्रॉलबैक, Accent colour मुख्य रंग, Appearance रूप-रंग), in the table and `lang/hindi-terms.json`.
 * **Update**: [Hindi style guide](hindi-style.md): 7 terms from KS Vault added for owner review (Vault वॉल्ट, Pattern पैटर्न, Lock लॉक, Unlock अनलॉक करें, Title शीर्षक, Encrypt एन्क्रिप्ट, Dot बिंदु), in the table and `lang/hindi-terms.json`.
 * **Update**: [Usage](usage.md): `v0.10.0` tagged (platform tags).
