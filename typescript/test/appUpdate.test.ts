@@ -9,6 +9,11 @@ import {
   isNewerVersion,
   latestReleaseApiUrl,
   parseRelease,
+  parseReleases,
+  evaluateReleases,
+  releasesApiUrl,
+  releaseTagPageUrl,
+  tagVersion,
   parseRepo,
   parseVersion,
   pickAsset,
@@ -157,4 +162,24 @@ test("the App updates state", async () => {
   const seen = changes;
   store.setCurrent("1.1.1");
   assert.equal(changes, seen, "unsubscribed");
+});
+
+test("platform tags and the release list", () => {
+  assert.equal(tagVersion("mac-v1.3.0", "macos-x64"), "1.3.0");
+  assert.equal(tagVersion("v1.2.0", "android"), "1.2.0");
+  assert.equal(tagVersion("windows-v1.3.0", "macos-arm64"), null);
+  assert.equal(tagVersion("mac-1.3.0", "macos-arm64"), null);
+  assert.equal(releasesApiUrl(repo), "https://api.github.com/repos/someone/ks-app/releases?per_page=30");
+  assert.equal(releaseTagPageUrl(repo, "mac-v1.3.0"), "https://github.com/someone/ks-app/releases/tag/mac-v1.3.0");
+  const list = [
+    { tag_name: "windows-v2.0.0", assets: [asset("ks-app-v2.0.0-windows-x64.msi")] },
+    { tag_name: "mac-v1.4.0", draft: true, assets: [asset("ks-app-v1.4.0-macos-arm64.dmg")] },
+    { tag_name: "v1.2.0", assets: [asset("ks-app-v1.2.0-macos-arm64.dmg"), asset("ks-app-v1.2.0-windows-x64.msi")] },
+  ];
+  const mac = parseReleases(JSON.stringify(list), repo, "macos-arm64")!;
+  assert.deepEqual([mac.version, mac.tag], ["1.2.0", "v1.2.0"]);
+  const win = evaluateReleases(list, repo, "1.2.0", "windows-x64");
+  assert.equal(win?.result, "available");
+  assert.equal(parseReleases("[]", repo, "android"), null);
+  assert.equal(parseReleases("{}", repo, "android"), null);
 });

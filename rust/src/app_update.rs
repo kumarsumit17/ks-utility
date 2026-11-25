@@ -107,6 +107,17 @@ impl Repo {
         format!("https://api.github.com/repos/{}/{}/releases/latest", self.owner, self.name)
     }
 
+    /// The newest releases (one page of [`RELEASES_PER_PAGE`]), for an app whose platforms have
+    /// their own tags (`mac-v1.3.0`): `releases/latest` may be another platform's release.
+    pub fn releases_api_url(&self) -> String {
+        format!("https://api.github.com/repos/{}/{}/releases?per_page={RELEASES_PER_PAGE}", self.owner, self.name)
+    }
+
+    /// The page of one release, by its tag, for "Get the new version" links.
+    pub fn release_page_url(&self, tag: &str) -> String {
+        format!("https://github.com/{}/{}/releases/tag/{tag}", self.owner, self.name)
+    }
+
     /// The page of the newest release, for "Get the new version" links.
     pub fn latest_release_page_url(&self) -> String {
         format!("https://github.com/{}/{}/releases/latest", self.owner, self.name)
@@ -127,6 +138,9 @@ impl Repo {
     }
 }
 
+/// How many releases [`Repo::releases_api_url`] asks for.
+pub const RELEASES_PER_PAGE: u32 = 30;
+
 /// The system an installer is for.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Platform {
@@ -137,6 +151,16 @@ pub enum Platform {
 }
 
 impl Platform {
+    /// The tag prefix of this platform's own releases (`mac-v1.3.0`), for an app whose platforms
+    /// have their own versions. Both macOS builds share `mac-`; a plain `v1.3.0` is every platform's.
+    pub fn tag_prefix(self) -> &'static str {
+        match self {
+            Platform::MacosArm64 | Platform::MacosX64 => "mac-",
+            Platform::WindowsX64 => "windows-",
+            Platform::Android => "android-",
+        }
+    }
+
     /// The platform this code was built for, if it is one apps are released for.
     pub fn current() -> Option<Platform> {
         if cfg!(target_os = "android") {
@@ -166,10 +190,18 @@ pub struct Asset {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Release {
-    /// Without the `v`.
+    /// Without the `v` or a platform prefix.
     pub version: String,
     /// Only the files that pass the rules of [`Asset`]; others are left out.
     pub assets: Vec<Asset>,
+}
+
+/// A release found by [`parse_releases`], with its tag as it is (`v1.3.0`, `mac-v1.3.0`), for
+/// [`Repo::release_page_url`].
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct TaggedRelease {
+    pub release: Release,
+    pub tag: String,
 }
 
 impl Release {
@@ -185,8 +217,49 @@ pub fn parse_release(json: &str, repo: &Repo) -> Option<Release> {
     let tag = v.get("tag_name")?.as_str()?.trim();
     parse_version(tag)?;
     let version = tag.strip_prefix('v').unwrap_or(tag).to_owned();
+    Some(Release { version, assets: assets_of(&v, repo) })
+}
+
+/// The version a tag gives `platform`: `v1.3.0` (every platform) or its own `<prefix>v1.3.0`
+/// gives `1.3.0`; another platform's tag gives `None`.
+pub fn tag_version(tag: &str, platform: Platform) -> Option<String> {
+    let t = tag.trim();
+    let bare = match t.strip_prefix(platform.tag_prefix()) {
+        Some(rest) if rest.starts_with('v') => rest,
+        Some(_) => return None,
+        None => t,
+    };
+    parse_version(bare)?;
+    Some(bare.strip_prefix('v').unwrap_or(bare).to_owned())
+}
+
+/// Reads a [`Repo::releases_api_url`] response (a list) and returns the newest release for
+/// `platform`: its own tag or a plain one, never a draft or a pre-release.
+pub fn parse_releases(json: &str, repo: &Repo, platform: Platform) -> Option<TaggedRelease> {
+    let list = Json::parse(json)?;
+    let mut best: Option<TaggedRelease> = None;
+    for v in list.as_array()? {
+        if matches!(v.get("draft"), Some(Json::Bool(true))) || matches!(v.get("prerelease"), Some(Json::Bool(true))) {
+            continue;
+        }
+        let Some(tag) = v.get("tag_name").and_then(Json::as_str).map(str::trim) else { continue };
+        let Some(version) = tag_version(tag, platform) else { continue };
+        if best.as_ref().is_none_or(|b| is_newer(&version, &b.release.version)) {
+            best = Some(TaggedRelease { release: Release { version, assets: assets_of(v, repo) }, tag: tag.to_owned() });
+        }
+    }
+    best
+}
+
+/// Reads a [`Repo::releases_api_url`] response and decides. `None` when it cannot be read or has no release for `platform`.
+pub fn evaluate_releases(json: &str, repo: &Repo, current: &str, platform: Platform) -> Option<Outcome> {
+    let release = parse_releases(json, repo, platform)?.release;
+    Some(decide(&release, current, pick_asset(&release.assets, platform, repo)))
+}
+
+fn assets_of(v: &Json, repo: &Repo) -> Vec<Asset> {
     let prefix = repo.download_prefix();
-    let assets = v
+    v
         .get("assets")
         .and_then(Json::as_array)
         .unwrap_or_default()
@@ -207,8 +280,7 @@ pub fn parse_release(json: &str, repo: &Repo) -> Option<Release> {
             let size = a.get("size")?.as_u64().filter(|s| *s > 0)?;
             Some(Asset { name: name.to_owned(), size, url: url.to_owned(), sha256 })
         })
-        .collect();
-    Some(Release { version, assets })
+        .collect()
 }
 
 fn has_any(name: &str, words: &[&str]) -> bool {
@@ -283,6 +355,32 @@ pub fn decide(release: &Release, current: &str, asset: Option<&Asset>) -> Outcom
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn platform_tags() {
+        assert_eq!(tag_version("mac-v1.3.0", Platform::MacosX64).as_deref(), Some("1.3.0"));
+        assert_eq!(tag_version("v1.2.0", Platform::WindowsX64).as_deref(), Some("1.2.0"));
+        assert_eq!(tag_version("windows-v1.3.0", Platform::MacosArm64), None);
+        assert_eq!(tag_version("mac-1.3.0", Platform::MacosArm64), None);
+        let r = repo();
+        assert_eq!(r.releases_api_url(), "https://api.github.com/repos/someone/ks-app/releases?per_page=30");
+        assert_eq!(r.release_page_url("mac-v1.3.0"), "https://github.com/someone/ks-app/releases/tag/mac-v1.3.0");
+        let sha = format!("sha256:{}", "a".repeat(64));
+        let list = format!(
+            "[{},{},{}]",
+            release("windows-v2.0.0", &[asset("ks-app-v2.0.0-windows-x64.msi", 5, &sha)]),
+            release("mac-v1.4.0", &[asset("ks-app-v1.4.0-macos-arm64.dmg", 5, &sha)]).replace(r#""body""#, r#""prerelease":true,"body""#),
+            release("v1.2.0", &[asset("ks-app-v1.2.0-macos-arm64.dmg", 5, &sha), asset("ks-app-v1.2.0-windows-x64.msi", 5, &sha)]),
+        );
+        let mac = parse_releases(&list, &r, Platform::MacosArm64).unwrap();
+        assert_eq!((mac.release.version.as_str(), mac.tag.as_str()), ("1.2.0", "v1.2.0"), "the pre-release is skipped");
+        match evaluate_releases(&list, &r, "1.2.0", Platform::WindowsX64) {
+            Some(Outcome::Available { version, asset }) => assert_eq!((version.as_str(), asset.name.as_str()), ("2.0.0", "ks-app-v2.0.0-windows-x64.msi")),
+            other => panic!("{other:?}"),
+        }
+        assert_eq!(parse_releases("[]", &r, Platform::Android), None);
+        assert_eq!(parse_releases("{}", &r, Platform::Android), None);
+    }
 
     fn repo() -> Repo {
         Repo::parse("someone/ks-app").unwrap()

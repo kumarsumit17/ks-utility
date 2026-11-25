@@ -29,6 +29,13 @@ Every KS-Suite app tells the user when a newer version of itself is out and, whe
 - An update is offered only when the release's tag is strictly higher than the running version. The running version comes from the build (`-PversionName`, the Tauri/Cargo version), which comes from the git tag ([versioning](https://github.com/kumarsumit17/KS-Suite/blob/main/specs/versioning-signing.md)).
 - `releases/latest` never returns drafts or pre-releases, so a beta is offered only to whoever installs it by hand.
 
+### Platform tags
+An app whose platforms have their own versions (from `v0.10.0`; the suite's [versioning](https://github.com/kumarsumit17/KS-Suite/blob/main/specs/versioning-signing.md)) tags each platform's release `<platform>-vMAJOR.MINOR.PATCH`: `android-`, `google-tv-`, `mac-` (both macOS builds) or `windows-` (`UpdatePlatform.tagPrefix`, `tag_prefix`, `tagPrefix`). A plain `vMAJOR.MINOR.PATCH` is still a release of every platform.
+- Such an app asks `GET https://api.github.com/repos/<owner>/<repo>/releases?per_page=30` (`releasesApiUrl`) instead of `releases/latest`, which may be another platform's release, with the same headers and the same 1 MiB limit, and passes the body to `evaluateReleases`.
+- `parseReleases` takes, of the releases on that page, the highest version whose tag is this platform's own or a plain one, skipping drafts and pre-releases. Another platform's tag is never offered (`tagVersion` returns null for it).
+- "Get the new version" opens that release's page (`releasePageUrl(tag)`, `release_page_url`, `releaseTagPageUrl`), not `releases/latest`.
+- A platform release is not marked latest ([release workflow](release-workflow.md)), so `releases/latest` stays the last release of every platform. **Bridge release:** copies installed before the switch read only `releases/latest`, so the app ships one plain `vX.Y.Z` release whose builds read the release list, before its first platform tag. Each platform's first own version is higher than that bridge version.
+
 ### Which file
 Assets are matched by file name, case-insensitive, following the same rules as the suite's landing page:
 
@@ -84,7 +91,8 @@ Same names in each language, written in its own style. None of them opens a conn
 | Daily schedule | `AppUpdate.isCheckDue(enabled, current, lastCheckMs?, nowMs)` | `check_due(enabled, current, Option<SystemTime>, SystemTime)` | `isCheckDue(enabled, current, lastCheckMs \| null, nowMs)` |
 | Repository and request | `GitHubRepo.parse("owner/name")`, `.latestReleaseApiUrl`, `.latestReleasePageUrl`, `.downloadPrefix`, `.requestHeaders` | `Repo::parse`, `.latest_release_api_url()`, `.latest_release_page_url()`, `.download_prefix()`, `.request_headers()` | `parseRepo`, `latestReleaseApiUrl`, `releasePageUrl`, `downloadPrefix`, `requestHeaders` |
 | Platform | `UpdatePlatform` (`MACOS_ARM64`, `MACOS_X64`, `WINDOWS_X64`, `ANDROID`, `GOOGLE_TV`), `.current()`, `.detect(...)`; an Android app running on a TV passes `GOOGLE_TV` itself (never detected), so a phone never installs a TV build and a TV never a phone build. Kotlin only: the Rust and TypeScript helpers have no Android | `Platform`, `Platform::current()` | `Platform` (`"macos-arm64"`, …); the app supplies it |
-| Read the response | `AppUpdate.parseRelease(json, repo)` → `Release(version, assets)` | `parse_release(json, &repo)` → `Release` | `parseRelease(textOrObject, repo)` → `Release` |
+| Read the response | `AppUpdate.parseRelease(json, repo)` → `Release(version, assets, tag)` | `parse_release(json, &repo)` → `Release` | `parseRelease(textOrObject, repo)` → `Release` (`tag` added) |
+| Platform tags (from `v0.10.0`) | `UpdatePlatform.tagPrefix`, `AppUpdate.tagVersion(tag, platform)`, `GitHubRepo.releasesApiUrl`, `.releasePageUrl(tag)`, `AppUpdate.parseReleases(json, repo, platform)`, `evaluateReleases(json, repo, current, platform)` | `Platform::tag_prefix()`, `tag_version`, `Repo::releases_api_url()`, `.release_page_url(tag)`, `parse_releases` → `TaggedRelease { release, tag }`, `evaluate_releases` | `tagPrefix`, `tagVersion`, `releasesApiUrl`, `releaseTagPageUrl`, `parseReleases`, `evaluateReleases` |
 | Choose the file | `AppUpdate.pickAsset`, `Release.find` | `pick_asset`, `Release::find` | `pickAsset` |
 | Decide | `AppUpdate.evaluate` / `decide` → `UpdateOutcome` (`UpToDate`, `Available`, `NoInstaller`); null = unreadable | `evaluate` / `decide` → `Outcome`; `None` = unreadable | `evaluateRelease` / `decide` → `Outcome` (`result`: `upToDate`, `available`, `noInstaller`); null = unreadable |
 | Checksum | `Sha256.hex(bytes \| stream \| file)`, `Sha256.matches` | `Sha256`, `sha256_hex`, `sha256_reader`, `sha256_file`, `sha256_matches` | `sha256Hex` (Web Crypto), `sha256Matches` |

@@ -14,6 +14,11 @@ name: Kotlin app release (shared)
 #                           with `mac-intel` also an Intel one (-macos-x64.dmg).
 #   Windows                 an .msi from `windows-module`, x64.
 #
+# Platforms with their own versions: a tag `<platform>-vMAJOR.MINOR.PATCH` (android, google-tv,
+# mac, windows) builds and releases only that platform; a plain `vMAJOR.MINOR.PATCH` builds all.
+# A platform release is not marked "latest", so `releases/latest` stays the last release of all
+# platforms; apps with platform tags read the release list (specs/app-update.md, "Platform tags").
+#
 # Two ways in:
 #   Tag push (vMAJOR.MINOR.PATCH)  A release. The Android build must be signed with the four
 #                                  KEYSTORE secrets and is verified before anything is published.
@@ -43,6 +48,10 @@ on:
         description: "The app's name as people see it (e.g. KS JaiPlayer)."
         type: string
         required: true
+      platform:
+        description: "Rehearsal only: which platform to build (all, android, google-tv, mac, windows), as a platform tag would. A tag run takes it from the tag."
+        type: string
+        default: "all"
       android-module:
         description: "Gradle path of the Android application module (e.g. :app). Empty: no Android build."
         type: string
@@ -114,6 +123,11 @@ jobs:
       name: ${{ steps.ver.outputs.name }}
       code: ${{ steps.ver.outputs.code }}
       release: ${{ steps.ver.outputs.release }}
+      platform: ${{ steps.ver.outputs.platform }}
+      phone: ${{ steps.ver.outputs.phone }}
+      tv: ${{ steps.ver.outputs.tv }}
+      mac: ${{ steps.ver.outputs.mac }}
+      windows: ${{ steps.ver.outputs.windows }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -127,11 +141,23 @@ jobs:
         env:
           REQUIRE_MAIN: ${{ inputs.require-main }}
           REHEARSE: ${{ inputs.version }}
+          REHEARSE_PLATFORM: ${{ inputs.platform }}
+          ANDROID_MODULE: ${{ inputs.android-module }}
+          TV_MODULE: ${{ inputs.tv-module }}
+          MAC_MODULE: ${{ inputs.mac-module }}
+          WINDOWS_MODULE: ${{ inputs.windows-module }}
         run: |
           if [ "$GITHUB_REF_TYPE" = "tag" ]; then
-            tag="${GITHUB_REF_NAME#v}"
+            # vX.Y.Z (every platform) or <platform>-vX.Y.Z (that platform only).
+            if [[ "$GITHUB_REF_NAME" =~ ^(android|google-tv|mac|windows)-v(.+)$ ]]; then
+              platform="${BASH_REMATCH[1]}"
+              tag="${BASH_REMATCH[2]}"
+            else
+              platform=all
+              tag="${GITHUB_REF_NAME#v}"
+            fi
             if ! [[ "$tag" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-              echo "::error::Tag '$GITHUB_REF_NAME' is not vMAJOR.MINOR.PATCH."
+              echo "::error::Tag '$GITHUB_REF_NAME' is not vMAJOR.MINOR.PATCH or <platform>-vMAJOR.MINOR.PATCH."
               exit 1
             fi
             if [ "$REQUIRE_MAIN" = "true" ]; then
@@ -148,8 +174,22 @@ jobs:
               echo "::error::A rehearsal needs a version input X.Y.Z (got '$REHEARSE')."
               exit 1
             fi
-            echo "::notice::Rehearsal of v$tag on $GITHUB_REF_NAME: no attestation, no release."
+            platform="${REHEARSE_PLATFORM:-all}"
+            echo "::notice::Rehearsal of v$tag ($platform) on $GITHUB_REF_NAME: no attestation, no release."
             release=false
+          fi
+          case "$platform" in all|android|google-tv|mac|windows) ;; *)
+            echo "::error::Unknown platform '$platform' (all, android, google-tv, mac, windows)."; exit 1 ;;
+          esac
+          # Which builds run: the app has the module, and the platform is this one (or all).
+          want() { [ -n "$1" ] && { [ "$platform" = all ] || [ "$platform" = "$2" ]; } && echo true || echo false; }
+          phone="$(want "$ANDROID_MODULE" android)"
+          tv="$(want "$TV_MODULE" google-tv)"
+          mac="$(want "$MAC_MODULE" mac)"
+          windows="$(want "$WINDOWS_MODULE" windows)"
+          if [ "$phone$tv$mac$windows" = falsefalsefalsefalse ]; then
+            echo "::error::This app has no $platform build."
+            exit 1
           fi
           IFS='.' read -r major minor patch <<< "$tag"
           if [ "$((10#$minor))" -ge 100 ] || [ "$((10#$patch))" -ge 100 ]; then
@@ -160,13 +200,18 @@ jobs:
             echo "name=$tag"
             echo "code=$((10#$major * 10000 + 10#$minor * 100 + 10#$patch))"
             echo "release=$release"
+            echo "platform=$platform"
+            echo "phone=$phone"
+            echo "tv=$tv"
+            echo "mac=$mac"
+            echo "windows=$windows"
           } >> "$GITHUB_OUTPUT"
           echo "## ${{ inputs.display-name }} $tag ($([ "$release" = true ] && echo release || echo test build))" >> "$GITHUB_STEP_SUMMARY"
 
   android:
     name: Android and Google TV
     needs: version
-    if: inputs.android-module != ''
+    if: needs.version.outputs.phone == 'true' || needs.version.outputs.tv == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 40
     outputs:
@@ -409,14 +454,15 @@ jobs:
           SIGNING_STORE_PASSWORD: ${{ steps.signing.outputs.signed == 'true' && secrets.KEYSTORE_PASSWORD || '' }}
           SIGNING_KEY_ALIAS: ${{ steps.signing.outputs.signed == 'true' && secrets.KEY_ALIAS || '' }}
           SIGNING_KEY_PASSWORD: ${{ steps.signing.outputs.signed == 'true' && secrets.KEY_PASSWORD || '' }}
-          MODULE: ${{ inputs.android-module }}
-          TV_MODULE: ${{ inputs.tv-module }}
+          MODULE: ${{ needs.version.outputs.phone == 'true' && inputs.android-module || '' }}
+          TV_MODULE: ${{ needs.version.outputs.tv == 'true' && inputs.tv-module || '' }}
           PLAY: ${{ inputs.play-build-type }}
         run: |
           # The APK is always the release build (GitHub, with the in-app updater); the AAB is the
           # Google Play build when play-build-type is set.
           bundle="bundle$(echo "${PLAY:-release}" | awk '{print toupper(substr($0,1,1)) substr($0,2)}')"
-          tasks=("$MODULE:assembleRelease" "$MODULE:$bundle")
+          tasks=()
+          [ -z "$MODULE" ] || tasks+=("$MODULE:assembleRelease" "$MODULE:$bundle")
           [ -z "$TV_MODULE" ] || tasks+=("$TV_MODULE:assembleRelease" "$TV_MODULE:$bundle")
           ./gradlew "${tasks[@]}" \
             "-PversionName=${{ needs.version.outputs.name }}" "-PversionCode=${{ needs.version.outputs.code }}"
@@ -424,8 +470,8 @@ jobs:
       - name: Find the outputs
         id: out
         env:
-          MODULE: ${{ inputs.android-module }}
-          TV_MODULE: ${{ inputs.tv-module }}
+          MODULE: ${{ needs.version.outputs.phone == 'true' && inputs.android-module || '' }}
+          TV_MODULE: ${{ needs.version.outputs.tv == 'true' && inputs.tv-module || '' }}
           PLAY: ${{ inputs.play-build-type }}
         run: |
           find_outputs() { # <module> <output prefix>
@@ -437,7 +483,7 @@ jobs:
             echo "${2}apk=$apk" >> "$GITHUB_OUTPUT"
             echo "${2}aab=$aab" >> "$GITHUB_OUTPUT"
           }
-          find_outputs "$MODULE" ""
+          [ -z "$MODULE" ] || find_outputs "$MODULE" ""
           [ -z "$TV_MODULE" ] || find_outputs "$TV_MODULE" "tv_"
 
       # A finished Gradle build is not proof of signing: apksigner and jarsigner check both
@@ -447,25 +493,31 @@ jobs:
         if: steps.signing.outputs.signed == 'true'
         env:
           EXPECTED_CERT_SHA256: ${{ steps.keystore.outputs.cert_sha256 }}
+          APK: ${{ steps.out.outputs.apk }}
+          AAB: ${{ steps.out.outputs.aab }}
           TV_APK: ${{ steps.out.outputs.tv_apk }}
           TV_AAB: ${{ steps.out.outputs.tv_aab }}
         run: |
-          bash "$RUNNER_TEMP/verify-release-signing.sh" signed "${{ steps.out.outputs.apk }}" "${{ steps.out.outputs.aab }}" "$EXPECTED_CERT_SHA256"
+          [ -z "$APK" ] || bash "$RUNNER_TEMP/verify-release-signing.sh" signed "$APK" "$AAB" "$EXPECTED_CERT_SHA256"
           [ -z "$TV_APK" ] || bash "$RUNNER_TEMP/verify-release-signing.sh" signed "$TV_APK" "$TV_AAB" "$EXPECTED_CERT_SHA256"
 
       - name: Confirm the build is unsigned
         if: steps.signing.outputs.signed == 'false'
         env:
+          APK: ${{ steps.out.outputs.apk }}
+          AAB: ${{ steps.out.outputs.aab }}
           TV_APK: ${{ steps.out.outputs.tv_apk }}
           TV_AAB: ${{ steps.out.outputs.tv_aab }}
         run: |
-          bash "$RUNNER_TEMP/verify-release-signing.sh" unsigned "${{ steps.out.outputs.apk }}" "${{ steps.out.outputs.aab }}"
+          [ -z "$APK" ] || bash "$RUNNER_TEMP/verify-release-signing.sh" unsigned "$APK" "$AAB"
           [ -z "$TV_APK" ] || bash "$RUNNER_TEMP/verify-release-signing.sh" unsigned "$TV_APK" "$TV_AAB"
 
       - name: Collect
         env:
           BASE: ${{ inputs.android-file-name != '' && inputs.android-file-name || format('{0}-v{1}', inputs.app-name, needs.version.outputs.name) }}
           SIGNED: ${{ steps.signing.outputs.signed }}
+          APK: ${{ steps.out.outputs.apk }}
+          AAB: ${{ steps.out.outputs.aab }}
           TV_APK: ${{ steps.out.outputs.tv_apk }}
           TV_AAB: ${{ steps.out.outputs.tv_aab }}
         run: |
@@ -473,8 +525,10 @@ jobs:
           # because an empty string counts as false.
           if [ "$SIGNED" = "true" ]; then SUFFIX=""; else SUFFIX="-UNSIGNED"; fi
           mkdir -p dist
-          cp "${{ steps.out.outputs.apk }}" "dist/$BASE$SUFFIX.apk"
-          cp "${{ steps.out.outputs.aab }}" "dist/$BASE$SUFFIX.aab"
+          if [ -n "$APK" ]; then
+            cp "$APK" "dist/$BASE$SUFFIX.apk"
+            cp "$AAB" "dist/$BASE$SUFFIX.aab"
+          fi
           if [ -n "$TV_APK" ]; then
             cp "$TV_APK" "dist/$BASE-google-tv$SUFFIX.apk"
             cp "$TV_AAB" "dist/$BASE-google-tv$SUFFIX.aab"
@@ -494,7 +548,7 @@ jobs:
   mac:
     name: macOS ${{ matrix.arch }}
     needs: version
-    if: inputs.mac-module != ''
+    if: needs.version.outputs.mac == 'true'
     strategy:
       fail-fast: true
       matrix:
@@ -545,7 +599,7 @@ jobs:
   windows:
     name: Windows
     needs: version
-    if: inputs.windows-module != ''
+    if: needs.version.outputs.windows == 'true'
     runs-on: windows-2025
     timeout-minutes: 40
     steps:
@@ -598,10 +652,10 @@ jobs:
       !cancelled() &&
       needs.version.outputs.release == 'true' &&
       needs.version.result == 'success' &&
-      (needs.android.result == 'success' || (needs.android.result == 'skipped' && inputs.android-module == '')) &&
-      (needs.mac.result == 'success' || (needs.mac.result == 'skipped' && inputs.mac-module == '')) &&
-      (needs.windows.result == 'success' || (needs.windows.result == 'skipped' && inputs.windows-module == '')) &&
-      (inputs.android-module == '' || (needs.android.outputs.signed == 'true' && needs.android.outputs.verified == 'true'))
+      (needs.android.result == 'success' || (needs.android.result == 'skipped' && needs.version.outputs.phone != 'true' && needs.version.outputs.tv != 'true')) &&
+      (needs.mac.result == 'success' || (needs.mac.result == 'skipped' && needs.version.outputs.mac != 'true')) &&
+      (needs.windows.result == 'success' || (needs.windows.result == 'skipped' && needs.version.outputs.windows != 'true')) &&
+      ((needs.version.outputs.phone != 'true' && needs.version.outputs.tv != 'true') || (needs.android.outputs.signed == 'true' && needs.android.outputs.verified == 'true'))
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     permissions:
@@ -618,18 +672,18 @@ jobs:
         env:
           BASE: ${{ inputs.app-name }}-v${{ needs.version.outputs.name }}
           APK_BASE: ${{ inputs.android-file-name != '' && inputs.android-file-name || format('{0}-v{1}', inputs.app-name, needs.version.outputs.name) }}
-          ANDROID: ${{ inputs.android-module }}
-          TV: ${{ inputs.tv-module }}
-          MAC: ${{ inputs.mac-module }}
+          PHONE: ${{ needs.version.outputs.phone }}
+          TV: ${{ needs.version.outputs.tv }}
+          MAC: ${{ needs.version.outputs.mac }}
           MAC_INTEL: ${{ inputs.mac-intel }}
-          WINDOWS: ${{ inputs.windows-module }}
+          WINDOWS: ${{ needs.version.outputs.windows }}
         run: |
           expected=()
-          [ -z "$ANDROID" ] || expected+=("$APK_BASE.apk" "$APK_BASE.aab")
-          [ -z "$ANDROID" ] || [ -z "$TV" ] || expected+=("$APK_BASE-google-tv.apk" "$APK_BASE-google-tv.aab")
-          [ -z "$MAC" ] || expected+=("$BASE-macos-arm64.dmg")
-          [ -z "$MAC" ] || [ "$MAC_INTEL" != true ] || expected+=("$BASE-macos-x64.dmg")
-          [ -z "$WINDOWS" ] || expected+=("$BASE-windows-x64.msi")
+          [ "$PHONE" != true ] || expected+=("$APK_BASE.apk" "$APK_BASE.aab")
+          [ "$TV" != true ] || expected+=("$APK_BASE-google-tv.apk" "$APK_BASE-google-tv.aab")
+          [ "$MAC" != true ] || expected+=("$BASE-macos-arm64.dmg")
+          [ "$MAC" != true ] || [ "$MAC_INTEL" != true ] || expected+=("$BASE-macos-x64.dmg")
+          [ "$WINDOWS" != true ] || expected+=("$BASE-windows-x64.msi")
           got="$(cd dist && ls -1 | sort)"
           want="$(printf '%s\n' "${expected[@]}" | sort)"
           if [ "$got" != "$want" ]; then
@@ -647,8 +701,19 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ github.ref_name }}
-          TITLE: ${{ inputs.display-name }} ${{ needs.version.outputs.name }}
+          NAME: ${{ inputs.display-name }}
+          VERSION: ${{ needs.version.outputs.name }}
+          PLATFORM: ${{ needs.version.outputs.platform }}
         run: |
-          gh release create "$TAG" --repo "$GITHUB_REPOSITORY" --verify-tag --latest --generate-notes --title "$TITLE" dist/*
+          # A platform's own release names its platform and is not "latest" (releases/latest stays
+          # the last release of all platforms, which apps without platform tags read).
+          case "$PLATFORM" in
+            all) title="$NAME $VERSION"; latest=--latest ;;
+            android) title="$NAME for Android $VERSION"; latest=--latest=false ;;
+            google-tv) title="$NAME for Google TV $VERSION"; latest=--latest=false ;;
+            mac) title="$NAME for macOS $VERSION"; latest=--latest=false ;;
+            windows) title="$NAME for Windows $VERSION"; latest=--latest=false ;;
+          esac
+          gh release create "$TAG" --repo "$GITHUB_REPOSITORY" --verify-tag "$latest" --generate-notes --title "$title" dist/*
           [ "$(gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json isDraft --jq .isDraft)" = false ] || { echo "::error::The release was not published."; exit 1; }
           gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json assets --jq '.assets[].name'

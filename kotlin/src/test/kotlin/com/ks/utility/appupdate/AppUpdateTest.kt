@@ -153,4 +153,40 @@ class AppUpdateTest {
         assertTrue(Sha256.matches(abc, abc.uppercase()))
         assertFalse(Sha256.matches(abc, ""))
     }
+
+    @Test
+    fun platformTags() {
+        assertEquals("1.3.0", AppUpdate.tagVersion("mac-v1.3.0", UpdatePlatform.MACOS_ARM64))
+        assertEquals("1.3.0", AppUpdate.tagVersion("mac-v1.3.0", UpdatePlatform.MACOS_X64))
+        assertEquals("1.2.0", AppUpdate.tagVersion("v1.2.0", UpdatePlatform.GOOGLE_TV), "a plain tag is every platform's")
+        assertNull(AppUpdate.tagVersion("android-v1.4.0", UpdatePlatform.GOOGLE_TV), "another platform's tag")
+        assertNull(AppUpdate.tagVersion("google-tv-v1.4.0", UpdatePlatform.ANDROID))
+        assertNull(AppUpdate.tagVersion("mac-1.3.0", UpdatePlatform.MACOS_ARM64), "the v is required after a prefix")
+        assertNull(AppUpdate.tagVersion("mac-v1.3.0-beta", UpdatePlatform.MACOS_ARM64))
+        assertEquals("https://api.github.com/repos/someone/ks-app/releases?per_page=30", repo.releasesApiUrl)
+        assertEquals("https://github.com/someone/ks-app/releases/tag/mac-v1.3.0", repo.releasePageUrl("mac-v1.3.0"))
+    }
+
+    @Test
+    fun releaseListPicksThisPlatformsNewest() {
+        val list = "[" + listOf(
+            release("windows-v2.0.0", asset("ks-app-v2.0.0-windows-x64.msi")),
+            release("android-v1.4.0", asset("ks-app-v1.4.0.apk")),
+            release("google-tv-v1.6.0", asset("ks-app-v1.6.0-google-tv.apk")).replace("\"draft\":false", "\"draft\":true"),
+            release("google-tv-v1.5.0", asset("ks-app-v1.5.0-google-tv.apk")),
+            release("v1.2.0", asset("ks-app-v1.2.0.apk"), asset("ks-app-v1.2.0-google-tv.apk")),
+        ).joinToString(",") + "]"
+        val tv = AppUpdate.parseReleases(list, repo, UpdatePlatform.GOOGLE_TV)!!
+        assertEquals("1.5.0", tv.version, "the draft is skipped")
+        assertEquals("google-tv-v1.5.0", tv.tag)
+        assertEquals("1.4.0", AppUpdate.parseReleases(list, repo, UpdatePlatform.ANDROID)!!.version)
+        assertEquals("1.2.0", AppUpdate.parseReleases(list, repo, UpdatePlatform.MACOS_ARM64)!!.version, "only the plain tag is for macOS")
+        val outcome = AppUpdate.evaluateReleases(list, repo, "1.3.0", UpdatePlatform.ANDROID)
+        assertIs<UpdateOutcome.Available>(outcome)
+        assertEquals("ks-app-v1.4.0.apk", outcome.asset.name)
+        assertIs<UpdateOutcome.UpToDate>(AppUpdate.evaluateReleases(list, repo, "2.0.0", UpdatePlatform.WINDOWS_X64))
+        assertNull(AppUpdate.parseReleases(release("v1.0.0"), repo, UpdatePlatform.ANDROID), "not a list")
+        assertNull(AppUpdate.parseReleases("not json", repo, UpdatePlatform.ANDROID))
+        assertNull(AppUpdate.parseReleases("[]", repo, UpdatePlatform.ANDROID))
+    }
 }

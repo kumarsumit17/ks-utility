@@ -5,12 +5,25 @@ package com.ks.utility.appupdate
  * and which file installs it here", without any network access. The app makes the one request
  * itself (to [GitHubRepo.latestReleaseApiUrl], with [GitHubRepo.requestHeaders]) and passes the
  * response body to [AppUpdate.evaluate]. Verify the download with [Sha256].
+ *
+ * An app whose platforms have their own versions (tags `mac-v1.3.0`, `android-v1.4.0`, see
+ * [UpdatePlatform.tagPrefix]) asks [GitHubRepo.releasesApiUrl] instead and passes the body to
+ * [AppUpdate.evaluateReleases], which takes the newest release for its platform.
  */
 
 /** A GitHub repository, `owner/name`. Create it with [GitHubRepo.parse]. */
 class GitHubRepo private constructor(val owner: String, val name: String) {
     /** The one request the check makes: `GET` this, unauthenticated. */
     val latestReleaseApiUrl: String get() = "https://api.github.com/repos/$owner/$name/releases/latest"
+
+    /**
+     * The newest releases, for an app whose platforms have their own tags: `releases/latest` may be
+     * another platform's release. One page of [RELEASES_PER_PAGE], newest first.
+     */
+    val releasesApiUrl: String get() = "https://api.github.com/repos/$owner/$name/releases?per_page=$RELEASES_PER_PAGE"
+
+    /** The page of one release, by its tag (e.g. `mac-v1.3.0`), for "Get the new version" links. */
+    fun releasePageUrl(tag: String): String = "https://github.com/$owner/$name/releases/tag/$tag"
 
     /** The page of the newest release, for "Get the new version" links. */
     val latestReleasePageUrl: String get() = "https://github.com/$owner/$name/releases/latest"
@@ -27,6 +40,9 @@ class GitHubRepo private constructor(val owner: String, val name: String) {
     override fun toString() = "$owner/$name"
 
     companion object {
+        /** How many releases [releasesApiUrl] asks for. */
+        const val RELEASES_PER_PAGE = 30
+
         private val PART = Regex("^(?!\\.{1,2}$)[A-Za-z0-9._-]{1,100}$")
 
         /** Parses `owner/name`; null when it is not one. */
@@ -44,8 +60,15 @@ class GitHubRepo private constructor(val owner: String, val name: String) {
  * does. When a release has no TV build, a TV takes the plain APK (a TV-only app's one APK,
  * or an app that still ships one APK for both).
  */
-enum class UpdatePlatform {
-    MACOS_ARM64, MACOS_X64, WINDOWS_X64, ANDROID, GOOGLE_TV;
+enum class UpdatePlatform(
+    /**
+     * The tag prefix of this platform's own releases (`mac-v1.3.0`), for an app whose platforms
+     * have their own versions. Both macOS builds share `mac-`. A plain `v1.3.0` tag is a release
+     * of every platform.
+     */
+    val tagPrefix: String,
+) {
+    MACOS_ARM64("mac-"), MACOS_X64("mac-"), WINDOWS_X64("windows-"), ANDROID("android-"), GOOGLE_TV("google-tv-");
 
     companion object {
         /** The platform from the JVM's `os.name`, `os.arch` and `java.vm.name`; null for others. */
@@ -78,10 +101,12 @@ data class ReleaseAsset(
 )
 
 data class Release(
-    /** Without the `v`. */
+    /** Without the `v` or a platform prefix. */
     val version: String,
     /** Only the files that pass the rules of [ReleaseAsset]; others are left out. */
     val assets: List<ReleaseAsset>,
+    /** The release's tag as it is (`v1.3.0`, `mac-v1.3.0`), for [GitHubRepo.releasePageUrl]. */
+    val tag: String = "v$version",
 ) {
     /** The first usable file whose name passes [matches] (for apps with their own names). */
     fun find(matches: (String) -> Boolean): ReleaseAsset? = assets.firstOrNull { matches(it.name) }
@@ -151,13 +176,48 @@ object AppUpdate {
         return now < lastCheck || now - lastCheck >= CHECK_INTERVAL_MS
     }
 
+    /**
+     * The version a tag gives [platform]: `v1.3.0` (every platform) or its own `<prefix>v1.3.0`
+     * ([UpdatePlatform.tagPrefix]) gives `1.3.0`; another platform's tag gives null.
+     */
+    fun tagVersion(tag: String, platform: UpdatePlatform): String? {
+        val t = tag.trim()
+        val bare = if (t.startsWith(platform.tagPrefix)) t.substring(platform.tagPrefix.length) else t
+        if (!bare.startsWith('v') && bare != t) return null
+        return bare.takeIf { parseVersion(it) != null }?.removePrefix("v")
+    }
+
+    private fun safeJson(json: String): Any? = runCatching { Json.parse(json) }.getOrNull()
+
     /** Reads a `releases/latest` response; null when it is not JSON or its tag is not a version. */
     fun parseRelease(json: String, repo: GitHubRepo): Release? {
         val v = Json.parse(json) as? Map<*, *> ?: return null
         val tag = (v["tag_name"] as? String)?.trim() ?: return null
         if (parseVersion(tag) == null) return null
+        return Release(tag.removePrefix("v"), assetsOf(v, repo), tag)
+    }
+
+    /**
+     * Reads a [GitHubRepo.releasesApiUrl] response (a list) and returns the newest release for
+     * [platform]: its own tag (`android-v1.4.0`) or a plain one (`v1.2.0`), never a draft or a
+     * pre-release; null when it is not a list or none is for this platform.
+     */
+    fun parseReleases(json: String, repo: GitHubRepo, platform: UpdatePlatform): Release? {
+        val list = safeJson(json) as? List<*> ?: return null
+        var best: Release? = null
+        for (item in list) {
+            val v = item as? Map<*, *> ?: continue
+            if (v["draft"] == true || v["prerelease"] == true) continue
+            val tag = (v["tag_name"] as? String)?.trim() ?: continue
+            val version = tagVersion(tag, platform) ?: continue
+            if (best == null || isNewer(version, best.version)) best = Release(version, assetsOf(v, repo), tag)
+        }
+        return best
+    }
+
+    private fun assetsOf(v: Map<*, *>, repo: GitHubRepo): List<ReleaseAsset> {
         val prefix = repo.downloadPrefix
-        val assets = (v["assets"] as? List<*>).orEmpty().mapNotNull { a ->
+        return (v["assets"] as? List<*>).orEmpty().mapNotNull { a ->
             a as? Map<*, *> ?: return@mapNotNull null
             val name = a["name"] as? String ?: return@mapNotNull null
             if (name.isEmpty() || name.startsWith('.') || name.any { it == '/' || it == '\\' || it.isISOControl() }) return@mapNotNull null
@@ -168,7 +228,6 @@ object AppUpdate {
             val size = (a["size"] as? Json.JsonNumber)?.text?.toLongOrNull()?.takeIf { it > 0 } ?: return@mapNotNull null
             ReleaseAsset(name, size, url, digest.substring(7).lowercase())
         }
-        return Release(tag.removePrefix("v"), assets)
     }
 
     private fun rank(name: String, platform: UpdatePlatform, repo: GitHubRepo): Int {
@@ -210,6 +269,12 @@ object AppUpdate {
     /** Reads the response and decides; null when the response cannot be read. */
     fun evaluate(json: String, repo: GitHubRepo, current: String, platform: UpdatePlatform): UpdateOutcome? {
         val release = parseRelease(json, repo) ?: return null
+        return decide(release, current, pickAsset(release.assets, platform, repo))
+    }
+
+    /** Reads a [GitHubRepo.releasesApiUrl] response and decides; null when it cannot be read or has no release for [platform]. */
+    fun evaluateReleases(json: String, repo: GitHubRepo, current: String, platform: UpdatePlatform): UpdateOutcome? {
+        val release = parseReleases(json, repo, platform) ?: return null
         return decide(release, current, pickAsset(release.assets, platform, repo))
     }
 }

@@ -71,6 +71,22 @@ export function latestReleaseApiUrl(repo: Repo): string {
   return `https://api.github.com/repos/${repo.owner}/${repo.name}/releases/latest`;
 }
 
+/** How many releases `releasesApiUrl` asks for. */
+export const RELEASES_PER_PAGE = 30;
+
+/**
+ * The newest releases (one page), for an app whose platforms have their own tags (`mac-v1.3.0`):
+ * `releases/latest` may be another platform's release.
+ */
+export function releasesApiUrl(repo: Repo): string {
+  return `https://api.github.com/repos/${repo.owner}/${repo.name}/releases?per_page=${RELEASES_PER_PAGE}`;
+}
+
+/** The page of one release, by its tag, for "Get the new version" links. */
+export function releaseTagPageUrl(repo: Repo, tag: string): string {
+  return `https://github.com/${repo.owner}/${repo.name}/releases/tag/${tag}`;
+}
+
 /** The page of the newest release, for "Get the new version" links. */
 export function releasePageUrl(repo: Repo): string {
   return `https://github.com/${repo.owner}/${repo.name}/releases/latest`;
@@ -88,6 +104,23 @@ export function requestHeaders(repo: Repo): Record<string, string> {
 
 export type Platform = "macos-arm64" | "macos-x64" | "windows-x64" | "android";
 
+/**
+ * The tag prefix of a platform's own releases (`mac-v1.3.0`), for an app whose platforms have
+ * their own versions. Both macOS builds share `mac-`; a plain `v1.3.0` is every platform's.
+ */
+export function tagPrefix(platform: Platform): string {
+  return platform.startsWith("macos") ? "mac-" : platform === "windows-x64" ? "windows-" : "android-";
+}
+
+/** The version a tag gives `platform` (`mac-v1.3.0` or `v1.3.0` → `1.3.0`); null for another platform's tag. */
+export function tagVersion(tag: string, platform: Platform): string | null {
+  const t = tag.trim();
+  const prefix = tagPrefix(platform);
+  const bare = t.startsWith(prefix) ? t.slice(prefix.length) : t;
+  if (bare !== t && !bare.startsWith("v")) return null;
+  return parseVersion(bare) === null ? null : bare.replace(/^v/, "");
+}
+
 /** A release file that may be downloaded: this repository's, safe name, size, GitHub's SHA-256. */
 export interface Asset {
   name: string;
@@ -102,6 +135,8 @@ export interface Release {
   version: string;
   /** Only the files that pass the rules of `Asset`. */
   assets: Asset[];
+  /** The tag as it is (`v1.3.0`, `mac-v1.3.0`), for `releaseTagPageUrl`. */
+  tag?: string;
 }
 
 function get(o: unknown, k: string): unknown {
@@ -109,18 +144,48 @@ function get(o: unknown, k: string): unknown {
 }
 
 /** Reads a `releases/latest` response (text or parsed JSON); null when its tag is not a version. */
-export function parseRelease(response: unknown, repo: Repo): Release | null {
-  let v = response;
-  if (typeof v === "string") {
-    try {
-      v = JSON.parse(v);
-    } catch {
-      return null;
-    }
+function parsed(response: unknown): unknown {
+  if (typeof response !== "string") return response;
+  try {
+    return JSON.parse(response);
+  } catch {
+    return undefined;
   }
+}
+
+export function parseRelease(response: unknown, repo: Repo): Release | null {
+  const v = parsed(response);
   const tag = get(v, "tag_name");
   if (typeof tag !== "string" || parseVersion(tag) === null) return null;
-  const version = tag.trim().replace(/^v/, "");
+  return { version: tag.trim().replace(/^v/, ""), assets: assetsOf(v, repo), tag: tag.trim() };
+}
+
+/**
+ * Reads a `releasesApiUrl` response (a list, text or parsed) and returns the newest release for
+ * `platform`: its own tag or a plain one, never a draft or a pre-release.
+ */
+export function parseReleases(response: unknown, repo: Repo, platform: Platform): Release | null {
+  const list = parsed(response);
+  if (!Array.isArray(list)) return null;
+  let best: Release | null = null;
+  for (const v of list) {
+    if (get(v, "draft") === true || get(v, "prerelease") === true) continue;
+    const tag = get(v, "tag_name");
+    if (typeof tag !== "string") continue;
+    const version = tagVersion(tag, platform);
+    if (version === null) continue;
+    if (best === null || isNewerVersion(version, best.version)) best = { version, assets: assetsOf(v, repo), tag: tag.trim() };
+  }
+  return best;
+}
+
+/** Reads a `releasesApiUrl` response and decides; null when it cannot be read or has no release for `platform`. */
+export function evaluateReleases(response: unknown, repo: Repo, current: string, platform: Platform): Outcome | null {
+  const release = parseReleases(response, repo, platform);
+  return release && decide(release, current, pickAsset(release.assets, platform, repo));
+}
+
+function assetsOf(v: unknown, repo: Repo): Asset[] {
   const prefix = downloadPrefix(repo);
   const raw = get(v, "assets");
   const assets: Asset[] = [];
@@ -135,7 +200,7 @@ export function parseRelease(response: unknown, repo: Repo): Release | null {
     if (typeof size !== "number" || !Number.isSafeInteger(size) || size <= 0) continue;
     assets.push({ name, size, url, sha256: digest.slice(7).toLowerCase() });
   }
-  return { version, assets };
+  return assets;
 }
 
 const ARM = ["aarch64", "arm64", "apple-silicon"];
