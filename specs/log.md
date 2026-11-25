@@ -1,7 +1,8 @@
 # 2026-11-25
 
+* **Update**: [Usage](usage.md): `v0.8.0` tagged (more languages, Crowdin conversion).
 * **Creation**: [Translating in Crowdin](crowdin.md) added: one Crowdin project for the suite, the owner's one-time setup, `crowdin.yml` and the sync steps.
-* **Update**: [Translation file format](translation-format.md), [Languages](languages.md), [usage](usage.md), [utilities](utilities.md): any number of languages (one file per language code; English and Hindi required, others partial), fallback through the region to English, the check for every language (plural forms per language, digits 0-9), one Android/Compose `values-…` folder per language, `crowdin-export` and `crowdin-import`, Kotlin `LanguageRules` for 28 languages checked against `Intl`. For `v0.6.0`, not tagged yet.
+* **Update**: [Translation file format](translation-format.md), [Languages](languages.md), [usage](usage.md), [utilities](utilities.md): any number of languages (one file per language code; English and Hindi required, others partial), fallback through the region to English, the check for every language (plural forms per language, digits 0-9), one Android/Compose `values-…` folder per language, `crowdin-export` and `crowdin-import`, Kotlin `LanguageRules` for 28 languages checked against `Intl`.
 
 # 2026-11-24
 
