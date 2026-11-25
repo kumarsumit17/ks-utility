@@ -1,5 +1,6 @@
 # 2026-11-25
 
+* **Update**: [Hindi style guide](hindi-style.md): 13 terms from KS Expense Manager added for owner review (Expense खर्च, Amount रकम, Note नोट, Date तारीख, Export एक्सपोर्ट, Spreadsheet स्प्रेडशीट, Food खाना, Transport ट्रांसपोर्ट, Shopping शॉपिंग, Bills बिल, Health सेहत, Entertainment मनोरंजन, Hidden छिपी हुई), in the table and `lang/hindi-terms.json`.
 * **Update**: [Usage](usage.md): `v0.9.0` tagged (own translation tools, Crowdin removed).
 * **Creation**: [Translation tools](translating.md) added: KS Utility's own translation tools, with no outside service: the translation editor (`lang.mjs translate`, served on 127.0.0.1 behind a token), quality checks, translation memory, glossaries per language (`lang/glossary/<code>.json`), translators' notes and length limits (`_context.json`), outdated and approved texts (`_state.json`), XLIFF export and import, pseudo-localisation (`--pseudo`, `en-XA`) and `lang.mjs status`.
 * **Update**: [Translation file format](translation-format.md), [Languages](languages.md), [usage](usage.md), [utilities](utilities.md), [rules](rules.md): Crowdin removed (`crowdin-export`, `crowdin-import`, `toCrowdinSource`, `fromCrowdin` and the Crowdin playbook); `_`-files in a language folder are not languages; XLIFF section; the development tools are not shipped and the editor listens on 127.0.0.1 only.

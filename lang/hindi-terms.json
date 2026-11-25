@@ -562,5 +562,99 @@
       "अज्ञात"
     ],
     "review": true
+  },
+  {
+    "en": "Expense",
+    "hi": "खर्च",
+    "avoid": [],
+    "review": true
+  },
+  {
+    "en": "Amount",
+    "hi": "रकम",
+    "avoid": [
+      "राशि"
+    ],
+    "review": true
+  },
+  {
+    "en": "Note",
+    "hi": "नोट",
+    "avoid": [
+      "टिप्पणी"
+    ],
+    "review": true
+  },
+  {
+    "en": "Date",
+    "hi": "तारीख",
+    "avoid": [
+      "दिनांक"
+    ],
+    "review": true
+  },
+  {
+    "en": "Export",
+    "hi": "एक्सपोर्ट",
+    "avoid": [
+      "निर्यात"
+    ],
+    "review": true
+  },
+  {
+    "en": "Spreadsheet",
+    "hi": "स्प्रेडशीट",
+    "avoid": [],
+    "review": true
+  },
+  {
+    "en": "Food",
+    "hi": "खाना",
+    "avoid": [
+      "भोजन"
+    ],
+    "review": true
+  },
+  {
+    "en": "Transport",
+    "hi": "ट्रांसपोर्ट",
+    "avoid": [
+      "यातायात"
+    ],
+    "review": true
+  },
+  {
+    "en": "Shopping",
+    "hi": "शॉपिंग",
+    "avoid": [
+      "खरीदारी"
+    ],
+    "review": true
+  },
+  {
+    "en": "Bills",
+    "hi": "बिल",
+    "avoid": [],
+    "review": true
+  },
+  {
+    "en": "Health",
+    "hi": "सेहत",
+    "avoid": [
+      "स्वास्थ्य"
+    ],
+    "review": true
+  },
+  {
+    "en": "Entertainment",
+    "hi": "मनोरंजन",
+    "avoid": [],
+    "review": true
+  },
+  {
+    "en": "Hidden",
+    "hi": "छिपी हुई",
+    "avoid": [],
+    "review": true
   }
 ]

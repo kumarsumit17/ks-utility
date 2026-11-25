@@ -119,3 +119,16 @@ The data file `lang/hindi-terms.json` holds the same rows; a test fails if this 
 | Check (for updates) | जांच करें | जाँच | owner review |
 | Disk image | डिस्क इमेज | — | owner review |
 | Unknown apps (Android) | अनजान ऐप | अज्ञात | owner review |
+| Expense | खर्च | — | owner review |
+| Amount | रकम | राशि | owner review |
+| Note | नोट | टिप्पणी | owner review |
+| Date | तारीख | दिनांक | owner review |
+| Export | एक्सपोर्ट | निर्यात | owner review |
+| Spreadsheet | स्प्रेडशीट | — | owner review |
+| Food | खाना | भोजन | owner review |
+| Transport | ट्रांसपोर्ट | यातायात | owner review |
+| Shopping | शॉपिंग | खरीदारी | owner review |
+| Bills | बिल | — | owner review |
+| Health | सेहत | स्वास्थ्य | owner review |
+| Entertainment | मनोरंजन | — | owner review |
+| Hidden | छिपी हुई | — | owner review |
