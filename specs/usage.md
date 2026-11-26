@@ -78,6 +78,7 @@ node <ks-utility>/typescript/tools/lang.mjs import-xliff <file> --lang <code> --
 | `v0.4.0` | the commit the tag names | The shared release workflow for the Kotlin apps ([spec](release-workflow.md)). Do not use: it names a signed APK `-UNSIGNED`, so the publish check stops every release |
 | `v0.4.1` | the commit the tag names | Fix: signed APK and AAB keep their release names; call `kotlin-app-release.yml@v0.4.1` |
 | `v0.4.2` | the commit the tag names | Docs: verify release attestations with `--signer-workflow`; the workflow is unchanged from `v0.4.1` |
+| `v0.14.0` | the commit the tag names | Shared release workflows for the Tauri apps: `tauri-app-release-check.yml` (tag, version, changelog, on main) and `tauri-app-release-publish.yml` (attest and publish exactly the named files) ([release workflow](release-workflow.md#tauri-apps)) |
 | `v0.13.2` | the commit the tag names | Currency करेंसी and Default (setting) डिफ़ॉल्ट approved by the owner ([Hindi style guide](hindi-style.md)). No code change |
 | `v0.13.1` | the commit the tag names | 2 Hindi terms from KS Expense Manager for owner review ([Hindi style guide](hindi-style.md)). No code change |
 | `v0.13.0` | the commit the tag names | KS TV Launcher's 15 Hindi terms approved by the owner; अनपिन करें is avoided, so an app's language check fails on it once it moves its pin ([Hindi style guide](hindi-style.md)). No code change |

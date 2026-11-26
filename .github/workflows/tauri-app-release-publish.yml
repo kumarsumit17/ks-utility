@@ -1,0 +1,178 @@
+name: Tauri app release, publish (shared)
+
+# The last half of the KS-Suite Tauri apps' release (ks-download-manager, ks-forge), after the
+# app's own build jobs: exactly the release files, by name, are attested and published as one
+# GitHub release, or nothing is. Called with the outputs of tauri-app-release-check.yml.
+#
+#   attest    Downloads every artifact of the run, takes exactly one file of each name in
+#             `files` (no more, no fewer), records their SHA-256 and attests each one (not in
+#             a rehearsal: an attestation is a permanent public record).
+#   release   Checks the files arrived unchanged and are attested by this workflow, writes the
+#             notes with the app's `notes` command, and publishes. gh uploads to a hidden draft
+#             and publishes it when every upload is done, so a failure publishes nothing. A
+#             published release is never changed: the run fails and the next version gets a
+#             new tag. A plain tag's release is marked latest; a platform tag's is not.
+#   Rehearsal Everything but attesting and publishing; the notes stay as an artifact.
+#
+# The caller grants `contents: write`, `id-token: write` and `attestations: write`.
+# Verify a file: gh attestation verify <file> -R <owner>/<app>
+#   --signer-workflow kumasumit/ks-utility/.github/workflows/tauri-app-release-publish.yml
+# See specs/release-workflow.md, "Tauri apps".
+
+on:
+  workflow_call:
+    inputs:
+      tag:
+        description: "From the check: v1.2.0 or mac-v1.2.0."
+        type: string
+        required: true
+      version:
+        description: "From the check: 1.2.0."
+        type: string
+        required: true
+      platform:
+        description: "From the check: all, mac, windows or chrome."
+        type: string
+        required: true
+      rehearsal:
+        description: "From the check: true for a manual run."
+        type: string
+        required: true
+      files:
+        description: "The release files, space-separated (e.g. ks-forge-v1.2.0-macos-arm64.dmg ks-forge-v1.2.0-windows-x64-setup.exe), each in exactly one artifact of the run."
+        type: string
+        required: true
+      title:
+        description: "The release title (e.g. KS Forge macOS 1.2.0)."
+        type: string
+        required: true
+      notes:
+        description: "A command run in the app's checkout that writes the release notes to notes.md. KS_TAG, KS_VERSION and KS_PLATFORM are set, and every artifact of the run is in artifacts/."
+        type: string
+        required: true
+      node-version:
+        type: string
+        default: "26"
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  attest:
+    name: Attest
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+    steps:
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          path: artifacts
+      - name: Collect exactly the release files
+        env:
+          KS_FILES: ${{ inputs.files }}
+        run: |
+          mkdir -p files meta
+          n=0
+          for f in $KS_FILES; do
+            case "$f" in */*|.*|"") echo "::error::not a file name: $f"; exit 1 ;; esac
+            found=$(find artifacts -type f -name "$f")
+            [ "$(printf '%s\n' "$found" | grep -c .)" = 1 ] || { echo "::error::expected exactly one $f in the artifacts, found: ${found:-none}"; exit 1; }
+            [ ! -e "files/$f" ] || { echo "::error::$f is listed twice"; exit 1; }
+            cp "$found" files/
+            n=$((n + 1))
+          done
+          [ "$n" -gt 0 ] || { echo "::error::no release files given"; exit 1; }
+          echo "$n" > meta/COUNT
+          (cd files && sha256sum $(ls | LC_ALL=C sort)) > meta/SHA256SUMS
+          cat meta/SHA256SUMS
+      - name: Build provenance for every file
+        if: inputs.rehearsal != 'true'
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-path: files/*
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: release-files
+          path: |
+            files/
+            meta/
+          if-no-files-found: error
+
+  release:
+    name: Release
+    needs: attest
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      KS_TAG: ${{ inputs.tag }}
+      KS_VERSION: ${{ inputs.version }}
+      KS_PLATFORM: ${{ inputs.platform }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: release-files
+          path: .
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          path: artifacts
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: ${{ inputs.node-version }}
+      - name: Check every file arrived unchanged, and nothing else is attached
+        run: |
+          (cd files && sha256sum -c ../meta/SHA256SUMS)
+          [ "$(ls files | wc -l)" -eq "$(cat meta/COUNT)" ] || { echo "::error::expected $(cat meta/COUNT) release files"; ls files; exit 1; }
+      - name: Check the attestation of every file
+        if: inputs.rehearsal != 'true'
+        run: |
+          for f in files/*; do
+            gh attestation verify "$f" -R "$GH_REPO" --signer-workflow kumasumit/ks-utility/.github/workflows/tauri-app-release-publish.yml > /dev/null
+            echo "attested: $(basename "$f")"
+          done
+      - name: Release notes
+        env:
+          KS_NOTES: ${{ inputs.notes }}
+        run: |
+          rm -f notes.md
+          eval "$KS_NOTES"
+          [ -s notes.md ] || { echo "::error::the notes command wrote no notes.md"; exit 1; }
+          cat notes.md
+      - name: Rehearsal - keep the notes, create no release
+        if: inputs.rehearsal == 'true'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: release-notes
+          path: notes.md
+          if-no-files-found: error
+      - name: Publish the release
+        if: inputs.rehearsal != 'true'
+        env:
+          KS_TITLE: ${{ inputs.title }}
+        run: |
+          if state=$(gh release view "$KS_TAG" --json isDraft --jq .isDraft 2>/dev/null); then
+            if [ "$state" = "true" ]; then
+              gh release delete "$KS_TAG" --yes
+            else
+              echo "::error::$KS_TAG is already published; it is never changed. Make the next version instead."
+              exit 1
+            fi
+          fi
+          # A plain tag is the latest release; a platform release is not (updaters read the list).
+          if [ "$KS_PLATFORM" = all ]; then latest=--latest; else latest=--latest=false; fi
+          gh release create "$KS_TAG" --verify-tag "$latest" --title "$KS_TITLE" --notes-file notes.md files/*
+          gh release view "$KS_TAG" --json isDraft,isPrerelease,assets --jq '"draft=\(.isDraft) prerelease=\(.isPrerelease) files=\(.assets|length)"'
+          [ "$(gh release view "$KS_TAG" --json isDraft --jq .isDraft)" = false ] || { echo "::error::the release was not published"; exit 1; }

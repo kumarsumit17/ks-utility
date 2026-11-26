@@ -1,5 +1,7 @@
 # 2026-11-26
 
+* **Update**: [Usage](usage.md): `v0.14.0` tagged (shared Tauri release workflows).
+* **Update**: [Release workflow](release-workflow.md) "Tauri apps": `tauri-app-release-check.yml` and `tauri-app-release-publish.yml`, the checks before and the attesting and publishing after the Tauri apps' own build jobs.
 * **Update**: [Usage](usage.md) and [rules](rules.md): every app moves to the newest ks-utility tag before each of its releases, in its own commit (the suite's release cycle).
 * **Update**: [Usage](usage.md): `v0.13.2` tagged (Currency and Default approved).
 * **Update**: [Hindi style guide](hindi-style.md): the owner approved Currency करेंसी and Default (setting) डिफ़ॉल्ट. No term is left for owner review.

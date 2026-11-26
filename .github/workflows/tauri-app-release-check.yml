@@ -1,0 +1,164 @@
+name: Tauri app release, check (shared)
+
+# The first half of the KS-Suite Tauri apps' release (ks-download-manager, ks-forge): which
+# version a run releases, and the checks before anything is built. Each app's own
+# .github/workflows/release.yml calls it as its first job, pinned to a ks-utility tag, then runs
+# its own build jobs (they differ too much to share: signing, bundled programs, the extension,
+# self-tests), then calls tauri-app-release-publish.yml.
+#
+# Two ways in, as for the Kotlin apps (specs/release-workflow.md):
+#   Tag push     vX.Y.Z (every platform) or <platform>-vX.Y.Z (mac, windows, chrome: one).
+#                The tag must be on main and higher than every earlier tag of the same
+#                platform and every plain tag.
+#   Manual run   A rehearsal of the version and platform given; nothing is attested or
+#                published, and "the tag is on main" is not checked.
+# See specs/release-workflow.md, "Tauri apps".
+
+on:
+  workflow_call:
+    inputs:
+      version:
+        description: "Rehearsal only: the version, X.Y.Z (a manual run passes its input). A tag run ignores it."
+        type: string
+        default: ""
+      platform:
+        description: "Rehearsal only: all, or one platform from `platforms`, as its tag would. A tag run takes it from the tag."
+        type: string
+        default: "all"
+      platforms:
+        description: "The platform prefixes the app's tags may have, space-separated, from mac, windows, chrome."
+        type: string
+        default: "mac windows"
+      changelog:
+        description: "The changelog that must have a dated section '## [<heading>] - YYYY-MM-DD' for the release. Empty: not checked."
+        type: string
+        default: "CHANGELOG.md"
+      set-version:
+        description: "A command run in the app's checkout with KS_TAG set, which checks or writes the version (e.g. node scripts/set-version.mjs \"$KS_TAG\"). Empty: none."
+        type: string
+        default: ""
+      require-main:
+        description: "A tag release must point at a commit on main (the suite's release cycle)."
+        type: boolean
+        default: true
+      node-version:
+        type: string
+        default: "26"
+    outputs:
+      tag:
+        description: "The tag released (or rehearsed): v1.2.0, mac-v1.2.0."
+        value: ${{ jobs.check.outputs.tag }}
+      version:
+        description: "1.2.0"
+        value: ${{ jobs.check.outputs.version }}
+      platform:
+        description: "all, mac, windows or chrome."
+        value: ${{ jobs.check.outputs.platform }}
+      heading:
+        description: "The version as people see it: 1.2.0, macOS 1.2.0, Windows 1.2.0, Chrome 1.2.0."
+        value: ${{ jobs.check.outputs.heading }}
+      rehearsal:
+        description: "true for a manual run."
+        value: ${{ jobs.check.outputs.rehearsal }}
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  check:
+    name: Check
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      tag: ${{ steps.v.outputs.tag }}
+      version: ${{ steps.v.outputs.version }}
+      platform: ${{ steps.v.outputs.platform }}
+      heading: ${{ steps.v.outputs.heading }}
+      rehearsal: ${{ steps.v.outputs.rehearsal }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: ${{ inputs.node-version }}
+
+      # ks-utility's tests run this script on its own (typescript/test/tauriRelease.test.ts).
+      - name: The tag is a release tag, higher than the tags before it
+        id: v
+        env:
+          KS_EVENT: ${{ github.event_name }}
+          KS_REF_NAME: ${{ github.ref_name }}
+          KS_INPUT_VERSION: ${{ inputs.version }}
+          KS_INPUT_PLATFORM: ${{ inputs.platform }}
+          KS_PLATFORMS: ${{ inputs.platforms }}
+        run: |
+          git tag -l > "$RUNNER_TEMP/tags.txt"
+          KS_TAGS_FILE="$RUNNER_TEMP/tags.txt" node --input-type=module -e '
+            // release-tag script: begin
+            import { readFileSync, appendFileSync } from "node:fs";
+            const env = process.env;
+            const NAMES = { mac: "macOS", windows: "Windows", chrome: "Chrome" };
+            const allowed = (env.KS_PLATFORMS ?? "").split(/\s+/).filter(Boolean);
+            const fail = (m) => { console.log(`::error::${m}`); process.exit(1); };
+            for (const p of allowed) if (!(p in NAMES)) fail(`platforms: "${p}" is not one of ${Object.keys(NAMES).join(", ")}`);
+            const re = new RegExp(`^(?:(${allowed.join("|") || "(?!)"})-)?v(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)$`);
+            const parse = (t) => { const m = re.exec(t); return m && { platform: m[1] ?? "all", v: [+m[2], +m[3], +m[4]] }; };
+            const cmp = (a, b) => a[0] - b[0] || a[1] - b[1] || a[2] - b[2];
+            const rehearsal = env.KS_EVENT === "workflow_dispatch";
+            let tag;
+            if (rehearsal) {
+              const p = env.KS_INPUT_PLATFORM || "all";
+              if (p !== "all" && !allowed.includes(p)) fail(`platform "${p}" is not one of: all ${allowed.join(" ")}`);
+              tag = (p === "all" ? "" : `${p}-`) + `v${(env.KS_INPUT_VERSION ?? "").trim().replace(/^v/, "")}`;
+              console.log(`::notice::Rehearsal of ${tag}: no attestation, no release.`);
+            } else tag = env.KS_REF_NAME ?? "";
+            const me = parse(tag);
+            if (!me) fail(`"${tag}" is not a release tag: vX.Y.Z${allowed.map((p) => ` or ${p}-vX.Y.Z`).join("")}`);
+            for (const t of readFileSync(env.KS_TAGS_FILE, "utf8").split("\n").map((s) => s.trim())) {
+              const o = t && t !== tag ? parse(t) : null;
+              if (!o) continue;
+              const counts = me.platform === "all" || o.platform === "all" || o.platform === me.platform;
+              if (counts && cmp(o.v, me.v) >= 0) fail(`${tag} must be higher than ${t}`);
+            }
+            const version = me.v.join(".");
+            const heading = me.platform === "all" ? version : `${NAMES[me.platform]} ${version}`;
+            const out = `tag=${tag}\nversion=${version}\nplatform=${me.platform}\nheading=${heading}\nrehearsal=${rehearsal}\n`;
+            if (env.GITHUB_OUTPUT) appendFileSync(env.GITHUB_OUTPUT, out); else process.stdout.write(out);
+            // release-tag script: end
+          '
+
+      - name: The tagged commit is on main
+        if: github.event_name == 'push' && inputs.require-main
+        run: |
+          git fetch --no-tags origin main
+          if ! git merge-base --is-ancestor "$GITHUB_SHA" origin/main; then
+            echo "::error::$GITHUB_REF_NAME points to $GITHUB_SHA, which is not on main. Fast-forward main and tag there."
+            exit 1
+          fi
+
+      - name: The changelog has a dated section for this release
+        if: inputs.changelog != ''
+        env:
+          KS_CHANGELOG: ${{ inputs.changelog }}
+          KS_HEADING: ${{ steps.v.outputs.heading }}
+        run: |
+          [ -f "$KS_CHANGELOG" ] || { echo "::error::$KS_CHANGELOG is missing."; exit 1; }
+          # The line starts with exactly "## [<heading>] - " and ends with a date.
+          if ! tr -d '\r' < "$KS_CHANGELOG" | awk -v h="## [$KS_HEADING] - " \
+               'substr($0, 1, length(h)) == h && substr($0, length(h) + 1) ~ /^[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]$/ { f = 1 } END { exit !f }'; then
+            echo "::error::$KS_CHANGELOG needs a line '## [$KS_HEADING] - YYYY-MM-DD'."
+            exit 1
+          fi
+
+      - name: The app's own version check
+        if: inputs.set-version != ''
+        env:
+          KS_TAG: ${{ steps.v.outputs.tag }}
+          KS_SET_VERSION: ${{ inputs.set-version }}
+        run: eval "$KS_SET_VERSION"

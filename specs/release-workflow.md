@@ -1,15 +1,15 @@
 ---
 type: Specification
 title: Shared release workflow
-description: The one GitHub Actions release workflow that every KS-Suite Kotlin app calls, for Android, Google TV, macOS and Windows, with its inputs, file names, signing checks and publishing rules.
-tags: [release, ci, github-actions, android, google-tv, macos, windows, signing]
+description: The GitHub Actions release workflows the KS-Suite apps call, one for the Kotlin apps (Android, Google TV, macOS, Windows) and a check and a publish for the Tauri apps, with their inputs, file names, signing checks and publishing rules.
+tags: [release, ci, github-actions, android, google-tv, macos, windows, chrome-extension, tauri, signing]
 ---
 
 # Shared release workflow
 
 The five Kotlin apps (`ks-tv-launcher`, `ks-jaiplayer`, `ks-streamflix`, `ks-vault`, `ks-expense-manager`) release through one reusable workflow in this repository, `.github/workflows/kotlin-app-release.yml`. Each app keeps only a short `.github/workflows/release.yml` that calls it, pinned to a tag of this repository, and names its platforms. A fix to the release process is made once, here, and reaches an app when it moves the pin, as for any other helper ([usage](usage.md)).
 
-`ks-download-manager` (Rust, Tauri, Chrome extension) keeps its own workflow: its build (Tauri bundles, bundled programs, the extension zip) shares no steps with the Kotlin apps. Its release files follow the same names, so the [app-update](app-update.md) rules hold for it too.
+The two Tauri apps (`ks-download-manager`, `ks-forge`) build differently from the Kotlin apps and from each other (bundled programs, Developer ID signing, the Chrome extension, self-tests), so their build jobs stay in their own `release.yml`. What is the same in both, the checks before the build and the attesting and publishing after it, is in two reusable workflows here ([Tauri apps](#tauri-apps)). Their release files follow the same names, so the [app-update](app-update.md) rules hold for them too.
 
 ## How an app calls it
 
@@ -87,6 +87,77 @@ Every action is pinned to a full commit SHA with its version in a comment, runne
 | Windows | `<app>-v<version>-windows-x64.msi` |
 
 These match the asset rules of [App updates](app-update.md), so an app finds its own update file, and GitHub lists a SHA-256 digest for each.
+
+## Tauri apps
+From `v0.14.0`. An app's `release.yml` calls `tauri-app-release-check.yml` first, then runs its own build jobs, each uploading its release files as artifacts, then calls `tauri-app-release-publish.yml`:
+
+```yaml
+on:
+  push:
+    tags: ["v*", "mac-v*", "windows-v*"]
+  workflow_dispatch:
+    inputs:
+      version: { description: "Version to rehearse, X.Y.Z", required: true, type: string }
+      platform: { required: true, default: all, type: choice, options: [all, mac, windows] }
+
+permissions: {}
+
+jobs:
+  version:
+    permissions: { contents: read }
+    uses: kumasumit/ks-utility/.github/workflows/tauri-app-release-check.yml@v0.14.0
+    with:
+      version: ${{ inputs.version }}
+      platform: ${{ inputs.platform }}
+      platforms: "mac windows"
+      set-version: node scripts/set-version.mjs "$KS_TAG"
+
+  mac:            # the app's own build: needs version, uploads its .dmg as an artifact
+    needs: version
+    if: needs.version.outputs.platform == 'all' || needs.version.outputs.platform == 'mac'
+    # ...
+
+  windows:        # the same for the installer
+    # ...
+
+  publish:
+    needs: [version, mac, windows]
+    if: ${{ !cancelled() && !contains(needs.*.result, 'failure') && !contains(needs.*.result, 'cancelled') }}
+    permissions: { contents: write, id-token: write, attestations: write }
+    uses: kumasumit/ks-utility/.github/workflows/tauri-app-release-publish.yml@v0.14.0
+    with:
+      tag: ${{ needs.version.outputs.tag }}
+      version: ${{ needs.version.outputs.version }}
+      platform: ${{ needs.version.outputs.platform }}
+      rehearsal: ${{ needs.version.outputs.rehearsal }}
+      files: >-
+        ${{ needs.version.outputs.platform != 'windows' && format('ks-forge-v{0}-macos-arm64.dmg', needs.version.outputs.version) || '' }}
+        ${{ needs.version.outputs.platform != 'mac' && format('ks-forge-v{0}-windows-x64-setup.exe', needs.version.outputs.version) || '' }}
+      title: KS Forge ${{ needs.version.outputs.heading }}
+      notes: node scripts/release-notes.mjs "$KS_TAG" > notes.md
+```
+
+**Check** (`tauri-app-release-check.yml`):
+
+| Input | Meaning | Default |
+|---|---|---|
+| `version`, `platform` | Rehearsal only: the version and platform to rehearse (a manual run passes its inputs). A tag run takes them from the tag | `""`, `all` |
+| `platforms` | The prefixes the app's tags may have: `mac`, `windows`, `chrome` ([platform tags](app-update.md#platform-tags)) | `mac windows` |
+| `changelog` | Must have a line `## [<heading>] - YYYY-MM-DD`; empty: not checked | `CHANGELOG.md` |
+| `set-version` | The app's own version command, run with `KS_TAG` set; empty: none | `""` |
+| `require-main` | A tag must point at a commit on `main` | `true` |
+
+A tag is `vX.Y.Z` (every platform) or `<platform>-vX.Y.Z`; it must be higher than every earlier plain tag and every earlier tag of its platform (another platform's tags do not count; for a plain tag every tag counts). Outputs: `tag`, `version`, `platform` (`all`, `mac`, `windows`, `chrome`), `heading` (`1.2.0`, `macOS 1.2.0`, `Windows 1.2.0`, `Chrome 1.2.0`) and `rehearsal`.
+
+**Publish** (`tauri-app-release-publish.yml`), with the check's outputs and:
+
+| Input | Meaning |
+|---|---|
+| `files` | The release files, space-separated; each must be in exactly one artifact of the run, and nothing else is released |
+| `title` | The release title |
+| `notes` | A command that writes `notes.md`, run in the app's checkout with `KS_TAG`, `KS_VERSION`, `KS_PLATFORM` set and every artifact of the run in `artifacts/` (e.g. the signing mode a build recorded) |
+
+It attests every file (not in a rehearsal), checks they arrived unchanged and are attested, writes the notes and publishes: a plain tag's release is marked latest, a platform tag's is not. A published release is never changed: the run fails, and the next version gets a new tag. A rehearsal attests and publishes nothing and keeps the notes as an artifact. Verify a file with `gh attestation verify <file> -R kumasumit/<app> --signer-workflow kumasumit/ks-utility/.github/workflows/tauri-app-release-publish.yml`. The caller grants the publish job `contents: write`, `id-token: write` and `attestations: write`; it needs no secrets.
 
 ## Later
 - Developer ID signing and notarisation for macOS, Authenticode for Windows, once the owner has the certificates.
