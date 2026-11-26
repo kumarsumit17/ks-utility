@@ -1,5 +1,7 @@
 # 2026-11-26
 
+* **Update**: [Usage](usage.md): `v0.11.2` tagged (Hindi terms from KS TV Launcher).
+* **Update**: [Hindi style guide](hindi-style.md): 15 terms from KS TV Launcher added for owner review (Subscription सब्सक्रिप्शन, Pin (to Home) पिन करें, Unpin अनपिन करें, Wallpaper वॉलपेपर, Weather मौसम, Renewal रिन्यूअल, Reminder रिमाइंडर, Storage स्टोरेज, Uninstall अनइंस्टॉल करें, Screensaver स्क्रीनसेवर, Input (HDMI) इनपुट, Home (screen) होम, Notification नोटिफ़िकेशन, Display डिस्प्ले, Control Center कंट्रोल सेंटर), in the table and `lang/hindi-terms.json`.
 * **Update**: [Usage](usage.md): `v0.11.1` tagged (Hindi terms from KS Expense Manager).
 * **Update**: [Hindi style guide](hindi-style.md): 5 more terms from KS Expense Manager added for owner review (Budget बजट, Result नतीजा, Results नतीजे, Left (remaining) बाकी, Over (budget) ज़्यादा), in the table and `lang/hindi-terms.json`; Filter फ़िल्टर was already in it.
 * **Update**: [App updates](app-update.md) and [Usage](usage.md): `v0.11.0` tagged: the Google TV platform in Rust and TypeScript (`google-tv-` tags, the TV build) and a Chrome platform in all three languages (`chrome-` tags, no installer file).

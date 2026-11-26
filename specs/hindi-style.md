@@ -157,3 +157,18 @@ The data file `lang/hindi-terms.json` holds the same rows; a test fails if this 
 | Results | नतीजे | — | owner review |
 | Left (remaining) | बाकी | — | owner review |
 | Over (budget) | ज़्यादा | — | owner review |
+| Subscription | सब्सक्रिप्शन | — | owner review |
+| Pin (to Home) | पिन करें | — | owner review |
+| Unpin | अनपिन करें | — | owner review |
+| Wallpaper | वॉलपेपर | — | owner review |
+| Weather | मौसम | — | owner review |
+| Renewal | रिन्यूअल | — | owner review |
+| Reminder | रिमाइंडर | — | owner review |
+| Storage | स्टोरेज | — | owner review |
+| Uninstall | अनइंस्टॉल करें | — | owner review |
+| Screensaver | स्क्रीनसेवर | — | owner review |
+| Input (HDMI) | इनपुट | — | owner review |
+| Home (screen) | होम | — | owner review |
+| Notification | नोटिफ़िकेशन | नोटिफिकेशन | owner review |
+| Display | डिस्प्ले | — | owner review |
+| Control Center | कंट्रोल सेंटर | — | owner review |

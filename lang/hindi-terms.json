@@ -806,5 +806,97 @@
     "hi": "ज़्यादा",
     "avoid": [],
     "review": true
+  },
+  {
+    "en": "Subscription",
+    "hi": "सब्सक्रिप्शन",
+    "avoid": [],
+    "review": true
+  },
+  {
+    "en": "Pin (to Home)",
+    "hi": "पिन करें",
+    "avoid": [],
+    "review": true
+  },
+  {
+    "en": "Unpin",
+    "hi": "अनपिन करें",
+    "avoid": [],
+    "review": true
+  },
+  {
+    "en": "Wallpaper",
+    "hi": "वॉलपेपर",
+    "avoid": [],
+    "review": true
+  },
+  {
+    "en": "Weather",
+    "hi": "मौसम",
+    "avoid": [],
+    "review": true
+  },
+  {
+    "en": "Renewal",
+    "hi": "रिन्यूअल",
+    "avoid": [],
+    "review": true
+  },
+  {
+    "en": "Reminder",
+    "hi": "रिमाइंडर",
+    "avoid": [],
+    "review": true
+  },
+  {
+    "en": "Storage",
+    "hi": "स्टोरेज",
+    "avoid": [],
+    "review": true
+  },
+  {
+    "en": "Uninstall",
+    "hi": "अनइंस्टॉल करें",
+    "avoid": [],
+    "review": true
+  },
+  {
+    "en": "Screensaver",
+    "hi": "स्क्रीनसेवर",
+    "avoid": [],
+    "review": true
+  },
+  {
+    "en": "Input (HDMI)",
+    "hi": "इनपुट",
+    "avoid": [],
+    "review": true
+  },
+  {
+    "en": "Home (screen)",
+    "hi": "होम",
+    "avoid": [],
+    "review": true
+  },
+  {
+    "en": "Notification",
+    "hi": "नोटिफ़िकेशन",
+    "avoid": [
+      "नोटिफिकेशन"
+    ],
+    "review": true
+  },
+  {
+    "en": "Display",
+    "hi": "डिस्प्ले",
+    "avoid": [],
+    "review": true
+  },
+  {
+    "en": "Control Center",
+    "hi": "कंट्रोल सेंटर",
+    "avoid": [],
+    "review": true
   }
 ]
