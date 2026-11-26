@@ -1,5 +1,7 @@
 # 2026-11-26
 
+* **Update**: [Usage](usage.md): `v0.13.2` tagged (Currency and Default approved).
+* **Update**: [Hindi style guide](hindi-style.md): the owner approved Currency करेंसी and Default (setting) डिफ़ॉल्ट. No term is left for owner review.
 * **Update**: [Usage](usage.md): `v0.13.1` tagged (Hindi terms from KS Expense Manager).
 * **Update**: [Hindi style guide](hindi-style.md): 2 terms from KS Expense Manager added for owner review (Currency करेंसी, Default (setting) डिफ़ॉल्ट), in the table and `lang/hindi-terms.json`.
 * **Update**: [Usage](usage.md): `v0.13.0` tagged (KS TV Launcher's Hindi terms approved; अनपिन करें avoided).

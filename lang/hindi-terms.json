@@ -854,13 +854,11 @@
   {
     "en": "Currency",
     "hi": "करेंसी",
-    "avoid": [],
-    "review": true
+    "avoid": []
   },
   {
     "en": "Default (setting)",
     "hi": "डिफ़ॉल्ट",
-    "avoid": [],
-    "review": true
+    "avoid": []
   }
 ]

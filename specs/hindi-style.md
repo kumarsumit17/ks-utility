@@ -173,5 +173,5 @@ The data file `lang/hindi-terms.json` holds the same rows; a test fails if this 
 | Notification | नोटिफ़िकेशन | नोटिफिकेशन | approved |
 | Display | डिस्प्ले | — | approved |
 | Control Center | कंट्रोल सेंटर | — | approved |
-| Currency | करेंसी | — | owner review |
-| Default (setting) | डिफ़ॉल्ट | — | owner review |
+| Currency | करेंसी | — | approved |
+| Default (setting) | डिफ़ॉल्ट | — | approved |
