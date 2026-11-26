@@ -1,5 +1,7 @@
 # 2026-11-26
 
+* **Update**: [Usage](usage.md): `v0.11.1` tagged (Hindi terms from KS Expense Manager).
+* **Update**: [Hindi style guide](hindi-style.md): 5 more terms from KS Expense Manager added for owner review (Budget बजट, Result नतीजा, Results नतीजे, Left (remaining) बाकी, Over (budget) ज़्यादा), in the table and `lang/hindi-terms.json`; Filter फ़िल्टर was already in it.
 * **Update**: [App updates](app-update.md) and [Usage](usage.md): `v0.11.0` tagged: the Google TV platform in Rust and TypeScript (`google-tv-` tags, the TV build) and a Chrome platform in all three languages (`chrome-` tags, no installer file).
 * **Update**: [Usage](usage.md), [App updates](app-update.md), [Release workflow](release-workflow.md), the README and two Kotlin doc comments: the GitHub owner is now `kumasumit` (was `kumarsumit17`); apps call `kumasumit/ks-utility/.github/workflows/kotlin-app-release.yml@<tag>`.
 

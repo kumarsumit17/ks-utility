@@ -152,3 +152,8 @@ The data file `lang/hindi-terms.json` holds the same rows; a test fails if this 
 | Scrollback | स्क्रॉलबैक | — | owner review |
 | Accent colour | मुख्य रंग | — | owner review |
 | Appearance | रूप-रंग | — | owner review |
+| Budget | बजट | — | owner review |
+| Result | नतीजा | — | owner review |
+| Results | नतीजे | — | owner review |
+| Left (remaining) | बाकी | — | owner review |
+| Over (budget) | ज़्यादा | — | owner review |

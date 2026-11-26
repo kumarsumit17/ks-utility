@@ -776,5 +776,35 @@
     "hi": "रूप-रंग",
     "avoid": [],
     "review": true
+  },
+  {
+    "en": "Budget",
+    "hi": "बजट",
+    "avoid": [],
+    "review": true
+  },
+  {
+    "en": "Result",
+    "hi": "नतीजा",
+    "avoid": [],
+    "review": true
+  },
+  {
+    "en": "Results",
+    "hi": "नतीजे",
+    "avoid": [],
+    "review": true
+  },
+  {
+    "en": "Left (remaining)",
+    "hi": "बाकी",
+    "avoid": [],
+    "review": true
+  },
+  {
+    "en": "Over (budget)",
+    "hi": "ज़्यादा",
+    "avoid": [],
+    "review": true
   }
 ]
