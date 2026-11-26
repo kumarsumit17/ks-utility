@@ -140,7 +140,8 @@ The data file `lang/hindi-terms.json` holds the same rows; a test fails if this 
 | Encrypt | एन्क्रिप्ट | — | approved |
 | Dot | बिंदु | — | approved |
 | Tab | टैब | — | approved |
-| Pane | हिस्सा | पैनल | approved |
+| Pane | हिस्सा | — | approved |
+| Panel | पैनल | — | approved |
 | Split | बांटें | बाँटें | approved |
 | Terminal | टर्मिनल | — | approved |
 | Shell | शेल | — | approved |

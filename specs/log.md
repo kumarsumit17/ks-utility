@@ -1,5 +1,7 @@
 # 2026-11-26
 
+* **Update**: [Usage](usage.md): `v0.12.1` tagged (पैनल allowed for Panel).
+* **Update**: [Hindi style guide](hindi-style.md): Pane stays हिस्सा but no longer avoids पैनल; Panel पैनल added, approved (the owner: पैनल is right for a panel, the change is only for a pane).
 * **Update**: [Usage](usage.md): `v0.12.0` tagged (44 Hindi terms approved; new words to avoid).
 * **Update**: [Hindi style guide](hindi-style.md): the owner reviewed and approved 44 terms (app updates, KS Expense Manager, KS Vault, KS Forge). Changed: Amount राशि (avoid रकम), Transport यातायात (avoid ट्रांसपोर्ट), Shopping खरीदारी (avoid शॉपिंग), Health स्वास्थ्य (avoid सेहत), Over (budget) बजट से ज़्यादा, Title avoids टाइटल, Pane हिस्सा (avoid पैनल), Split avoids बाँटें. KS TV Launcher's 15 terms are still for owner review.
 * **Update**: [Usage](usage.md): `v0.11.2` tagged (Hindi terms from KS TV Launcher).
