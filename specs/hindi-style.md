@@ -158,18 +158,18 @@ The data file `lang/hindi-terms.json` holds the same rows; a test fails if this 
 | Results | नतीजे | — | approved |
 | Left (remaining) | बाकी | — | approved |
 | Over (budget) | बजट से ज़्यादा | — | approved |
-| Subscription | सब्सक्रिप्शन | — | owner review |
-| Pin (to Home) | पिन करें | — | owner review |
-| Unpin | अनपिन करें | — | owner review |
-| Wallpaper | वॉलपेपर | — | owner review |
-| Weather | मौसम | — | owner review |
-| Renewal | रिन्यूअल | — | owner review |
-| Reminder | रिमाइंडर | — | owner review |
-| Storage | स्टोरेज | — | owner review |
-| Uninstall | अनइंस्टॉल करें | — | owner review |
-| Screensaver | स्क्रीनसेवर | — | owner review |
-| Input (HDMI) | इनपुट | — | owner review |
-| Home (screen) | होम | — | owner review |
-| Notification | नोटिफ़िकेशन | नोटिफिकेशन | owner review |
-| Display | डिस्प्ले | — | owner review |
-| Control Center | कंट्रोल सेंटर | — | owner review |
+| Subscription | सब्सक्रिप्शन | — | approved |
+| Pin (to Home) | होम स्क्रीन पर जोड़ें | — | approved |
+| Unpin | होम स्क्रीन से हटाएं | अनपिन करें | approved |
+| Wallpaper | वॉलपेपर | — | approved |
+| Weather | मौसम | — | approved |
+| Renewal | रिन्यूअल | — | approved |
+| Reminder | रिमाइंडर | — | approved |
+| Storage | स्टोरेज | — | approved |
+| Uninstall | अनइंस्टॉल करें | — | approved |
+| Screensaver | स्क्रीनसेवर | — | approved |
+| Input (HDMI) | इनपुट | — | approved |
+| Home (screen) | होम स्क्रीन | — | approved |
+| Notification | नोटिफ़िकेशन | नोटिफिकेशन | approved |
+| Display | डिस्प्ले | — | approved |
+| Control Center | कंट्रोल सेंटर | — | approved |

@@ -1,5 +1,7 @@
 # 2026-11-26
 
+* **Update**: [Usage](usage.md): `v0.13.0` tagged (KS TV Launcher's Hindi terms approved; अनपिन करें avoided).
+* **Update**: [Hindi style guide](hindi-style.md): the owner reviewed and approved KS TV Launcher's 15 terms. Changed: Pin (to Home) होम स्क्रीन पर जोड़ें, Unpin होम स्क्रीन से हटाएं (avoid अनपिन करें), Home (screen) होम स्क्रीन. No term is left for owner review.
 * **Update**: [Usage](usage.md): `v0.12.1` tagged (पैनल allowed for Panel).
 * **Update**: [Hindi style guide](hindi-style.md): Pane stays हिस्सा but no longer avoids पैनल; Panel पैनल added, approved (the owner: पैनल is right for a panel, the change is only for a pane).
 * **Update**: [Usage](usage.md): `v0.12.0` tagged (44 Hindi terms approved; new words to avoid).
