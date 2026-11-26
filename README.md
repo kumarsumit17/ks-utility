@@ -1,6 +1,6 @@
 # KS Utility
 
-> Part of the [KS-Suite](https://github.com/kumasumit/KS-Suite).
+> Part of the [KS-Suite](https://github.com/kumasumit/ks-suite).
 
 Common utility functions shared across the KS-Suite apps. Everything here is generic: any suite app, today's or a later one, can take it as a dependency and use it as it is. Application-specific logic does not belong in this repository.
 

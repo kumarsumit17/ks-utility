@@ -66,7 +66,7 @@ node <ks-utility>/typescript/tools/lang.mjs import-xliff <file> --lang <code> --
 ## Versioning
 - Tags are `vMAJOR.MINOR.PATCH`. While in `0.x`: a new helper or a behaviour change raises MINOR; a fix raises PATCH.
 - A tag is never moved or deleted once pushed. A mistake gets a new tag. The single exception: on 2026-11-21 every tag was moved once, to the same files with tool attribution removed from the commit messages (history rewrite). Commit IDs from before that date no longer match.
-- Every app moves to the newest ks-utility tag before each of its releases, in its own commit, never mixed with other changes (the suite's [release cycle](https://github.com/kumasumit/KS-Suite/blob/main/specs/release-cycle.md), step 1).
+- Every app moves to the newest ks-utility tag before each of its releases, in its own commit, never mixed with other changes (the suite's [release cycle](https://github.com/kumasumit/ks-suite/blob/main/specs/release-cycle.md), step 1).
 - **Future step, not now:** publishing to public registries (crates.io, npm, Maven Central) is deferred until the helpers are stable.
 
 | Tag | Commit | What it holds |

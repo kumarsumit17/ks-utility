@@ -1,5 +1,6 @@
 # 2026-11-26
 
+* **Update**: [Usage](usage.md), [App updates](app-update.md), [Release workflow](release-workflow.md) and the README: links to the suite repository use its new name, `kumasumit/ks-suite`.
 * **Update**: [Usage](usage.md): `v0.14.0` tagged (shared Tauri release workflows).
 * **Update**: [Release workflow](release-workflow.md) "Tauri apps": `tauri-app-release-check.yml` and `tauri-app-release-publish.yml`, the checks before and the attesting and publishing after the Tauri apps' own build jobs.
 * **Update**: [Usage](usage.md) and [rules](rules.md): every app moves to the newest ks-utility tag before each of its releases, in its own commit (the suite's release cycle).

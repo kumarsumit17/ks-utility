@@ -63,13 +63,13 @@ jobs:
 | `test-tasks` | Gradle tasks run before the Android build | `testDebugUnitTest` |
 | `desktop-test-tasks` | Gradle tasks run on macOS and Windows before packaging | none |
 | `node` | Set up Node, which the language-file tools need | `true` |
-| `require-main` | A tag release must point at a commit on `main` ([release cycle](https://github.com/kumasumit/KS-Suite/blob/main/specs/release-cycle.md)) | `true` |
+| `require-main` | A tag release must point at a commit on `main` ([release cycle](https://github.com/kumasumit/ks-suite/blob/main/specs/release-cycle.md)) | `true` |
 
-Secrets: `KEYSTORE_BASE64`, `KEYSTORE_PASSWORD`, `KEY_ALIAS`, `KEY_PASSWORD` ([versioning and signing](https://github.com/kumasumit/KS-Suite/blob/main/specs/versioning-signing.md)), passed with `secrets: inherit`.
+Secrets: `KEYSTORE_BASE64`, `KEYSTORE_PASSWORD`, `KEY_ALIAS`, `KEY_PASSWORD` ([versioning and signing](https://github.com/kumasumit/ks-suite/blob/main/specs/versioning-signing.md)), passed with `secrets: inherit`.
 
 ## What it does
 
-1. **Version.** A tag `vMAJOR.MINOR.PATCH` (no suffix) on `main`, or from `v0.10.0` a platform tag `<platform>-vMAJOR.MINOR.PATCH` (`android`, `google-tv`, `mac`, `windows`; [platform tags](app-update.md)), gives `versionName` and `versionCode = MAJOR×10000 + MINOR×100 + PATCH` (MINOR and PATCH below 100); both are passed to every Gradle build as `-PversionName` and `-PversionCode`. A manual run is the **rehearsal** of the [release cycle](https://github.com/kumasumit/KS-Suite/blob/main/specs/release-cycle.md): it builds the version given as input exactly as a tag would, and never attests or publishes.
+1. **Version.** A tag `vMAJOR.MINOR.PATCH` (no suffix) on `main`, or from `v0.10.0` a platform tag `<platform>-vMAJOR.MINOR.PATCH` (`android`, `google-tv`, `mac`, `windows`; [platform tags](app-update.md)), gives `versionName` and `versionCode = MAJOR×10000 + MINOR×100 + PATCH` (MINOR and PATCH below 100); both are passed to every Gradle build as `-PversionName` and `-PversionCode`. A manual run is the **rehearsal** of the [release cycle](https://github.com/kumasumit/ks-suite/blob/main/specs/release-cycle.md): it builds the version given as input exactly as a tag would, and never attests or publishes.
 2. **Android and Google TV** (Ubuntu). A tag release stops at once if a signing secret is missing. The keystore is decoded into the runner's temporary folder and opened once to check the password and alias. Tests, then `assembleRelease` and `bundleRelease` for the phone module and, if set, the TV module. The signing check embedded in the workflow proves each APK and AAB is signed by the keystore's certificate, or, for a manual run without secrets, that they carry no signature and are named `-UNSIGNED`. The keystore is deleted when the job ends.
 3. **macOS** (`macos-15`, Apple silicon): `packageReleaseDmg`. Not yet signed with a Developer ID or notarised: the first open needs System Settings › Privacy & Security › Open Anyway.
 4. **Windows** (`windows-2025`, x64): `packageReleaseMsi`. Not yet Authenticode-signed: SmartScreen asks once (More info › Run anyway).
