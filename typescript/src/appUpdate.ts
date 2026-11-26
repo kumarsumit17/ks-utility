@@ -102,14 +102,32 @@ export function requestHeaders(repo: Repo): Record<string, string> {
   return { Accept: "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28", "User-Agent": repo.name };
 }
 
-export type Platform = "macos-arm64" | "macos-x64" | "windows-x64" | "android";
+/**
+ * The system an installer is for. `google-tv` and `chrome` are never detected: an Android app
+ * running on a TV passes `google-tv`, so it gets the TV build (`…-google-tv.apk`, or any APK when
+ * there is none); a Chrome extension passes `chrome`, which has no installer file (it opens the
+ * release page), so only its tag prefix and version matter.
+ */
+export type Platform = "macos-arm64" | "macos-x64" | "windows-x64" | "android" | "google-tv" | "chrome";
 
 /**
  * The tag prefix of a platform's own releases (`mac-v1.3.0`), for an app whose platforms have
  * their own versions. Both macOS builds share `mac-`; a plain `v1.3.0` is every platform's.
  */
 export function tagPrefix(platform: Platform): string {
-  return platform.startsWith("macos") ? "mac-" : platform === "windows-x64" ? "windows-" : "android-";
+  switch (platform) {
+    case "macos-arm64":
+    case "macos-x64":
+      return "mac-";
+    case "windows-x64":
+      return "windows-";
+    case "android":
+      return "android-";
+    case "google-tv":
+      return "google-tv-";
+    case "chrome":
+      return "chrome-";
+  }
 }
 
 /** The version a tag gives `platform` (`mac-v1.3.0` or `v1.3.0` → `1.3.0`); null for another platform's tag. */
@@ -208,6 +226,9 @@ const X64 = ["x64", "x86_64", "amd64", "intel"];
 const hasAny = (n: string, words: string[]) => words.some((w) => n.includes(w));
 
 /** 2: made for the platform; 1: universal; 0: not for it. */
+/** A TV build names itself: `ks-app-v1.2.0-google-tv.apk` (also `googletv`, `android-tv`, `-tv.`). */
+const TV = /google-?tv|android-?tv|[-_.]tv[-_.]/;
+
 function rank(name: string, platform: Platform, repo: Repo): number {
   const n = name.toLowerCase();
   switch (platform) {
@@ -225,6 +246,10 @@ function rank(name: string, platform: Platform, repo: Repo): number {
     }
     case "android":
       return n.endsWith(".apk") ? 2 : 0;
+    case "google-tv":
+      return n.endsWith(".apk") ? (TV.test(n) ? 2 : 1) : 0;
+    case "chrome":
+      return 0;
   }
 }
 

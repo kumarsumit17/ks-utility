@@ -141,13 +141,18 @@ impl Repo {
 /// How many releases [`Repo::releases_api_url`] asks for.
 pub const RELEASES_PER_PAGE: u32 = 30;
 
-/// The system an installer is for.
+/// The system an installer is for. [`Platform::GoogleTv`] and [`Platform::Chrome`] are never
+/// detected: an Android app running on a TV passes `GoogleTv`, so it gets the TV build
+/// (`…-google-tv.apk`, or any APK when there is none); a Chrome extension passes `Chrome`, which
+/// has no installer file (it opens the release page), so only its tag prefix and version matter.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Platform {
     MacosArm64,
     MacosX64,
     WindowsX64,
     Android,
+    GoogleTv,
+    Chrome,
 }
 
 impl Platform {
@@ -158,6 +163,8 @@ impl Platform {
             Platform::MacosArm64 | Platform::MacosX64 => "mac-",
             Platform::WindowsX64 => "windows-",
             Platform::Android => "android-",
+            Platform::GoogleTv => "google-tv-",
+            Platform::Chrome => "chrome-",
         }
     }
 
@@ -288,6 +295,16 @@ fn has_any(name: &str, words: &[&str]) -> bool {
 }
 
 const ARM: &[&str] = &["aarch64", "arm64", "apple-silicon"];
+
+/// A TV build names itself: `ks-app-v1.2.0-google-tv.apk` (also `googletv`, `android-tv`, `-tv.`).
+fn is_tv_build(n: &str) -> bool {
+    if has_any(n, &["google-tv", "googletv", "android-tv", "androidtv"]) {
+        return true;
+    }
+    let b = n.as_bytes();
+    let sep = |c: u8| c == b'-' || c == b'_' || c == b'.';
+    (1..b.len().saturating_sub(2)).any(|i| sep(b[i - 1]) && &b[i..i + 2] == b"tv" && sep(b[i + 2]))
+}
 const X64: &[&str] = &["x64", "x86_64", "amd64", "intel"];
 
 /// The installer for `platform`, by the suite's file-name rules (specs/app-update.md):
@@ -318,6 +335,13 @@ pub fn pick_asset<'a>(assets: &'a [Asset], platform: Platform, repo: &Repo) -> O
                 }
             }
             Platform::Android if n.ends_with(".apk") => 2,
+            Platform::GoogleTv if n.ends_with(".apk") => {
+                if is_tv_build(&n) {
+                    2
+                } else {
+                    1
+                }
+            }
             _ => 0,
         }
     };
@@ -380,6 +404,25 @@ mod tests {
         }
         assert_eq!(parse_releases("[]", &r, Platform::Android), None);
         assert_eq!(parse_releases("{}", &r, Platform::Android), None);
+    }
+
+    #[test]
+    fn google_tv_and_chrome_tags() {
+        assert_eq!(tag_version("google-tv-v1.3.0", Platform::GoogleTv).as_deref(), Some("1.3.0"));
+        assert_eq!(tag_version("google-tv-v1.3.0", Platform::Android), None);
+        assert_eq!(tag_version("android-v1.3.0", Platform::GoogleTv), None);
+        assert_eq!(tag_version("chrome-v2.1.0", Platform::Chrome).as_deref(), Some("2.1.0"));
+        assert_eq!(tag_version("chrome-v2.1.0", Platform::MacosArm64), None);
+        assert_eq!(tag_version("v2.0.0", Platform::Chrome).as_deref(), Some("2.0.0"));
+        let sha = format!("sha256:{}", "a".repeat(64));
+        let r = repo();
+        let both = parse_release(&release("v1.2.0", &[asset("ks-app-v1.2.0.apk", 9, &sha), asset("ks-app-v1.2.0-google-tv.apk", 5, &sha)]), &r).unwrap();
+        let one = parse_release(&release("v1.2.0", &[asset("ks-app-v1.2.0.apk", 9, &sha), asset("ks-app-v1.2.0-extension.zip", 9, &sha)]), &r).unwrap();
+        let name = |rel: &Release, p| pick_asset(&rel.assets, p, &r).map(|a| a.name.clone());
+        assert_eq!(name(&both, Platform::GoogleTv).as_deref(), Some("ks-app-v1.2.0-google-tv.apk"));
+        assert_eq!(name(&one, Platform::GoogleTv).as_deref(), Some("ks-app-v1.2.0.apk"), "no TV build: the plain APK");
+        assert_eq!(name(&one, Platform::Chrome), None, "an extension has no installer");
+        assert!(is_tv_build("ks-app_tv.apk") && is_tv_build("ks-app-androidtv.apk") && !is_tv_build("ks-tvlauncher.apk"));
     }
 
     fn repo() -> Repo {

@@ -1,5 +1,6 @@
 # 2026-11-26
 
+* **Update**: [App updates](app-update.md) and [Usage](usage.md): `v0.11.0` tagged: the Google TV platform in Rust and TypeScript (`google-tv-` tags, the TV build) and a Chrome platform in all three languages (`chrome-` tags, no installer file).
 * **Update**: [Usage](usage.md), [App updates](app-update.md), [Release workflow](release-workflow.md), the README and two Kotlin doc comments: the GitHub owner is now `kumasumit` (was `kumarsumit17`); apps call `kumasumit/ks-utility/.github/workflows/kotlin-app-release.yml@<tag>`.
 
 # 2026-11-25

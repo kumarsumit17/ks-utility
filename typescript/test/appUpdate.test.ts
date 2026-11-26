@@ -183,3 +183,20 @@ test("platform tags and the release list", () => {
   assert.equal(parseReleases("[]", repo, "android"), null);
   assert.equal(parseReleases("{}", repo, "android"), null);
 });
+
+test("Google TV and Chrome tags", () => {
+  assert.equal(tagVersion("google-tv-v1.3.0", "google-tv"), "1.3.0");
+  assert.equal(tagVersion("google-tv-v1.3.0", "android"), null);
+  assert.equal(tagVersion("android-v1.3.0", "google-tv"), null);
+  assert.equal(tagVersion("chrome-v2.1.0", "chrome"), "2.1.0");
+  assert.equal(tagVersion("chrome-v2.1.0", "macos-arm64"), null);
+  assert.equal(tagVersion("v2.0.0", "chrome"), "2.0.0");
+  const both = parseRelease(release("v1.2.0", [asset("ks-app-v1.2.0.apk", 9), asset("ks-app-v1.2.0-google-tv.apk", 5)]), repo)!;
+  const one = parseRelease(release("v1.2.0", [asset("ks-app-v1.2.0.apk", 9), asset("ks-app-v1.2.0-extension.zip", 9)]), repo)!;
+  assert.equal(pickAsset(both.assets, "google-tv", repo)?.name, "ks-app-v1.2.0-google-tv.apk");
+  assert.equal(pickAsset(one.assets, "google-tv", repo)?.name, "ks-app-v1.2.0.apk", "no TV build: the plain APK");
+  assert.equal(pickAsset(one.assets, "chrome", repo), null, "an extension has no installer");
+  const list = JSON.stringify([JSON.parse(release("chrome-v2.1.0", [])), JSON.parse(release("v2.0.0", [asset("ks-app-v2.0.0.apk")]))]);
+  const found = parseReleases(JSON.parse(list), repo, "chrome");
+  assert.equal(found?.tag, "chrome-v2.1.0");
+});

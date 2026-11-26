@@ -58,7 +58,8 @@ class GitHubRepo private constructor(val owner: String, val name: String) {
  * The system an installer is for. [GOOGLE_TV] is never detected: an Android app that is
  * running on a TV passes it, so it gets the TV build (`…-google-tv.apk`) and a phone never
  * does. When a release has no TV build, a TV takes the plain APK (a TV-only app's one APK,
- * or an app that still ships one APK for both).
+ * or an app that still ships one APK for both). [CHROME] is never detected either: a Chrome
+ * extension has no installer file (it opens the release page), so only its tag prefix matters.
  */
 enum class UpdatePlatform(
     /**
@@ -68,7 +69,7 @@ enum class UpdatePlatform(
      */
     val tagPrefix: String,
 ) {
-    MACOS_ARM64("mac-"), MACOS_X64("mac-"), WINDOWS_X64("windows-"), ANDROID("android-"), GOOGLE_TV("google-tv-");
+    MACOS_ARM64("mac-"), MACOS_X64("mac-"), WINDOWS_X64("windows-"), ANDROID("android-"), GOOGLE_TV("google-tv-"), CHROME("chrome-");
 
     companion object {
         /** The platform from the JVM's `os.name`, `os.arch` and `java.vm.name`; null for others. */
@@ -251,6 +252,7 @@ object AppUpdate {
             }
             UpdatePlatform.ANDROID -> if (!n.endsWith(".apk") || TV.containsMatchIn(n)) 0 else 2
             UpdatePlatform.GOOGLE_TV -> if (!n.endsWith(".apk")) 0 else if (TV.containsMatchIn(n)) 2 else 1
+            UpdatePlatform.CHROME -> 0
         }
     }
 
