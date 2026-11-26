@@ -13,7 +13,7 @@ status: draft
 - **No third-party dependencies.** A utility uses only its language's standard library. The Kotlin part is plain Kotlin/JVM with no Android SDK, so Android, TV and desktop apps can all use it.
 - **No app knowledge.** No app package names, resources, screens, storage schemas or feature flags. Anything a utility needs from the app comes in as a parameter.
 - **Pinned by version tag.** Every app pins a `ks-utility` version tag (the lock files keep its exact commit) (see "How apps depend on it"). A change here reaches an app only when that app moves its pin, so apps still build and ship alone.
-- **No breaking changes in place.** Apps move their pins at different times: add a new function instead of changing the meaning or signature of one that is in use.
+- **No breaking changes in place.** Apps move their pins at different times (each before its own next release): add a new function instead of changing the meaning or signature of one that is in use.
 - **No network, no analytics.** A utility never opens a connection or reports anything by itself, so it is safe for `ks-vault` and `ks-expense-manager`. The development tools in `typescript/tools/` are not shipped in any app; the translation editor among them listens on `127.0.0.1` only, behind a random token, and connects nowhere.
 - **Tested here.** Each utility has unit tests in this repository, in the same commit.
 
