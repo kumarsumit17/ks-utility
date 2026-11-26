@@ -524,288 +524,250 @@
     "hi": "ऐप",
     "avoid": [
       "एप"
-    ],
-    "review": true
+    ]
   },
   {
     "en": "Install",
     "hi": "इंस्टॉल करें",
     "avoid": [
       "स्थापित"
-    ],
-    "review": true
+    ]
   },
   {
     "en": "Installer",
     "hi": "इंस्टॉलर",
-    "avoid": [],
-    "review": true
+    "avoid": []
   },
   {
     "en": "Check (for updates)",
     "hi": "जांच करें",
     "avoid": [
       "जाँच"
-    ],
-    "review": true
+    ]
   },
   {
     "en": "Disk image",
     "hi": "डिस्क इमेज",
-    "avoid": [],
-    "review": true
+    "avoid": []
   },
   {
     "en": "Unknown apps (Android)",
     "hi": "अनजान ऐप",
     "avoid": [
       "अज्ञात"
-    ],
-    "review": true
+    ]
   },
   {
     "en": "Expense",
     "hi": "खर्च",
-    "avoid": [],
-    "review": true
+    "avoid": []
   },
   {
     "en": "Amount",
-    "hi": "रकम",
+    "hi": "राशि",
     "avoid": [
-      "राशि"
-    ],
-    "review": true
+      "रकम"
+    ]
   },
   {
     "en": "Note",
     "hi": "नोट",
     "avoid": [
       "टिप्पणी"
-    ],
-    "review": true
+    ]
   },
   {
     "en": "Date",
     "hi": "तारीख",
     "avoid": [
       "दिनांक"
-    ],
-    "review": true
+    ]
   },
   {
     "en": "Export",
     "hi": "एक्सपोर्ट",
     "avoid": [
       "निर्यात"
-    ],
-    "review": true
+    ]
   },
   {
     "en": "Spreadsheet",
     "hi": "स्प्रेडशीट",
-    "avoid": [],
-    "review": true
+    "avoid": []
   },
   {
     "en": "Food",
     "hi": "खाना",
     "avoid": [
       "भोजन"
-    ],
-    "review": true
+    ]
   },
   {
     "en": "Transport",
-    "hi": "ट्रांसपोर्ट",
+    "hi": "यातायात",
     "avoid": [
-      "यातायात"
-    ],
-    "review": true
+      "ट्रांसपोर्ट"
+    ]
   },
   {
     "en": "Shopping",
-    "hi": "शॉपिंग",
+    "hi": "खरीदारी",
     "avoid": [
-      "खरीदारी"
-    ],
-    "review": true
+      "शॉपिंग"
+    ]
   },
   {
     "en": "Bills",
     "hi": "बिल",
-    "avoid": [],
-    "review": true
+    "avoid": []
   },
   {
     "en": "Health",
-    "hi": "सेहत",
+    "hi": "स्वास्थ्य",
     "avoid": [
-      "स्वास्थ्य"
-    ],
-    "review": true
+      "सेहत"
+    ]
   },
   {
     "en": "Entertainment",
     "hi": "मनोरंजन",
-    "avoid": [],
-    "review": true
+    "avoid": []
   },
   {
     "en": "Hidden",
     "hi": "छिपी हुई",
-    "avoid": [],
-    "review": true
+    "avoid": []
   },
   {
     "en": "Vault",
     "hi": "वॉल्ट",
-    "avoid": [],
-    "review": true
+    "avoid": []
   },
   {
     "en": "Pattern",
     "hi": "पैटर्न",
-    "avoid": [],
-    "review": true
+    "avoid": []
   },
   {
     "en": "Lock",
     "hi": "लॉक",
-    "avoid": [],
-    "review": true
+    "avoid": []
   },
   {
     "en": "Unlock",
     "hi": "अनलॉक करें",
-    "avoid": [],
-    "review": true
+    "avoid": []
   },
   {
     "en": "Title",
     "hi": "शीर्षक",
-    "avoid": [],
-    "review": true
+    "avoid": [
+      "टाइटल"
+    ]
   },
   {
     "en": "Encrypt",
     "hi": "एन्क्रिप्ट",
-    "avoid": [],
-    "review": true
+    "avoid": []
   },
   {
     "en": "Dot",
     "hi": "बिंदु",
-    "avoid": [],
-    "review": true
+    "avoid": []
   },
   {
     "en": "Tab",
     "hi": "टैब",
-    "avoid": [],
-    "review": true
+    "avoid": []
   },
   {
     "en": "Pane",
-    "hi": "पैनल",
-    "avoid": [],
-    "review": true
+    "hi": "हिस्सा",
+    "avoid": [
+      "पैनल"
+    ]
   },
   {
     "en": "Split",
     "hi": "बांटें",
-    "avoid": [],
-    "review": true
+    "avoid": [
+      "बाँटें"
+    ]
   },
   {
     "en": "Terminal",
     "hi": "टर्मिनल",
-    "avoid": [],
-    "review": true
+    "avoid": []
   },
   {
     "en": "Shell",
     "hi": "शेल",
-    "avoid": [],
-    "review": true
+    "avoid": []
   },
   {
     "en": "Theme",
     "hi": "थीम",
-    "avoid": [],
-    "review": true
+    "avoid": []
   },
   {
     "en": "Shortcut",
     "hi": "शॉर्टकट",
-    "avoid": [],
-    "review": true
+    "avoid": []
   },
   {
     "en": "Font",
     "hi": "फ़ॉन्ट",
-    "avoid": [],
-    "review": true
+    "avoid": []
   },
   {
     "en": "Command palette",
     "hi": "कमांड पैलेट",
-    "avoid": [],
-    "review": true
+    "avoid": []
   },
   {
     "en": "Shell integration",
     "hi": "शेल इंटीग्रेशन",
-    "avoid": [],
-    "review": true
+    "avoid": []
   },
   {
     "en": "Scrollback",
     "hi": "स्क्रॉलबैक",
-    "avoid": [],
-    "review": true
+    "avoid": []
   },
   {
     "en": "Accent colour",
     "hi": "मुख्य रंग",
-    "avoid": [],
-    "review": true
+    "avoid": []
   },
   {
     "en": "Appearance",
     "hi": "रूप-रंग",
-    "avoid": [],
-    "review": true
+    "avoid": []
   },
   {
     "en": "Budget",
     "hi": "बजट",
-    "avoid": [],
-    "review": true
+    "avoid": []
   },
   {
     "en": "Result",
     "hi": "नतीजा",
-    "avoid": [],
-    "review": true
+    "avoid": []
   },
   {
     "en": "Results",
     "hi": "नतीजे",
-    "avoid": [],
-    "review": true
+    "avoid": []
   },
   {
     "en": "Left (remaining)",
     "hi": "बाकी",
-    "avoid": [],
-    "review": true
+    "avoid": []
   },
   {
     "en": "Over (budget)",
-    "hi": "ज़्यादा",
-    "avoid": [],
-    "review": true
+    "hi": "बजट से ज़्यादा",
+    "avoid": []
   },
   {
     "en": "Subscription",

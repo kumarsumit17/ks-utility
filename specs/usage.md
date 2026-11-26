@@ -78,6 +78,7 @@ node <ks-utility>/typescript/tools/lang.mjs import-xliff <file> --lang <code> --
 | `v0.4.0` | the commit the tag names | The shared release workflow for the Kotlin apps ([spec](release-workflow.md)). Do not use: it names a signed APK `-UNSIGNED`, so the publish check stops every release |
 | `v0.4.1` | the commit the tag names | Fix: signed APK and AAB keep their release names; call `kotlin-app-release.yml@v0.4.1` |
 | `v0.4.2` | the commit the tag names | Docs: verify release attestations with `--signer-workflow`; the workflow is unchanged from `v0.4.1` |
+| `v0.12.0` | the commit the tag names | 44 Hindi terms approved by the owner, with new words to avoid: रकम, ट्रांसपोर्ट, शॉपिंग, सेहत, टाइटल, पैनल, बाँटें; an app's language check fails on them once it moves its pin ([Hindi style guide](hindi-style.md)). No code change |
 | `v0.11.2` | the commit the tag names | 15 Hindi terms from KS TV Launcher for owner review ([Hindi style guide](hindi-style.md)). No code change |
 | `v0.11.1` | the commit the tag names | 5 Hindi terms from KS Expense Manager for owner review ([Hindi style guide](hindi-style.md)). No code change |
 | `v0.11.0` | the commit the tag names | Platforms `google-tv` (Rust `GoogleTv`, TypeScript `"google-tv"`: the TV build, else any APK) and `chrome` (all three languages: tag prefix `chrome-`, no installer file) ([app updates](app-update.md#platform-tags)) |

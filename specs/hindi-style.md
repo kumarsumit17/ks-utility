@@ -113,50 +113,50 @@ The data file `lang/hindi-terms.json` holds the same rows; a test fails if this 
 | Select all | सभी चुनें | — | approved |
 | Hide | छिपाएं | छिपाएँ | approved |
 | Show | दिखाएं | दिखाएँ | approved |
-| App | ऐप | एप | owner review |
-| Install | इंस्टॉल करें | स्थापित | owner review |
-| Installer | इंस्टॉलर | — | owner review |
-| Check (for updates) | जांच करें | जाँच | owner review |
-| Disk image | डिस्क इमेज | — | owner review |
-| Unknown apps (Android) | अनजान ऐप | अज्ञात | owner review |
-| Expense | खर्च | — | owner review |
-| Amount | रकम | राशि | owner review |
-| Note | नोट | टिप्पणी | owner review |
-| Date | तारीख | दिनांक | owner review |
-| Export | एक्सपोर्ट | निर्यात | owner review |
-| Spreadsheet | स्प्रेडशीट | — | owner review |
-| Food | खाना | भोजन | owner review |
-| Transport | ट्रांसपोर्ट | यातायात | owner review |
-| Shopping | शॉपिंग | खरीदारी | owner review |
-| Bills | बिल | — | owner review |
-| Health | सेहत | स्वास्थ्य | owner review |
-| Entertainment | मनोरंजन | — | owner review |
-| Hidden | छिपी हुई | — | owner review |
-| Vault | वॉल्ट | — | owner review |
-| Pattern | पैटर्न | — | owner review |
-| Lock | लॉक | — | owner review |
-| Unlock | अनलॉक करें | — | owner review |
-| Title | शीर्षक | — | owner review |
-| Encrypt | एन्क्रिप्ट | — | owner review |
-| Dot | बिंदु | — | owner review |
-| Tab | टैब | — | owner review |
-| Pane | पैनल | — | owner review |
-| Split | बांटें | — | owner review |
-| Terminal | टर्मिनल | — | owner review |
-| Shell | शेल | — | owner review |
-| Theme | थीम | — | owner review |
-| Shortcut | शॉर्टकट | — | owner review |
-| Font | फ़ॉन्ट | — | owner review |
-| Command palette | कमांड पैलेट | — | owner review |
-| Shell integration | शेल इंटीग्रेशन | — | owner review |
-| Scrollback | स्क्रॉलबैक | — | owner review |
-| Accent colour | मुख्य रंग | — | owner review |
-| Appearance | रूप-रंग | — | owner review |
-| Budget | बजट | — | owner review |
-| Result | नतीजा | — | owner review |
-| Results | नतीजे | — | owner review |
-| Left (remaining) | बाकी | — | owner review |
-| Over (budget) | ज़्यादा | — | owner review |
+| App | ऐप | एप | approved |
+| Install | इंस्टॉल करें | स्थापित | approved |
+| Installer | इंस्टॉलर | — | approved |
+| Check (for updates) | जांच करें | जाँच | approved |
+| Disk image | डिस्क इमेज | — | approved |
+| Unknown apps (Android) | अनजान ऐप | अज्ञात | approved |
+| Expense | खर्च | — | approved |
+| Amount | राशि | रकम | approved |
+| Note | नोट | टिप्पणी | approved |
+| Date | तारीख | दिनांक | approved |
+| Export | एक्सपोर्ट | निर्यात | approved |
+| Spreadsheet | स्प्रेडशीट | — | approved |
+| Food | खाना | भोजन | approved |
+| Transport | यातायात | ट्रांसपोर्ट | approved |
+| Shopping | खरीदारी | शॉपिंग | approved |
+| Bills | बिल | — | approved |
+| Health | स्वास्थ्य | सेहत | approved |
+| Entertainment | मनोरंजन | — | approved |
+| Hidden | छिपी हुई | — | approved |
+| Vault | वॉल्ट | — | approved |
+| Pattern | पैटर्न | — | approved |
+| Lock | लॉक | — | approved |
+| Unlock | अनलॉक करें | — | approved |
+| Title | शीर्षक | टाइटल | approved |
+| Encrypt | एन्क्रिप्ट | — | approved |
+| Dot | बिंदु | — | approved |
+| Tab | टैब | — | approved |
+| Pane | हिस्सा | पैनल | approved |
+| Split | बांटें | बाँटें | approved |
+| Terminal | टर्मिनल | — | approved |
+| Shell | शेल | — | approved |
+| Theme | थीम | — | approved |
+| Shortcut | शॉर्टकट | — | approved |
+| Font | फ़ॉन्ट | — | approved |
+| Command palette | कमांड पैलेट | — | approved |
+| Shell integration | शेल इंटीग्रेशन | — | approved |
+| Scrollback | स्क्रॉलबैक | — | approved |
+| Accent colour | मुख्य रंग | — | approved |
+| Appearance | रूप-रंग | — | approved |
+| Budget | बजट | — | approved |
+| Result | नतीजा | — | approved |
+| Results | नतीजे | — | approved |
+| Left (remaining) | बाकी | — | approved |
+| Over (budget) | बजट से ज़्यादा | — | approved |
 | Subscription | सब्सक्रिप्शन | — | owner review |
 | Pin (to Home) | पिन करें | — | owner review |
 | Unpin | अनपिन करें | — | owner review |

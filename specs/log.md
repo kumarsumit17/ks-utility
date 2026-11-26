@@ -1,5 +1,7 @@
 # 2026-11-26
 
+* **Update**: [Usage](usage.md): `v0.12.0` tagged (44 Hindi terms approved; new words to avoid).
+* **Update**: [Hindi style guide](hindi-style.md): the owner reviewed and approved 44 terms (app updates, KS Expense Manager, KS Vault, KS Forge). Changed: Amount राशि (avoid रकम), Transport यातायात (avoid ट्रांसपोर्ट), Shopping खरीदारी (avoid शॉपिंग), Health स्वास्थ्य (avoid सेहत), Over (budget) बजट से ज़्यादा, Title avoids टाइटल, Pane हिस्सा (avoid पैनल), Split avoids बाँटें. KS TV Launcher's 15 terms are still for owner review.
 * **Update**: [Usage](usage.md): `v0.11.2` tagged (Hindi terms from KS TV Launcher).
 * **Update**: [Hindi style guide](hindi-style.md): 15 terms from KS TV Launcher added for owner review (Subscription सब्सक्रिप्शन, Pin (to Home) पिन करें, Unpin अनपिन करें, Wallpaper वॉलपेपर, Weather मौसम, Renewal रिन्यूअल, Reminder रिमाइंडर, Storage स्टोरेज, Uninstall अनइंस्टॉल करें, Screensaver स्क्रीनसेवर, Input (HDMI) इनपुट, Home (screen) होम, Notification नोटिफ़िकेशन, Display डिस्प्ले, Control Center कंट्रोल सेंटर), in the table and `lang/hindi-terms.json`.
 * **Update**: [Usage](usage.md): `v0.11.1` tagged (Hindi terms from KS Expense Manager).
