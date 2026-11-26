@@ -4,7 +4,7 @@ import com.ks.utility.appupdate.Json
 
 /**
  * One entry of a language file in the suite's format
- * ([translation-format.md](https://github.com/kumarsumit17/ks-utility/blob/main/specs/translation-format.md)):
+ * ([translation-format.md](https://github.com/kumasumit/ks-utility/blob/main/specs/translation-format.md)):
  * a text, or plural forms chosen by the `{count}` parameter.
  */
 sealed interface Entry {

@@ -26,11 +26,11 @@ Every KS-Suite app tells the user when a newer version of itself is out and, whe
 
 ### Versions
 - A version is `vMAJOR.MINOR.PATCH`: one to four numeric parts, optional leading `v`, nothing else (`1.2.3-beta` is not a version; such a tag is ignored). Parts compare as numbers, a missing part counts as zero (`1.0` equals `1.0.0`).
-- An update is offered only when the release's tag is strictly higher than the running version. The running version comes from the build (`-PversionName`, the Tauri/Cargo version), which comes from the git tag ([versioning](https://github.com/kumarsumit17/KS-Suite/blob/main/specs/versioning-signing.md)).
+- An update is offered only when the release's tag is strictly higher than the running version. The running version comes from the build (`-PversionName`, the Tauri/Cargo version), which comes from the git tag ([versioning](https://github.com/kumasumit/KS-Suite/blob/main/specs/versioning-signing.md)).
 - `releases/latest` never returns drafts or pre-releases, so a beta is offered only to whoever installs it by hand.
 
 ### Platform tags
-An app whose platforms have their own versions (from `v0.10.0`; the suite's [versioning](https://github.com/kumarsumit17/KS-Suite/blob/main/specs/versioning-signing.md)) tags each platform's release `<platform>-vMAJOR.MINOR.PATCH`: `android-`, `google-tv-`, `mac-` (both macOS builds) or `windows-` (`UpdatePlatform.tagPrefix`, `tag_prefix`, `tagPrefix`). A plain `vMAJOR.MINOR.PATCH` is still a release of every platform.
+An app whose platforms have their own versions (from `v0.10.0`; the suite's [versioning](https://github.com/kumasumit/KS-Suite/blob/main/specs/versioning-signing.md)) tags each platform's release `<platform>-vMAJOR.MINOR.PATCH`: `android-`, `google-tv-`, `mac-` (both macOS builds) or `windows-` (`UpdatePlatform.tagPrefix`, `tag_prefix`, `tagPrefix`). A plain `vMAJOR.MINOR.PATCH` is still a release of every platform.
 - Such an app asks `GET https://api.github.com/repos/<owner>/<repo>/releases?per_page=30` (`releasesApiUrl`) instead of `releases/latest`, which may be another platform's release, with the same headers and the same 1 MiB limit, and passes the body to `evaluateReleases`.
 - `parseReleases` takes, of the releases on that page, the highest version whose tag is this platform's own or a plain one, skipping drafts and pre-releases. Another platform's tag is never offered (`tagVersion` returns null for it).
 - "Get the new version" opens that release's page (`releasePageUrl(tag)`, `release_page_url`, `releaseTagPageUrl`), not `releases/latest`.

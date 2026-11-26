@@ -13,8 +13,8 @@ Every app pins one version tag of this repository (`vMAJOR.MINOR.PATCH`). Lock f
 | App | Mechanism | Declared in |
 |---|---|---|
 | Kotlin apps (`ks-tv-launcher`, `ks-jaiplayer`, `ks-streamflix`, `ks-vault`, `ks-expense-manager`) | This repository as a git submodule at `ks-utility/`, included as a Gradle build | `.gitmodules`; `includeBuild("ks-utility/kotlin")` in `settings.gradle.kts`; `ks-utility = { module = "com.ks:utility" }` in `gradle/libs.versions.toml` |
-| `ks-download-manager` (interface) | npm git dependency | `"ks-utility": "git+https://github.com/kumarsumit17/ks-utility.git#<tag>"` in `package.json` |
-| `ks-download-manager` (engine) | Cargo git dependency | `ks-utility = { git = "https://github.com/kumarsumit17/ks-utility", tag = "<tag>" }` in `src-tauri/Cargo.toml` and `src-tauri/engine/Cargo.toml` |
+| `ks-download-manager` (interface) | npm git dependency | `"ks-utility": "git+https://github.com/kumasumit/ks-utility.git#<tag>"` in `package.json` |
+| `ks-download-manager` (engine) | Cargo git dependency | `ks-utility = { git = "https://github.com/kumasumit/ks-utility", tag = "<tag>" }` in `src-tauri/Cargo.toml` and `src-tauri/engine/Cargo.toml` |
 
 ## Kotlin apps
 

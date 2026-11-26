@@ -2,7 +2,7 @@ package com.ks.utility.lang
 
 /**
  * Look-up of interface text in the suite's language files, the Kotlin twin of the TypeScript
- * `createTranslator` ([translation-format.md](https://github.com/kumarsumit17/ks-utility/blob/main/specs/translation-format.md)),
+ * `createTranslator` ([translation-format.md](https://github.com/kumasumit/ks-utility/blob/main/specs/translation-format.md)),
  * for Kotlin code that does not use Android or Compose resources (a server, a command-line tool).
  *
  * [layers] are catalogs per language code (`mapOf("en" to …, "hi" to …, "fr" to …)`), searched

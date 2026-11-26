@@ -1,3 +1,7 @@
+# 2026-11-26
+
+* **Update**: [Usage](usage.md), [App updates](app-update.md), [Release workflow](release-workflow.md), the README and two Kotlin doc comments: the GitHub owner is now `kumasumit` (was `kumarsumit17`); apps call `kumasumit/ks-utility/.github/workflows/kotlin-app-release.yml@<tag>`.
+
 # 2026-11-25
 
 * **Update**: [App updates](app-update.md) "Platform tags" and [Release workflow](release-workflow.md): the "not used for now" note is removed; every app, one-platform apps included, releases with platform tags again.

@@ -1,6 +1,6 @@
 # KS Utility
 
-> Part of the [KS-Suite](https://github.com/kumarsumit17/KS-Suite).
+> Part of the [KS-Suite](https://github.com/kumasumit/KS-Suite).
 
 Common utility functions shared across the KS-Suite apps. Everything here is generic: any suite app, today's or a later one, can take it as a dependency and use it as it is. Application-specific logic does not belong in this repository.
 
@@ -23,8 +23,8 @@ What does not: anything tied to one app's features, screens, data or package. Th
 | App | Mechanism | Declared in |
 |---|---|---|
 | Kotlin apps (`ks-tv-launcher`, `ks-jaiplayer`, `ks-streamflix`, `ks-vault`, `ks-expense-manager`) | This repository as a git submodule at `ks-utility/`, included as a Gradle build | `.gitmodules`; `includeBuild("ks-utility/kotlin")` in `settings.gradle.kts`; `ks-utility = { module = "com.ks:utility" }` in `gradle/libs.versions.toml` |
-| `ks-download-manager` (interface) | npm git dependency | `"ks-utility": "git+https://github.com/kumarsumit17/ks-utility.git#<tag>"` in `package.json` |
-| `ks-download-manager` (engine) | Cargo git dependency | `ks-utility = { git = "https://github.com/kumarsumit17/ks-utility", tag = "<tag>" }` in `src-tauri/Cargo.toml` |
+| `ks-download-manager` (interface) | npm git dependency | `"ks-utility": "git+https://github.com/kumasumit/ks-utility.git#<tag>"` in `package.json` |
+| `ks-download-manager` (engine) | Cargo git dependency | `ks-utility = { git = "https://github.com/kumasumit/ks-utility", tag = "<tag>" }` in `src-tauri/Cargo.toml` |
 
 Details and the steps to move an app to a newer tag, and the versioning rules: [specs/usage.md](specs/usage.md).
 

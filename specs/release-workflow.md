@@ -29,7 +29,7 @@ permissions:
   contents: read
 jobs:
   release:
-    uses: kumarsumit17/ks-utility/.github/workflows/kotlin-app-release.yml@v0.4.1
+    uses: kumasumit/ks-utility/.github/workflows/kotlin-app-release.yml@v0.4.1
     permissions:           # only the publish job uses the write permissions
       contents: write
       id-token: write
@@ -63,17 +63,17 @@ jobs:
 | `test-tasks` | Gradle tasks run before the Android build | `testDebugUnitTest` |
 | `desktop-test-tasks` | Gradle tasks run on macOS and Windows before packaging | none |
 | `node` | Set up Node, which the language-file tools need | `true` |
-| `require-main` | A tag release must point at a commit on `main` ([release cycle](https://github.com/kumarsumit17/KS-Suite/blob/main/specs/release-cycle.md)) | `true` |
+| `require-main` | A tag release must point at a commit on `main` ([release cycle](https://github.com/kumasumit/KS-Suite/blob/main/specs/release-cycle.md)) | `true` |
 
-Secrets: `KEYSTORE_BASE64`, `KEYSTORE_PASSWORD`, `KEY_ALIAS`, `KEY_PASSWORD` ([versioning and signing](https://github.com/kumarsumit17/KS-Suite/blob/main/specs/versioning-signing.md)), passed with `secrets: inherit`.
+Secrets: `KEYSTORE_BASE64`, `KEYSTORE_PASSWORD`, `KEY_ALIAS`, `KEY_PASSWORD` ([versioning and signing](https://github.com/kumasumit/KS-Suite/blob/main/specs/versioning-signing.md)), passed with `secrets: inherit`.
 
 ## What it does
 
-1. **Version.** A tag `vMAJOR.MINOR.PATCH` (no suffix) on `main`, or from `v0.10.0` a platform tag `<platform>-vMAJOR.MINOR.PATCH` (`android`, `google-tv`, `mac`, `windows`; [platform tags](app-update.md)), gives `versionName` and `versionCode = MAJOR×10000 + MINOR×100 + PATCH` (MINOR and PATCH below 100); both are passed to every Gradle build as `-PversionName` and `-PversionCode`. A manual run is the **rehearsal** of the [release cycle](https://github.com/kumarsumit17/KS-Suite/blob/main/specs/release-cycle.md): it builds the version given as input exactly as a tag would, and never attests or publishes.
+1. **Version.** A tag `vMAJOR.MINOR.PATCH` (no suffix) on `main`, or from `v0.10.0` a platform tag `<platform>-vMAJOR.MINOR.PATCH` (`android`, `google-tv`, `mac`, `windows`; [platform tags](app-update.md)), gives `versionName` and `versionCode = MAJOR×10000 + MINOR×100 + PATCH` (MINOR and PATCH below 100); both are passed to every Gradle build as `-PversionName` and `-PversionCode`. A manual run is the **rehearsal** of the [release cycle](https://github.com/kumasumit/KS-Suite/blob/main/specs/release-cycle.md): it builds the version given as input exactly as a tag would, and never attests or publishes.
 2. **Android and Google TV** (Ubuntu). A tag release stops at once if a signing secret is missing. The keystore is decoded into the runner's temporary folder and opened once to check the password and alias. Tests, then `assembleRelease` and `bundleRelease` for the phone module and, if set, the TV module. The signing check embedded in the workflow proves each APK and AAB is signed by the keystore's certificate, or, for a manual run without secrets, that they carry no signature and are named `-UNSIGNED`. The keystore is deleted when the job ends.
 3. **macOS** (`macos-15`, Apple silicon): `packageReleaseDmg`. Not yet signed with a Developer ID or notarised: the first open needs System Settings › Privacy & Security › Open Anyway.
 4. **Windows** (`windows-2025`, x64): `packageReleaseMsi`. Not yet Authenticode-signed: SmartScreen asks once (More info › Run anyway).
-5. **Attest and publish** (Ubuntu, the only job with write access). Only for a tag, only when every platform the app names built, and only with a verified signed APK. It checks it received exactly the expected files, gives each a build-provenance attestation (`gh attestation verify <file> -R kumarsumit17/<app> --signer-workflow kumarsumit17/ks-utility/.github/workflows/kotlin-app-release.yml`; the signer is this shared workflow, not the app's own `release.yml`), and publishes them with the preinstalled `gh` CLI as a full release with generated notes. A plain tag's release is marked latest and titled "<display name> X.Y.Z"; a platform tag builds and expects only that platform's files (the phone or the TV APK and AAB, the dmgs, or the msi), is titled "<display name> for macOS X.Y.Z" (Android, Google TV, Windows) and is not marked latest. `gh release create` with files keeps the release hidden until every file is up, so a failure publishes nothing.
+5. **Attest and publish** (Ubuntu, the only job with write access). Only for a tag, only when every platform the app names built, and only with a verified signed APK. It checks it received exactly the expected files, gives each a build-provenance attestation (`gh attestation verify <file> -R kumasumit/<app> --signer-workflow kumasumit/ks-utility/.github/workflows/kotlin-app-release.yml`; the signer is this shared workflow, not the app's own `release.yml`), and publishes them with the preinstalled `gh` CLI as a full release with generated notes. A plain tag's release is marked latest and titled "<display name> X.Y.Z"; a platform tag builds and expects only that platform's files (the phone or the TV APK and AAB, the dmgs, or the msi), is titled "<display name> for macOS X.Y.Z" (Android, Google TV, Windows) and is not marked latest. `gh release create` with files keeps the release hidden until every file is up, so a failure publishes nothing.
 
 Every action is pinned to a full commit SHA with its version in a comment, runner images are named versions, and only GitHub's own actions are used, as the release cycle requires.
 
