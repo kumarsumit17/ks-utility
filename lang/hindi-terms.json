@@ -850,5 +850,17 @@
     "en": "Control Center",
     "hi": "कंट्रोल सेंटर",
     "avoid": []
+  },
+  {
+    "en": "Currency",
+    "hi": "करेंसी",
+    "avoid": [],
+    "review": true
+  },
+  {
+    "en": "Default (setting)",
+    "hi": "डिफ़ॉल्ट",
+    "avoid": [],
+    "review": true
   }
 ]

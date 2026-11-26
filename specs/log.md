@@ -1,5 +1,7 @@
 # 2026-11-26
 
+* **Update**: [Usage](usage.md): `v0.13.1` tagged (Hindi terms from KS Expense Manager).
+* **Update**: [Hindi style guide](hindi-style.md): 2 terms from KS Expense Manager added for owner review (Currency करेंसी, Default (setting) डिफ़ॉल्ट), in the table and `lang/hindi-terms.json`.
 * **Update**: [Usage](usage.md): `v0.13.0` tagged (KS TV Launcher's Hindi terms approved; अनपिन करें avoided).
 * **Update**: [Hindi style guide](hindi-style.md): the owner reviewed and approved KS TV Launcher's 15 terms. Changed: Pin (to Home) होम स्क्रीन पर जोड़ें, Unpin होम स्क्रीन से हटाएं (avoid अनपिन करें), Home (screen) होम स्क्रीन. No term is left for owner review.
 * **Update**: [Usage](usage.md): `v0.12.1` tagged (पैनल allowed for Panel).
