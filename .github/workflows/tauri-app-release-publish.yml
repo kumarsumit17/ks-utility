@@ -50,6 +50,14 @@ on:
         description: "A command run in the app's checkout that writes the release notes to notes.md. KS_TAG, KS_VERSION and KS_PLATFORM are set, and every artifact of the run is in artifacts/."
         type: string
         required: true
+      ks-utility:
+        description: "From the check: the ks-utility version the app is built on, recorded in the notes."
+        type: string
+        default: ""
+      signing:
+        description: "One line per platform on how it is signed, added to the notes (e.g. macOS: not signed with an Apple Developer ID)."
+        type: string
+        default: "macOS and Windows: not code-signed."
       node-version:
         type: string
         default: "26"
@@ -65,6 +73,10 @@ jobs:
   attest:
     name: Attest
     runs-on: ubuntu-24.04
+    # The owner's approval: with the environment "production" set up in the app's repository
+    # (the owner as required reviewer), a release waits here, before anything is attested or
+    # published. A rehearsal (the DEV build) runs in "dev", which needs no approval.
+    environment: ${{ inputs.rehearsal == 'true' && 'dev' || 'production' }}
     timeout-minutes: 15
     permissions:
       contents: read
@@ -99,11 +111,12 @@ jobs:
           subject-path: files/*
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: release-files
+          name: ${{ inputs.rehearsal == 'true' && 'dev-release-files' || 'release-files' }}
           path: |
             files/
             meta/
           if-no-files-found: error
+          retention-days: ${{ inputs.rehearsal == 'true' && 14 || 30 }}
 
   release:
     name: Release
@@ -124,7 +137,7 @@ jobs:
           persist-credentials: false
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
-          name: release-files
+          name: ${{ inputs.rehearsal == 'true' && 'dev-release-files' || 'release-files' }}
           path: .
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
@@ -146,18 +159,28 @@ jobs:
       - name: Release notes
         env:
           KS_NOTES: ${{ inputs.notes }}
+          KS_UTILITY: ${{ inputs.ks-utility }}
+          KS_SIGNING: ${{ inputs.signing }}
         run: |
           rm -f notes.md
           eval "$KS_NOTES"
           [ -s notes.md ] || { echo "::error::the notes command wrote no notes.md"; exit 1; }
+          {
+            echo
+            echo "---"
+            echo "Built on ks-utility ${KS_UTILITY:-unknown}."
+            printf '%s\n' "$KS_SIGNING" | sed 's/^/- /'
+            echo "- SHA256SUMS lists the SHA-256 of every file; each file also has a build-provenance attestation."
+          } >> notes.md
           cat notes.md
       - name: Rehearsal - keep the notes, create no release
         if: inputs.rehearsal == 'true'
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: release-notes
+          name: dev-release-notes
           path: notes.md
           if-no-files-found: error
+          retention-days: 14
       - name: Publish the release
         if: inputs.rehearsal != 'true'
         env:
@@ -173,6 +196,7 @@ jobs:
           fi
           # A plain tag is the latest release; a platform release is not (updaters read the list).
           if [ "$KS_PLATFORM" = all ]; then latest=--latest; else latest=--latest=false; fi
+          cp meta/SHA256SUMS files/SHA256SUMS
           gh release create "$KS_TAG" --verify-tag "$latest" --title "$KS_TITLE" --notes-file notes.md files/*
           gh release view "$KS_TAG" --json isDraft,isPrerelease,assets --jq '"draft=\(.isDraft) prerelease=\(.isPrerelease) files=\(.assets|length)"'
           [ "$(gh release view "$KS_TAG" --json isDraft --jq .isDraft)" = false ] || { echo "::error::the release was not published"; exit 1; }

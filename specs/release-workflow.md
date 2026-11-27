@@ -135,6 +135,10 @@ jobs:
         ${{ needs.version.outputs.platform != 'mac' && format('ks-forge-v{0}-windows-x64-setup.exe', needs.version.outputs.version) || '' }}
       title: KS Forge ${{ needs.version.outputs.heading }}
       notes: node scripts/release-notes.mjs "$KS_TAG" > notes.md
+      ks-utility: ${{ needs.version.outputs.ks-utility }}
+      signing: |
+        macOS: not signed with an Apple Developer ID
+        Windows: not code-signed
 ```
 
 **Check** (`tauri-app-release-check.yml`):
@@ -156,8 +160,18 @@ A tag is `vX.Y.Z` (every platform) or `<platform>-vX.Y.Z`; it must be higher tha
 | `files` | The release files, space-separated; each must be in exactly one artifact of the run, and nothing else is released |
 | `title` | The release title |
 | `notes` | A command that writes `notes.md`, run in the app's checkout with `KS_TAG`, `KS_VERSION`, `KS_PLATFORM` set and every artifact of the run in `artifacts/` (e.g. the signing mode a build recorded) |
+| `ks-utility` | From `v0.19.0`: the check's `ks-utility` output, the ks-utility version the app is built on, recorded in the notes |
+| `signing` | From `v0.19.0`: one line per platform on how it is signed, added to the notes (default: macOS and Windows not code-signed) |
 
 It attests every file (not in a rehearsal), checks they arrived unchanged and are attested, writes the notes and publishes: a plain tag's release is marked latest, a platform tag's is not. A published release is never changed: the run fails, and the next version gets a new tag. A rehearsal attests and publishes nothing and keeps the notes as an artifact. Verify a file with `gh attestation verify <file> -R kumasumit/<app> --signer-workflow kumasumit/ks-utility/.github/workflows/tauri-app-release-publish.yml`. The caller grants the publish job `contents: write`, `id-token: write` and `attestations: write`; it needs no secrets.
+
+## DEV builds, approval and production
+From `v0.19.0`, following the suite's [release cycle](https://github.com/kumasumit/ks-suite/blob/main/specs/release-cycle.md) ("DEV, test, approval, production"):
+
+- **The DEV build is the rehearsal** (a manual run). Its artifacts are named `dev-…` (`dev-android`, `dev-macos-arm64`, `dev-windows`, `dev-release-files`, `dev-release-notes`) and kept 14 days, for the owner's test by hand. The Android build is signed with the suite's key when the signing secrets are set, as for a release. Nothing is attested or published.
+- **The owner's approval gates production.** The Kotlin workflow's publish job, and the Tauri publish workflow's attest job, run in the environment `production`. Once the owner sets it up in an app's repository (Settings, Environments, `production`, with the owner as required reviewer), every release tag waits there for that click, before anything is attested or published. Until then GitHub creates the environment unprotected and nothing waits. A Tauri rehearsal's attest job runs in `dev`, which needs no approval. No workflow changes a repository's settings.
+- **Every production release** attaches `SHA256SUMS` (the SHA-256 of every release file) and its notes say: "Built on ks-utility vX.Y.Z (commit)", taken from the submodule's commit or the Tauri app's git tag; each platform's signing (Android: signed with the suite's key and verified, which blocks a release that fails; macOS and Windows: not signed unless the app says otherwise); and that every file has a build-provenance attestation.
+- Kept as before: the Android signature check, attestations, "the tag is on main", and [ks-suite-check](suite-check.md). No paid signing.
 
 ## Which version an app calls
 From `v0.18.0`, an app calls every shared workflow at `@main` (`kumasumit/ks-utility/.github/workflows/<name>.yml@main`), not at a tag, and [ks-suite-check](suite-check.md) fails a release that calls one at anything else:

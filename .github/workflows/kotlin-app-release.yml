@@ -128,6 +128,7 @@ jobs:
       tv: ${{ steps.ver.outputs.tv }}
       mac: ${{ steps.ver.outputs.mac }}
       windows: ${{ steps.ver.outputs.windows }}
+      ks_utility: ${{ steps.suite.outputs.ks_utility }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -215,7 +216,23 @@ jobs:
         with:
           node-version: "24"
       - name: ks-suite-check
+        id: suite
         run: |
+          # The ks-utility version the app is built on, for the release notes: the tag of the
+          # submodule's commit (Kotlin), or the git tag in package.json and Cargo.toml (Tauri).
+          if [ -n "$(git ls-tree HEAD ks-utility 2>/dev/null)" ]; then
+            sha=$(git ls-tree HEAD ks-utility | awk '{print $3}')
+            pin=$(git ls-remote --tags https://github.com/kumasumit/ks-utility.git | awk -v s="$sha" '$1 == s { sub("refs/tags/", "", $2); sub(/\^\{\}$/, "", $2); print $2 }' | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -n 1)
+            [ -n "$pin" ] || pin="commit ${sha:0:7}"
+          else
+            pin=$(git ls-files '*package.json' '*Cargo.toml' | xargs grep -ho -E 'ks-utility(\.git#|.*tag *= *")v[0-9]+\.[0-9]+\.[0-9]+' 2>/dev/null | grep -oE 'v[0-9]+\.[0-9]+\.[0-9]+' | sort -u | tr '\n' ' ' | sed 's/ $//')
+          fi
+          # With the commit: "v0.18.4 (7dabd4a)".
+          if [ -z "${sha:-}" ] && [ -n "$pin" ] && [ "${pin#* }" = "$pin" ]; then
+            sha=$(git ls-remote --tags https://github.com/kumasumit/ks-utility.git "refs/tags/$pin^{}" | awk '{print $1}')
+          fi
+          [ -z "${sha:-}" ] || [ "${pin#commit }" != "$pin" ] || pin="$pin (${sha:0:7})"
+          echo "ks_utility=${pin:-unknown}" >> "$GITHUB_OUTPUT"
           newest=$(git ls-remote --tags --refs https://github.com/kumasumit/ks-utility.git 'v*' | sed 's#.*refs/tags/##' | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -n 1)
           [ -n "$newest" ] || { echo "::error::could not read ks-utility's tags"; exit 1; }
           git clone -q --depth 1 --branch "$newest" -c advice.detachedHead=false https://github.com/kumasumit/ks-utility.git "$RUNNER_TEMP/ks-utility-newest"
@@ -561,10 +578,11 @@ jobs:
 
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: android
+          name: ${{ needs.version.outputs.release == 'true' && '' || 'dev-' }}android
           path: dist/
           if-no-files-found: error
-          retention-days: 30
+          # A rehearsal is the DEV build the owner tests by hand: named dev-…, kept 14 days.
+          retention-days: ${{ needs.version.outputs.release == 'true' && 30 || 14 }}
 
       - name: Remove keystore
         if: always()
@@ -628,10 +646,11 @@ jobs:
           mkdir -p dist && cp "$dmg" "dist/$NAME"
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: macos-${{ matrix.arch }}
+          name: ${{ needs.version.outputs.release == 'true' && '' || 'dev-' }}macos-${{ matrix.arch }}
           path: dist/
           if-no-files-found: error
-          retention-days: 30
+          # A rehearsal is the DEV build the owner tests by hand: named dev-…, kept 14 days.
+          retention-days: ${{ needs.version.outputs.release == 'true' && 30 || 14 }}
 
   windows:
     name: Windows
@@ -685,10 +704,11 @@ jobs:
           mkdir -p dist && cp "$msi" "dist/$NAME"
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: windows
+          name: ${{ needs.version.outputs.release == 'true' && '' || 'dev-' }}windows
           path: dist/
           if-no-files-found: error
-          retention-days: 30
+          # A rehearsal is the DEV build the owner tests by hand: named dev-…, kept 14 days.
+          retention-days: ${{ needs.version.outputs.release == 'true' && 30 || 14 }}
 
   # Publishing is its own job, so the write token never reaches a build. It runs only for a tag,
   # only when every platform the app has built, and only with a signed, verified APK. It checks it
@@ -706,6 +726,10 @@ jobs:
       (needs.windows.result == 'success' || (needs.windows.result == 'skipped' && needs.version.outputs.windows != 'true')) &&
       ((needs.version.outputs.phone != 'true' && needs.version.outputs.tv != 'true') || (needs.android.outputs.signed == 'true' && needs.android.outputs.verified == 'true'))
     runs-on: ubuntu-24.04
+    # The owner's approval: with the environment "production" set up in the app's repository
+    # (the owner as required reviewer), every release waits here for that click, before anything
+    # is attested or published (the suite's release cycle, "DEV, test, approval, production").
+    environment: production
     timeout-minutes: 15
     permissions:
       contents: write
@@ -742,6 +766,9 @@ jobs:
           fi
           for f in "${expected[@]}"; do [ -s "dist/$f" ] || { echo "::error::$f is empty."; exit 1; }; done
 
+      - name: SHA256SUMS
+        run: (cd dist && sha256sum $(ls | LC_ALL=C sort) > SHA256SUMS && cat SHA256SUMS)
+
       - uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
         with:
           subject-path: dist/*
@@ -753,7 +780,20 @@ jobs:
           NAME: ${{ inputs.display-name }}
           VERSION: ${{ needs.version.outputs.name }}
           PLATFORM: ${{ needs.version.outputs.platform }}
+          KS_UTILITY: ${{ needs.version.outputs.ks_utility }}
+          ANDROID: ${{ needs.version.outputs.phone == 'true' || needs.version.outputs.tv == 'true' }}
+          MAC: ${{ needs.version.outputs.mac }}
+          WINDOWS: ${{ needs.version.outputs.windows }}
         run: |
+          {
+            echo "Built on ks-utility $KS_UTILITY."
+            echo
+            [ "$ANDROID" != true ] || echo "- Android: signed with the suite's key, signature verified before publishing."
+            [ "$MAC" != true ] || echo "- macOS: not signed with an Apple Developer ID (open it with right-click, Open, the first time)."
+            [ "$WINDOWS" != true ] || echo "- Windows: not code-signed (SmartScreen may ask once)."
+            echo "- SHA256SUMS lists the SHA-256 of every file; each file also has a build-provenance attestation."
+          } > notes.md
+          cat notes.md
           # A platform's own release names its platform and is not "latest" (releases/latest stays
           # the last release of all platforms, which apps without platform tags read).
           case "$PLATFORM" in
@@ -763,6 +803,6 @@ jobs:
             mac) title="$NAME for macOS $VERSION"; latest=--latest=false ;;
             windows) title="$NAME for Windows $VERSION"; latest=--latest=false ;;
           esac
-          gh release create "$TAG" --repo "$GITHUB_REPOSITORY" --verify-tag "$latest" --generate-notes --title "$title" dist/*
+          gh release create "$TAG" --repo "$GITHUB_REPOSITORY" --verify-tag "$latest" --notes-file notes.md --generate-notes --title "$title" dist/*
           [ "$(gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json isDraft --jq .isDraft)" = false ] || { echo "::error::The release was not published."; exit 1; }
           gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json assets --jq '.assets[].name'
