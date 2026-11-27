@@ -118,6 +118,12 @@ jobs:
         with:
           distribution: temurin
           java-version: "17"
+      # Gradle's cache, read-only as in the release workflow: the move downloads less, so fewer
+      # runs fail on a slow or rate-limited Maven Central or plugin portal.
+      - uses: gradle/actions/setup-gradle@0723195856401067f7a2779048b490ace7a47d7c # v5.0.2
+        if: steps.move.outputs.changed == 'true' && inputs.java
+        with:
+          cache-read-only: true
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         if: steps.move.outputs.changed == 'true' && inputs.node-version != ''
         with:
@@ -141,12 +147,25 @@ jobs:
           done
           git diff --stat
 
+      # A failure that is a download (Maven Central, the Gradle plugin portal, npm, crates.io not
+      # answering) is retried once, and named as such: it says nothing about the new tag.
       - name: The app's tests
         id: test
         if: steps.move.outputs.changed == 'true'
         env:
           KS_TEST: ${{ inputs.test }}
-        run: eval "$KS_TEST"
+        run: |
+          log="$RUNNER_TEMP/tests.log"
+          net='could not resolve plugin artifact|Could not (GET|HEAD|resolve|download)|Read timed out|Connect(ion)? timed out|Connection reset|Received status code (429|5[0-9][0-9])|ETIMEDOUT|ECONNRESET|EAI_AGAIN|failed to download|spurious network error'
+          run_tests() { set +e; ( eval "$KS_TEST" ) 2>&1 | tee "$log"; code=${PIPESTATUS[0]}; set -e; }
+          run_tests
+          if [ "$code" -ne 0 ] && grep -qiE "$net" "$log"; then
+            echo "::warning::The tests failed on a download; trying once more."
+            sleep 30
+            run_tests
+          fi
+          if [ "$code" -ne 0 ] && grep -qiE "$net" "$log"; then echo "download=true" >> "$GITHUB_OUTPUT"; fi
+          exit "$code"
 
       - name: Commit and push to dev
         if: steps.move.outputs.changed == 'true' && steps.test.outcome == 'success'
@@ -172,8 +191,14 @@ jobs:
         env:
           KS_TAG: ${{ steps.newest.outputs.tag }}
           KS_RUN: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          KS_DOWNLOAD: ${{ steps.test.outputs.download }}
         run: |
-          title="Moving to ks-utility $KS_TAG fails the tests"
-          body="The automatic move to ks-utility $KS_TAG failed, so nothing was pushed: $KS_RUN. Move the pin by hand, fix what fails, and release (the suite's release cycle, step 1)."
+          if [ "$KS_DOWNLOAD" = true ]; then
+            title="Moving to ks-utility $KS_TAG: downloads failed"
+            body="The automatic move to ks-utility $KS_TAG could not download what the tests need, twice (a slow or rate-limited server, not the new tag), so nothing was pushed: $KS_RUN. Run the move again (Actions, \"Move to the newest ks-utility\", Run workflow), or wait for the daily run."
+          else
+            title="Moving to ks-utility $KS_TAG fails the tests"
+            body="The automatic move to ks-utility $KS_TAG failed, so nothing was pushed: $KS_RUN. Move the pin by hand, fix what fails, and release (the suite's release cycle, step 1)."
+          fi
           n=$(gh issue list --state open --search "\"$title\" in:title" --json number --jq '.[0].number // empty')
           if [ -n "$n" ]; then gh issue comment "$n" --body "$body"; else gh issue create --title "$title" --body "$body"; fi
