@@ -15,7 +15,7 @@ From `v0.15.0`. The suite rules that code can check are checked by code: `typesc
 A problem fails the run, rehearsal or tag, and nothing is built or published. To run it by hand:
 
 ```bash
-node <ks-utility>/typescript/tools/suite-check.mjs <app dir> [--newest <tag> --newest-commit <sha>]
+node <ks-utility>/typescript/tools/suite-check.mjs <app dir> [--newest <tag> --newest-commit <sha>] [--rehearsal]
 ```
 
 ## The rules
@@ -28,7 +28,7 @@ node <ks-utility>/typescript/tools/suite-check.mjs <app dir> [--newest <tag> --n
 | Language files | No `en.json` with a `hi.json`, or the [language-file check](usage.md#language-files) fails on them (and on any Chrome `_locales`) |
 | ks-utility's updater | No source file uses `com.ks.utility.appupdate`, `ks_utility::app_update` or `appUpdate` from `ks-utility` |
 | The newest ks-utility | The `ks-utility` submodule, or a `ks-utility` git tag in a `package.json` or `Cargo.toml`, is not ks-utility's newest tag: move the pin first (the suite's [release cycle](https://github.com/kumasumit/ks-suite/blob/main/specs/release-cycle.md), step 1) |
-| The newest shared workflows | From `v0.16.0`: a file in the app's `.github/workflows/` calls `kumasumit/ks-utility/.github/workflows/<name>.yml@<tag>` at another tag than the newest, so its release would run older checks |
+| Shared workflows at `@main` | From `v0.18.0`: a file in the app's `.github/workflows/` calls `kumasumit/ks-utility/.github/workflows/<name>.yml` at anything but `@main`, the newest release ([which version an app calls](release-workflow.md#which-version-an-app-calls)). A rehearsal (`--rehearsal`, a manual run) also accepts `@dev`, to try a change to a shared workflow before its tag |
 
 Build output, dependencies and the ks-utility copy (`build/`, `.gradle/`, `node_modules/`, `target/`, `dist/`, `ks-utility/`) are not looked into.
 

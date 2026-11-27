@@ -3,11 +3,11 @@
 // release workflows (kotlin-app-release.yml, tauri-app-release-check.yml) before anything is
 // built (specs/suite-check.md). Node's standard library only.
 //
-//   node <ks-utility>/typescript/tools/suite-check.mjs <app dir> [--newest <tag> --newest-commit <sha>]
+//   node <ks-utility>/typescript/tools/suite-check.mjs <app dir> [--newest <tag> --newest-commit <sha>] [--rehearsal]
 //
 // Prints one line per problem (with ::error:: for GitHub) and exits 1 when there is any.
 // `--newest` and `--newest-commit` are ks-utility's newest tag and its commit; without them the
-// pin is not checked.
+// pin is not checked. `--rehearsal` also accepts calls of ks-utility's shared workflows at @dev.
 
 import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
@@ -61,7 +61,7 @@ const read = (f) => { try { return readFileSync(f, "utf8"); } catch { return "";
 const sha256 = (f) => createHash("sha256").update(readFileSync(f)).digest("hex");
 
 /** The problems of the app at `root`. `newest`: ks-utility's newest tag and commit, or null. */
-export function suiteCheck(root, { newest = null, langTool = null } = {}) {
+export function suiteCheck(root, { newest = null, langTool = null, allowDev = false } = {}) {
   const problems = [];
   const all = files(root);
   const rel = (f) => relative(root, f);
@@ -150,12 +150,16 @@ export function suiteCheck(root, { newest = null, langTool = null } = {}) {
       }
     }
     for (const p of pins) if (!p.ok) problems.push(`${p.where} pins ks-utility ${p.got}, not the newest tag ${newest.tag}; move the pin first (the suite's release cycle, step 1)`);
-    // 8. The app's workflows call ks-utility's shared workflows at the newest tag too, so its
-    //    release runs the newest checks.
-    for (const f of all.filter((f) => /(^|\/)\.github\/workflows\/[^/]+\.ya?ml$/.test(rel(f)))) {
-      for (const m of read(f).matchAll(/kumasumit\/ks-utility\/\.github\/workflows\/([\w.-]+\.ya?ml)@([\w.-]+)/g)) {
-        if (m[2] !== newest.tag) problems.push(`${rel(f)} calls ks-utility's ${m[1]} at ${m[2]}, not the newest tag ${newest.tag}`);
-      }
+  }
+
+  // 8. The app's workflows call ks-utility's shared workflows at @main, which is always the
+  //    newest release (ks-utility's main moves only with a tag), so there is nothing to bump and
+  //    no token that may change workflow files. A rehearsal may also call @dev, to try a change
+  //    to a shared workflow before it is tagged.
+  for (const f of all.filter((f) => /(^|\/)\.github\/workflows\/[^/]+\.ya?ml$/.test(rel(f)))) {
+    for (const m of read(f).matchAll(/kumasumit\/ks-utility\/\.github\/workflows\/([\w.-]+\.ya?ml)@([\w./-]+)/g)) {
+      if (m[2] === "main" || (allowDev && m[2] === "dev")) continue;
+      problems.push(`${rel(f)} calls ks-utility's ${m[1]} at @${m[2]}; use @main, always the newest release${allowDev ? " (@dev only in a rehearsal)" : ""}`);
     }
   }
   return [...new Set(problems)];
@@ -163,12 +167,12 @@ export function suiteCheck(root, { newest = null, langTool = null } = {}) {
 
 function main(argv) {
   const [root, ...rest] = argv;
-  if (!root) { console.error("usage: suite-check.mjs <app dir> [--newest <tag> --newest-commit <sha>]"); return 2; }
+  if (!root) { console.error("usage: suite-check.mjs <app dir> [--newest <tag> --newest-commit <sha>] [--rehearsal]"); return 2; }
   const opt = (name) => { const i = rest.indexOf(name); return i >= 0 ? rest[i + 1] : undefined; };
   const tag = opt("--newest");
   const commit = opt("--newest-commit");
   const here = dirname(fileURLToPath(import.meta.url));
-  const problems = suiteCheck(root, { newest: tag && commit ? { tag, commit } : null, langTool: join(here, "lang.mjs") });
+  const problems = suiteCheck(root, { newest: tag && commit ? { tag, commit } : null, langTool: join(here, "lang.mjs"), allowDev: rest.includes("--rehearsal") });
   for (const p of problems) console.log(`::error::ks-suite-check: ${p}`);
   console.log(problems.length ? `ks-suite-check: ${problems.length} problem(s).` : "ks-suite-check: OK.");
   return problems.length ? 1 : 0;

@@ -2,7 +2,7 @@ name: Tauri app release, check (shared)
 
 # The first half of the KS-Suite Tauri apps' release (ks-download-manager, ks-forge): which
 # version a run releases, and the checks before anything is built. Each app's own
-# .github/workflows/release.yml calls it as its first job, pinned to a ks-utility tag, then runs
+# .github/workflows/release.yml calls it as its first job, at @main (specs/release-workflow.md, "Which version an app calls"), then runs
 # its own build jobs (they differ too much to share: signing, bundled programs, the extension,
 # self-tests), then calls tauri-app-release-publish.yml.
 #
@@ -141,7 +141,7 @@ jobs:
           newest=$(git ls-remote --tags --refs https://github.com/kumasumit/ks-utility.git 'v*' | sed 's#.*refs/tags/##' | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -n 1)
           [ -n "$newest" ] || { echo "::error::could not read ks-utility's tags"; exit 1; }
           git clone -q --depth 1 --branch "$newest" -c advice.detachedHead=false https://github.com/kumasumit/ks-utility.git "$RUNNER_TEMP/ks-utility-newest"
-          node "$RUNNER_TEMP/ks-utility-newest/typescript/tools/suite-check.mjs" . --newest "$newest" --newest-commit "$(git -C "$RUNNER_TEMP/ks-utility-newest" rev-parse HEAD)"
+          node "$RUNNER_TEMP/ks-utility-newest/typescript/tools/suite-check.mjs" . --newest "$newest" --newest-commit "$(git -C "$RUNNER_TEMP/ks-utility-newest" rev-parse HEAD)" $([ "$GITHUB_EVENT_NAME" = workflow_dispatch ] && echo --rehearsal)
 
       - name: The tagged commit is on main
         if: github.event_name == 'push' && inputs.require-main

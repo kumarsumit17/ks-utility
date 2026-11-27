@@ -9,11 +9,7 @@ name: Move to the newest ks-utility (shared)
 #      tag in every package.json and Cargo.toml that names ks-utility, with their lock files
 #      (Tauri apps);
 #   2. runs the app's tests (`test`);
-#   3. with the secret KS_WORKFLOWS_TOKEN, also moves the app's calls of ks-utility's shared
-#      workflows (kumasumit/ks-utility/.github/workflows/<name>.yml@vX.Y.Z in its own
-#      .github/workflows/) to the same tag; GitHub's own token may not change workflow files,
-#      so without it they stay, and ks-suite-check stops the release until they are moved;
-#   4. only when the tests pass, commits "chore: move ks-utility to vX.Y.Z" and pushes it to dev.
+#   3. only when they pass, commits "chore: move ks-utility to vX.Y.Z" and pushes it to dev.
 #      When they fail, nothing is pushed and an issue is opened (or the open one is updated).
 #
 # Branches stay dev and main: it never makes another. A push by this workflow does not start
@@ -47,10 +43,6 @@ on:
         description: "apt packages the tests need on Linux (e.g. the WebKitGTK ones for Tauri). Empty: none."
         type: string
         default: ""
-    secrets:
-      KS_WORKFLOWS_TOKEN:
-        description: "Optional: a fine-grained token for this repository with Contents and Workflows read and write, so the move also changes the shared-workflow refs in .github/workflows/."
-        required: false
 
 permissions:
   contents: read
@@ -81,7 +73,6 @@ jobs:
           ref: dev
           fetch-depth: 0
           submodules: ${{ inputs.kind == 'kotlin' }}
-          token: ${{ secrets.KS_WORKFLOWS_TOKEN || github.token }}
 
       - name: The newest ks-utility tag
         id: newest
@@ -95,7 +86,6 @@ jobs:
         id: move
         env:
           KS_TAG: ${{ steps.newest.outputs.tag }}
-          KS_WORKFLOWS: ${{ secrets.KS_WORKFLOWS_TOKEN != '' }}
         run: |
           case "$KS_KIND" in
             kotlin)
@@ -115,13 +105,6 @@ jobs:
               ;;
             *) echo "::error::kind must be kotlin or tauri, not $KS_KIND"; exit 1 ;;
           esac
-          if [ "$KS_WORKFLOWS" = true ]; then
-            for f in $(git ls-files '.github/workflows/*.yml' '.github/workflows/*.yaml' | xargs grep -l 'kumasumit/ks-utility/.github/workflows/' || true); do
-              sed -E -i.bak "s#(kumasumit/ks-utility/\.github/workflows/[A-Za-z0-9._-]+\.ya?ml@)v[0-9]+\.[0-9]+\.[0-9]+#\1$KS_TAG#g" "$f" && rm -f "$f.bak"
-            done
-          else
-            echo "::notice::No KS_WORKFLOWS_TOKEN: the calls of ks-utility's shared workflows are not moved (ks-suite-check asks for it at release)."
-          fi
           if git diff --quiet && git diff --cached --quiet; then
             echo "changed=false" >> "$GITHUB_OUTPUT"
             echo "::notice::Already on ks-utility $KS_TAG."
@@ -178,7 +161,6 @@ jobs:
           else
             git add -u -- '*package.json' '*package-lock.json' '*Cargo.toml' '*Cargo.lock'
           fi
-          git add -u -- '.github/workflows/*.yml' '.github/workflows/*.yaml'
           git diff --cached --stat
           [ -n "$(git diff --cached --name-only)" ] || { echo "::error::nothing to commit after the move"; exit 1; }
           git commit -q -m "chore: move ks-utility to $KS_TAG"

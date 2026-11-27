@@ -1,5 +1,7 @@
 # 2026-11-27
 
+* **Update**: [Usage](usage.md): `v0.18.0` tagged.
+* **Update**: [Release workflow](release-workflow.md) "Which version an app calls" (new section) and [ks-suite-check](suite-check.md): apps call the shared workflows at `@main` (the owner's decision: always the newest release, no token with "Workflows: write"); ks-utility's `main` moves only with a tag; a shared-workflow change is rehearsed from an app at `@dev` before its tag. The move no longer uses `KS_WORKFLOWS_TOKEN`.
 * **Update**: [Usage](usage.md): `v0.17.0` tagged.
 * **Update**: [App updates](app-update.md) "How each platform installs": the TypeScript store's `Opened` has `"macos-closes"` for the desktop helper's disk image (note `openedMacCloses`), and `MAC_QUIT_AFTER_MS`.
 * **Update**: [Release workflow](release-workflow.md) "Moving to the newest ks-utility": the caller example passes `KS_WORKFLOWS_TOKEN` in block form; the inline `{ KS_WORKFLOWS_TOKEN: ${{ … }} }` is not valid YAML.

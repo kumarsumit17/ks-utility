@@ -7,7 +7,7 @@ tags: [release, ci, github-actions, android, google-tv, macos, windows, chrome-e
 
 # Shared release workflow
 
-The five Kotlin apps (`ks-tv-launcher`, `ks-jaiplayer`, `ks-streamflix`, `ks-vault`, `ks-expense-manager`) release through one reusable workflow in this repository, `.github/workflows/kotlin-app-release.yml`. Each app keeps only a short `.github/workflows/release.yml` that calls it, pinned to a tag of this repository, and names its platforms. A fix to the release process is made once, here, and reaches an app when it moves the pin, as for any other helper ([usage](usage.md)).
+The five Kotlin apps (`ks-tv-launcher`, `ks-jaiplayer`, `ks-streamflix`, `ks-vault`, `ks-expense-manager`) release through one reusable workflow in this repository, `.github/workflows/kotlin-app-release.yml`. Each app keeps only a short `.github/workflows/release.yml` that calls it at `@main` ([which version an app calls](#which-version-an-app-calls)) and names its platforms. A fix to the release process is made once, here, and reaches every app's next release.
 
 The two Tauri apps (`ks-download-manager`, `ks-forge`) build differently from the Kotlin apps and from each other (bundled programs, Developer ID signing, the Chrome extension, self-tests), so their build jobs stay in their own `release.yml`. What is the same in both, the checks before the build and the attesting and publishing after it, is in two reusable workflows here ([Tauri apps](#tauri-apps)). Their release files follow the same names, so the [app-update](app-update.md) rules hold for them too.
 
@@ -29,7 +29,7 @@ permissions:
   contents: read
 jobs:
   release:
-    uses: kumasumit/ks-utility/.github/workflows/kotlin-app-release.yml@v0.4.1
+    uses: kumasumit/ks-utility/.github/workflows/kotlin-app-release.yml@main
     permissions:           # only the publish job uses the write permissions
       contents: write
       id-token: write
@@ -105,7 +105,7 @@ permissions: {}
 jobs:
   version:
     permissions: { contents: read }
-    uses: kumasumit/ks-utility/.github/workflows/tauri-app-release-check.yml@v0.14.0
+    uses: kumasumit/ks-utility/.github/workflows/tauri-app-release-check.yml@main
     with:
       version: ${{ inputs.version }}
       platform: ${{ inputs.platform }}
@@ -124,7 +124,7 @@ jobs:
     needs: [version, mac, windows]
     if: ${{ !cancelled() && !contains(needs.*.result, 'failure') && !contains(needs.*.result, 'cancelled') }}
     permissions: { contents: write, id-token: write, attestations: write }
-    uses: kumasumit/ks-utility/.github/workflows/tauri-app-release-publish.yml@v0.14.0
+    uses: kumasumit/ks-utility/.github/workflows/tauri-app-release-publish.yml@main
     with:
       tag: ${{ needs.version.outputs.tag }}
       version: ${{ needs.version.outputs.version }}
@@ -159,6 +159,15 @@ A tag is `vX.Y.Z` (every platform) or `<platform>-vX.Y.Z`; it must be higher tha
 
 It attests every file (not in a rehearsal), checks they arrived unchanged and are attested, writes the notes and publishes: a plain tag's release is marked latest, a platform tag's is not. A published release is never changed: the run fails, and the next version gets a new tag. A rehearsal attests and publishes nothing and keeps the notes as an artifact. Verify a file with `gh attestation verify <file> -R kumasumit/<app> --signer-workflow kumasumit/ks-utility/.github/workflows/tauri-app-release-publish.yml`. The caller grants the publish job `contents: write`, `id-token: write` and `attestations: write`; it needs no secrets.
 
+## Which version an app calls
+From `v0.18.0`, an app calls every shared workflow at `@main` (`kumasumit/ks-utility/.github/workflows/<name>.yml@main`), not at a tag, and [ks-suite-check](suite-check.md) fails a release that calls one at anything else:
+
+- **Always the newest release.** ks-utility's `main` moves only together with a release tag: a commit that is not released yet waits on `dev`. So `@main` is the newest tag's workflow, and an app's release runs the newest checks with nothing to move.
+- **No token that can change workflow files.** Moving `@vX.Y.Z` refs by machine would need a token with "Workflows: write" in every app, which could also add a workflow that reads the signing secrets. `@main` needs none.
+- **A broken workflow on `main` reaches every app's next release at once.** So a change to a shared workflow is tried before its tag: push it to ks-utility's `dev`, then run one app's rehearsal (a manual run) with its caller at `@dev`. ks-suite-check accepts `@dev` in a rehearsal only, so the caller goes back to `@main` before that app's next release. Only then is the change tagged and `main` moved.
+
+The code an app builds with stays pinned to a tag (the submodule, or the git tag in `package.json` and `Cargo.toml`), and that pin must be the newest tag ([moving to the newest ks-utility](#moving-to-the-newest-ks-utility)).
+
 ## Moving to the newest ks-utility
 From `v0.15.0`. Every app uses ks-utility's newest tag. `ks-utility-bump.yml` moves it there by itself; an app's own `.github/workflows/ks-utility-bump.yml` calls it:
 
@@ -176,13 +185,11 @@ permissions: {}
 jobs:
   bump:
     permissions: { contents: write, issues: write }
-    uses: kumasumit/ks-utility/.github/workflows/ks-utility-bump.yml@v0.15.0
+    uses: kumasumit/ks-utility/.github/workflows/ks-utility-bump.yml@main
     with:
       kind: kotlin                       # or tauri
       java: true
       test: ./gradlew testDebugUnitTest   # the app's own tests
-    secrets:                             # optional, from v0.16.0: also moves the @vX.Y.Z refs
-      KS_WORKFLOWS_TOKEN: ${{ secrets.KS_WORKFLOWS_TOKEN }}
 ```
 
 | Input | Meaning | Default |
@@ -194,7 +201,7 @@ jobs:
 | `node-version` | Node; empty: none | `24` |
 | `linux-packages` | apt packages the tests need | `""` |
 
-It checks out `dev`, moves the pin to the newest tag and runs the tests. From `v0.16.0`, with the secret `KS_WORKFLOWS_TOKEN` (passed by the caller as in the example above, a fine-grained token for the app's repository with "Contents" and "Workflows" read and write), it also moves the app's calls of ks-utility's shared workflows to that tag; GitHub's own token may not change workflow files, so without it those calls stay, and [ks-suite-check](suite-check.md) stops the release until they are moved by hand. Only when they pass does it commit `chore: move ks-utility to vX.Y.Z` (the pin and its lock files only) and push it to `dev`; when they fail nothing is pushed and an issue is opened, or the open one gets a comment. Already on the newest tag: nothing happens. It never makes a branch. A push with GitHub's own token does not start the app's other workflows; the tests ran in the move itself.
+It checks out `dev`, moves the pin to the newest tag and runs the tests. It moves only the pin: the app calls the shared workflows at `@main`, which needs no move. Only when they pass does it commit `chore: move ks-utility to vX.Y.Z` (the pin and its lock files only) and push it to `dev`; when they fail nothing is pushed and an issue is opened, or the open one gets a comment. Already on the newest tag: nothing happens. It never makes a branch. A push with GitHub's own token does not start the app's other workflows; the tests ran in the move itself.
 
 When ks-utility pushes a tag, `notify-apps.yml` sends `ks-utility-released` to every app, with the owner's secret `KS_APPS_DISPATCH_TOKEN` (a fine-grained token for the app repositories with "Contents: read and write", which repository_dispatch requires). Without the secret nothing is sent, and the daily run moves the apps.
 
