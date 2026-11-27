@@ -1,5 +1,6 @@
 # 2026-11-27
 
+* **Update**: [Usage](usage.md) "Versioning" and `CLAUDE.md`: a ks-utility tag is made only with the owner's approval (it replaces "build, test, release, no waiting").
 * **Update**: [Usage](usage.md): `v0.19.0` tagged, with the owner's approval.
 * **Update**: [Release workflow](release-workflow.md) "DEV builds, approval and production" and [App updates](app-update.md) (for the next tag): the manual run builds the DEV variant (`-PksVariant=dev`, `X.Y.Z-dev+<commit>`, files `<app>-dev-…`), signs Android with the `DEV_KEYSTORE_*` secrets only and fails without them; `isDevBuild` in Kotlin, Rust and TypeScript.
 * **Update**: [Release workflow](release-workflow.md) "DEV builds, approval and production" (new section, for the next tag): rehearsals are the DEV build (artifacts named `dev-…`, kept 14 days); the publish step runs in the environment `production` for the owner's approval; every release attaches `SHA256SUMS` and its notes record the ks-utility version and each platform's signing. The Tauri publish workflow takes `ks-utility` and `signing`.

@@ -68,6 +68,7 @@ node <ks-utility>/typescript/tools/lang.mjs import-xliff <file> --lang <code> --
 - Tags are `vMAJOR.MINOR.PATCH`. While in `0.x`: a new helper or a behaviour change raises MINOR; a fix raises PATCH.
 - A tag is never moved or deleted once pushed. A mistake gets a new tag. The single exception: on 2026-11-21 every tag was moved once, to the same files with tool attribution removed from the commit messages (history rewrite). Commit IDs from before that date no longer match.
 - Every app moves to the newest ks-utility tag before each of its releases, in its own commit, never mixed with other changes (the suite's [release cycle](https://github.com/kumasumit/ks-suite/blob/main/specs/release-cycle.md), step 1).
+- **A tag needs the owner's approval** (from 2026-11-27): a ks-utility tag is a production release, like an app's, so it is made only when the owner says so.
 - **At most one tag a day** (the owner's rule, from 2026-11-27). Changes collect on `dev`, and one tag releases them all, with `main` moved to it. The only exception is an urgent security fix. Each tag starts a move in every app, and an app release takes about 1.5 hours, so several tags a day restart releases that are still running (six tags on 2026-11-27 restarted KS StreamFlix's v1.4.0 five times). The suite check stays strict: an app's pin must be the newest tag.
 - **Future step, not now:** publishing to public registries (crates.io, npm, Maven Central) is deferred until the helpers are stable.
 
