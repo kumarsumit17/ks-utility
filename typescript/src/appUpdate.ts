@@ -318,8 +318,16 @@ export type CheckResult =
   | { result: "available"; update: UpdateInfo }
   | { result: "noInstaller"; version: string };
 
-/** How the installer was handed to the system. "windows": the app should now quit. */
-export type Opened = "macos" | "windows" | "android";
+/**
+ * How the installer was handed to the system. "windows": the app should now quit.
+ * "macos-closes" (from v0.17.0): the disk image was opened by ks-utility's desktop helper
+ * (Rust `app_update::install::open`, `Opened::Mac`), and the app quits after
+ * `MAC_QUIT_AFTER_MS` so Finder can replace it. "macos": opened without quitting (older apps).
+ */
+export type Opened = "macos" | "macos-closes" | "windows" | "android";
+
+/** How long the Mac app shows that it now closes before it quits (as Rust's `MAC_QUIT_AFTER`). */
+export const MAC_QUIT_AFTER_MS = 6000;
 
 /** What the app does; the store only keeps what to show. */
 export interface UpdateDriver {
@@ -351,7 +359,7 @@ export interface UpdateStore {
   setAvailable(update: UpdateInfo | null): void;
   /** "Check for updates". */
   checkNow(): Promise<void>;
-  /** "Download and install"; resolves to how it was opened, or null. On "windows" the app should quit. */
+  /** "Download and install"; resolves to how it was opened, or null. On "windows" the app should quit; on "macos-closes", after `MAC_QUIT_AFTER_MS`. */
   installNow(): Promise<Opened | null>;
   /** "Later". */
   dismiss(): void;
@@ -366,6 +374,7 @@ function detail(error: unknown): string {
 /** The note after the installer opened. `app` is the app's display name (for the macOS text). */
 export function openedNote(opened: Opened, app: string): UpdateNote {
   if (opened === "macos") return { key: "common.appUpdate.openedMac", params: { app } };
+  if (opened === "macos-closes") return { key: "common.appUpdate.openedMacCloses", params: { app } };
   if (opened === "windows") return { key: "common.appUpdate.openedWindows" };
   return { key: "common.appUpdate.openedAndroid" };
 }

@@ -200,3 +200,11 @@ test("Google TV and Chrome tags", () => {
   const found = parseReleases(JSON.parse(list), repo, "chrome");
   assert.equal(found?.tag, "chrome-v2.1.0");
 });
+
+test("the note after opening: the desktop helper's Mac image says the app now closes", async () => {
+  const { openedNote, MAC_QUIT_AFTER_MS } = await import("../src/index.ts");
+  assert.deepEqual(openedNote("macos-closes", "KS App"), { key: "common.appUpdate.openedMacCloses", params: { app: "KS App" } });
+  assert.deepEqual(openedNote("macos", "KS App"), { key: "common.appUpdate.openedMac", params: { app: "KS App" } }, "unchanged for older apps");
+  assert.deepEqual(openedNote("windows", "KS App"), { key: "common.appUpdate.openedWindows" });
+  assert.equal(MAC_QUIT_AFTER_MS, 6000);
+});

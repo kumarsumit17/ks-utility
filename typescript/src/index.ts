@@ -68,6 +68,7 @@ export {
   isNewerVersion,
   latestReleaseApiUrl,
   openedNote,
+  MAC_QUIT_AFTER_MS,
   parseRelease,
   parseReleases,
   parseRepo,
