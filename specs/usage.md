@@ -21,6 +21,7 @@ Every app pins one version tag of this repository (`vMAJOR.MINOR.PATCH`). Lock f
 - Clone with `git clone --recurse-submodules`, or run `git submodule update --init` in an existing clone. CI checks out with `submodules: true`.
 - `kotlin/` is a plain Kotlin/JVM Gradle build with group `com.ks` and name `utility`. Because the app includes it with `includeBuild`, Gradle builds it from source and substitutes it for `com.ks:utility`; the dependency has no version.
 - The Kotlin version in `kotlin/gradle/libs.versions.toml` is kept in step with the apps.
+- `kotlin/settings.gradle.kts` resolves plugins and dependencies from Maven Central, the Gradle plugin portal and, from `v0.18.3`, Google's mirror of Maven Central (`maven-central.storage-download.googleapis.com/maven2/`), a second source for GitHub runners that Central intermittently does not answer. An app's own settings may add the same mirror; they cannot change an included build's plugin repositories.
 - To move to a newer tag: `git -C ks-utility fetch --tags && git -C ks-utility checkout <tag>`, then commit the changed `ks-utility` entry in the app (it records the tag's commit).
 
 ## ks-download-manager
@@ -78,6 +79,7 @@ node <ks-utility>/typescript/tools/lang.mjs import-xliff <file> --lang <code> --
 | `v0.4.0` | the commit the tag names | The shared release workflow for the Kotlin apps ([spec](release-workflow.md)). Do not use: it names a signed APK `-UNSIGNED`, so the publish check stops every release |
 | `v0.4.1` | the commit the tag names | Fix: signed APK and AAB keep their release names; call `kotlin-app-release.yml@v0.4.1` |
 | `v0.4.2` | the commit the tag names | Docs: verify release attestations with `--signer-workflow`; the workflow is unchanged from `v0.4.1` |
+| `v0.18.3` | the commit the tag names | `kotlin/settings.gradle.kts`: Google's mirror of Maven Central as a second source for plugins and dependencies ([Kotlin apps](#kotlin-apps)) |
 | `v0.18.2` | the commit the tag names | `ks-utility-bump.yml`: when the tests pass but the commit or push fails, the issue says so ([release workflow](release-workflow.md#moving-to-the-newest-ks-utility)) |
 | `v0.18.1` | the commit the tag names | `ks-utility-bump.yml`: Gradle's cache (read-only), one retry when the tests fail on a download, and an issue that names a download failure as such ([release workflow](release-workflow.md#moving-to-the-newest-ks-utility)) |
 | `v0.18.0` | the commit the tag names | Apps call the shared workflows at `@main`, always the newest release: ks-suite-check requires it (`@dev` only in a rehearsal); `ks-utility-bump.yml` moves only the pin again, without `KS_WORKFLOWS_TOKEN`, which also fixes its failed push (a `.yaml` pathspec with no file) ([release workflow](release-workflow.md#which-version-an-app-calls)) |
