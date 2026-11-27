@@ -208,6 +208,19 @@ jobs:
           } >> "$GITHUB_OUTPUT"
           echo "## ${{ inputs.display-name }} $tag ($([ "$release" = true ] && echo release || echo test build))" >> "$GITHUB_STEP_SUMMARY"
 
+      # ks-suite-check (specs/suite-check.md): the suite rules that code can check, from
+      # ks-utility's newest tag, which the app's pin must also be. A failure stops the release
+      # and the rehearsal alike.
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: "24"
+      - name: ks-suite-check
+        run: |
+          newest=$(git ls-remote --tags --refs https://github.com/kumasumit/ks-utility.git 'v*' | sed 's#.*refs/tags/##' | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -n 1)
+          [ -n "$newest" ] || { echo "::error::could not read ks-utility's tags"; exit 1; }
+          git clone -q --depth 1 --branch "$newest" -c advice.detachedHead=false https://github.com/kumasumit/ks-utility.git "$RUNNER_TEMP/ks-utility-newest"
+          node "$RUNNER_TEMP/ks-utility-newest/typescript/tools/suite-check.mjs" . --newest "$newest" --newest-commit "$(git -C "$RUNNER_TEMP/ks-utility-newest" rev-parse HEAD)"
+
   android:
     name: Android and Google TV
     needs: version

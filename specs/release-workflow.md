@@ -159,6 +159,43 @@ A tag is `vX.Y.Z` (every platform) or `<platform>-vX.Y.Z`; it must be higher tha
 
 It attests every file (not in a rehearsal), checks they arrived unchanged and are attested, writes the notes and publishes: a plain tag's release is marked latest, a platform tag's is not. A published release is never changed: the run fails, and the next version gets a new tag. A rehearsal attests and publishes nothing and keeps the notes as an artifact. Verify a file with `gh attestation verify <file> -R kumasumit/<app> --signer-workflow kumasumit/ks-utility/.github/workflows/tauri-app-release-publish.yml`. The caller grants the publish job `contents: write`, `id-token: write` and `attestations: write`; it needs no secrets.
 
+## Moving to the newest ks-utility
+From `v0.15.0`. Every app uses ks-utility's newest tag. `ks-utility-bump.yml` moves it there by itself; an app's own `.github/workflows/ks-utility-bump.yml` calls it:
+
+```yaml
+name: Move to the newest ks-utility
+on:
+  repository_dispatch:
+    types: [ks-utility-released]
+  schedule:
+    - cron: "17 4 * * *"   # daily, in case a notice was missed
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  bump:
+    permissions: { contents: write, issues: write }
+    uses: kumasumit/ks-utility/.github/workflows/ks-utility-bump.yml@v0.15.0
+    with:
+      kind: kotlin                       # or tauri
+      java: true
+      test: ./gradlew testDebugUnitTest   # the app's own tests
+```
+
+| Input | Meaning | Default |
+|---|---|---|
+| `kind` | `kotlin` (the `ks-utility` submodule) or `tauri` (the git tag in every `package.json` and `Cargo.toml` that names ks-utility, and their lock files) | — |
+| `test` | The app's tests, run from the root after the move | — |
+| `runs-on` | The runner (`macos-15` for Rust tests that need macOS) | `ubuntu-24.04` |
+| `java` | Set up JDK 17 | `false` |
+| `node-version` | Node; empty: none | `24` |
+| `linux-packages` | apt packages the tests need | `""` |
+
+It checks out `dev`, moves the pin to the newest tag and runs the tests. Only when they pass does it commit `chore: move ks-utility to vX.Y.Z` (the pin and its lock files only) and push it to `dev`; when they fail nothing is pushed and an issue is opened, or the open one gets a comment. Already on the newest tag: nothing happens. It never makes a branch. A push with GitHub's own token does not start the app's other workflows; the tests ran in the move itself.
+
+When ks-utility pushes a tag, `notify-apps.yml` sends `ks-utility-released` to every app, with the owner's secret `KS_APPS_DISPATCH_TOKEN` (a fine-grained token for the app repositories with "Contents: read and write", which repository_dispatch requires). Without the secret nothing is sent, and the daily run moves the apps.
+
 ## Later
 - Developer ID signing and notarisation for macOS, Authenticode for Windows, once the owner has the certificates.
 - An Intel macOS build, if wanted.

@@ -133,6 +133,16 @@ jobs:
             // release-tag script: end
           '
 
+      # ks-suite-check (specs/suite-check.md): the suite rules that code can check, from
+      # ks-utility's newest tag, which the app's pin must also be. A failure stops the release
+      # and the rehearsal alike.
+      - name: ks-suite-check
+        run: |
+          newest=$(git ls-remote --tags --refs https://github.com/kumasumit/ks-utility.git 'v*' | sed 's#.*refs/tags/##' | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -n 1)
+          [ -n "$newest" ] || { echo "::error::could not read ks-utility's tags"; exit 1; }
+          git clone -q --depth 1 --branch "$newest" -c advice.detachedHead=false https://github.com/kumasumit/ks-utility.git "$RUNNER_TEMP/ks-utility-newest"
+          node "$RUNNER_TEMP/ks-utility-newest/typescript/tools/suite-check.mjs" . --newest "$newest" --newest-commit "$(git -C "$RUNNER_TEMP/ks-utility-newest" rev-parse HEAD)"
+
       - name: The tagged commit is on main
         if: github.event_name == 'push' && inputs.require-main
         run: |

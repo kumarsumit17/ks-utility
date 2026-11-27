@@ -53,6 +53,7 @@
   "common.appUpdate.later": "बाद में",
   "common.appUpdate.downloading": "वर्ज़न {version} डाउनलोड हो रहा है…",
   "common.appUpdate.openedMac": "डिस्क इमेज खुल गई है। इस कॉपी को बदलने के लिए {app} को Applications में खींचें, फिर उसे दोबारा खोलें।",
+  "common.appUpdate.openedMacCloses": "डिस्क इमेज खुल गई है। {app} अब बंद होगा: इसे Applications में खींचें, Replace चुनें, फिर दोबारा खोलें।",
   "common.appUpdate.openedWindows": "इंस्टॉलर शुरू हो रहा है। ऐप अब बंद होगा ताकि उसे बदला जा सके।",
   "common.appUpdate.openedAndroid": "सिस्टम का इंस्टॉलर खुल गया है। ऐप अपडेट करने के लिए उसके स्टेप पूरे करें।",
   "common.appUpdate.allowInstall": "अपडेट इंस्टॉल करने के लिए सिस्टम सेटिंग्स में इस ऐप को अनजान ऐप इंस्टॉल करने की इजाज़त दें, फिर से कोशिश करें।",

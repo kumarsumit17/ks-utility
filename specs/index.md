@@ -8,6 +8,7 @@ okf_version: "0.2"
 * [Translation file format](translation-format.md) - The one format for interface text in every KS-Suite app (keys, placeholders, plural forms, any number of languages), how it is looked up in TypeScript and Kotlin, checked, converted for Android, Compose Multiplatform and XLIFF, and how Rust sends message codes.
 * [App updates](app-update.md) - How every KS-Suite app finds a newer version of itself on GitHub, shows it in an "App updates" section, and installs it on each platform, with the shared helpers in Kotlin, Rust and TypeScript.
 * [Shared release workflow](release-workflow.md) - The GitHub Actions release workflows the KS-Suite apps call, one for the Kotlin apps (Android, Google TV, macOS, Windows) and a check and a publish for the Tauri apps, with their inputs, file names, signing checks and publishing rules.
+* [ks-suite-check](suite-check.md) - The conformance check every KS-Suite app's release runs before anything is built, so the suite rules that code can check (platform folders, no hardcoded versions, no tracking SDKs, no default icons, language files, ks-utility's updater, the newest ks-utility pin) stop a release that breaks them.
 
 # Reference
 

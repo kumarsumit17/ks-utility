@@ -1,0 +1,179 @@
+name: Move to the newest ks-utility (shared)
+
+# Every KS-Suite app uses ks-utility's newest tag (the suite's release cycle, step 1). An app's
+# own .github/workflows/ks-utility-bump.yml calls this when ks-utility tags a release
+# (repository_dispatch "ks-utility-released", sent by ks-utility's notify-apps.yml) and once a
+# day as a safety net. It:
+#
+#   1. moves the pin on dev to the newest tag: the ks-utility submodule (Kotlin apps), or the git
+#      tag in every package.json and Cargo.toml that names ks-utility, with their lock files
+#      (Tauri apps);
+#   2. runs the app's tests (`test`);
+#   3. only when they pass, commits "chore: move ks-utility to vX.Y.Z" and pushes it to dev.
+#      When they fail, nothing is pushed and an issue is opened (or the open one is updated).
+#
+# Branches stay dev and main: it never makes another. A push by this workflow does not start
+# the app's other workflows (GitHub's rule for its own token); the tests ran here instead.
+# See specs/release-workflow.md, "Moving to the newest ks-utility".
+
+on:
+  workflow_call:
+    inputs:
+      kind:
+        description: "kotlin (a submodule at ks-utility/) or tauri (git dependencies in package.json and Cargo.toml)."
+        type: string
+        required: true
+      test:
+        description: "The app's tests, run from the repository root after the move (e.g. ./gradlew testDebugUnitTest, or cd shared && npm ci && npm test && (cd src-tauri && cargo test))."
+        type: string
+        required: true
+      runs-on:
+        description: "The runner (macos-15 for a Tauri app whose Rust tests need macOS)."
+        type: string
+        default: "ubuntu-24.04"
+      java:
+        description: "Set up JDK 17 (the Kotlin apps)."
+        type: boolean
+        default: false
+      node-version:
+        description: "Node version; empty: none."
+        type: string
+        default: "24"
+      linux-packages:
+        description: "apt packages the tests need on Linux (e.g. the WebKitGTK ones for Tauri). Empty: none."
+        type: string
+        default: ""
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+concurrency:
+  group: ks-utility-bump-${{ github.repository }}
+  cancel-in-progress: false
+
+jobs:
+  bump:
+    name: Move to the newest ks-utility
+    runs-on: ${{ inputs.runs-on }}
+    timeout-minutes: 90
+    permissions:
+      contents: write
+      issues: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      KS_KIND: ${{ inputs.kind }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: dev
+          fetch-depth: 0
+          submodules: ${{ inputs.kind == 'kotlin' }}
+
+      - name: The newest ks-utility tag
+        id: newest
+        run: |
+          tag=$(git ls-remote --tags --refs https://github.com/kumasumit/ks-utility.git 'v*' | sed 's#.*refs/tags/##' | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -n 1)
+          [ -n "$tag" ] || { echo "::error::could not read ks-utility's tags"; exit 1; }
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "Newest ks-utility: $tag"
+
+      - name: Move the pin
+        id: move
+        env:
+          KS_TAG: ${{ steps.newest.outputs.tag }}
+        run: |
+          case "$KS_KIND" in
+            kotlin)
+              [ -d ks-utility ] || { echo "::error::no ks-utility submodule"; exit 1; }
+              git -C ks-utility fetch -q --tags origin
+              git -C ks-utility checkout -q "refs/tags/$KS_TAG"
+              ;;
+            tauri)
+              files=$(git ls-files '*package.json' '*Cargo.toml' | xargs grep -l 'ks-utility' || true)
+              [ -n "$files" ] || { echo "::error::no package.json or Cargo.toml names ks-utility"; exit 1; }
+              for f in $files; do
+                sed -E -i.bak \
+                  -e "s#(ks-utility\.git\#)v[0-9]+\.[0-9]+\.[0-9]+#\1$KS_TAG#g" \
+                  -e "/ks-utility/ s#(tag *= *\")v[0-9]+\.[0-9]+\.[0-9]+(\")#\1$KS_TAG\2#" \
+                  "$f" && rm -f "$f.bak"
+              done
+              ;;
+            *) echo "::error::kind must be kotlin or tauri, not $KS_KIND"; exit 1 ;;
+          esac
+          if git diff --quiet && git diff --cached --quiet; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Already on ks-utility $KS_TAG."
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            git diff --stat
+          fi
+
+      - uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6.3.0
+        if: steps.move.outputs.changed == 'true' && inputs.java
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        if: steps.move.outputs.changed == 'true' && inputs.node-version != ''
+        with:
+          node-version: ${{ inputs.node-version }}
+      - name: Linux packages
+        if: steps.move.outputs.changed == 'true' && inputs.linux-packages != ''
+        env:
+          KS_PACKAGES: ${{ inputs.linux-packages }}
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq --no-install-recommends $KS_PACKAGES > /dev/null
+
+      - name: Update the lock files (Tauri)
+        if: steps.move.outputs.changed == 'true' && inputs.kind == 'tauri'
+        run: |
+          for f in $(git ls-files '*package.json' | xargs grep -l 'ks-utility' || true); do
+            (cd "$(dirname "$f")" && npm install --package-lock-only --ignore-scripts --no-audit --no-fund)
+          done
+          for f in $(git ls-files '*Cargo.toml' | xargs grep -l 'ks-utility' || true); do
+            (cd "$(dirname "$f")" && cargo update -p ks-utility)
+          done
+          git diff --stat
+
+      - name: The app's tests
+        id: test
+        if: steps.move.outputs.changed == 'true'
+        env:
+          KS_TEST: ${{ inputs.test }}
+        run: eval "$KS_TEST"
+
+      - name: Commit and push to dev
+        if: steps.move.outputs.changed == 'true' && steps.test.outcome == 'success'
+        env:
+          KS_TAG: ${{ steps.newest.outputs.tag }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          # Only the pin and its lock files: anything else the tests left behind stays out.
+          if [ "$KS_KIND" = kotlin ]; then
+            git add ks-utility
+          else
+            git add -u -- '*package.json' '*package-lock.json' '*Cargo.toml' '*Cargo.lock'
+          fi
+          git diff --cached --stat
+          [ -n "$(git diff --cached --name-only)" ] || { echo "::error::nothing to commit after the move"; exit 1; }
+          git commit -q -m "chore: move ks-utility to $KS_TAG"
+          git push origin HEAD:dev
+          echo "::notice::Moved to ks-utility $KS_TAG and pushed to dev."
+
+      - name: Open an issue when the tests fail
+        if: failure() && steps.move.outputs.changed == 'true'
+        env:
+          KS_TAG: ${{ steps.newest.outputs.tag }}
+          KS_RUN: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          title="Moving to ks-utility $KS_TAG fails the tests"
+          body="The automatic move to ks-utility $KS_TAG failed, so nothing was pushed: $KS_RUN. Move the pin by hand, fix what fails, and release (the suite's release cycle, step 1)."
+          n=$(gh issue list --state open --search "\"$title\" in:title" --json number --jq '.[0].number // empty')
+          if [ -n "$n" ]; then gh issue comment "$n" --body "$body"; else gh issue create --title "$title" --body "$body"; fi

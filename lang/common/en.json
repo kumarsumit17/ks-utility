@@ -53,6 +53,7 @@
   "common.appUpdate.later": "Later",
   "common.appUpdate.downloading": "Downloading version {version}…",
   "common.appUpdate.openedMac": "The disk image is open. Drag {app} into Applications to replace this copy, then open it again.",
+  "common.appUpdate.openedMacCloses": "The disk image is open. {app} now closes: drag it into Applications, choose Replace, then open it again.",
   "common.appUpdate.openedWindows": "The installer is starting. The app now closes so it can be replaced.",
   "common.appUpdate.openedAndroid": "The system installer is open. Follow its steps to update the app.",
   "common.appUpdate.allowInstall": "To install the update, allow this app to install unknown apps in the system settings, then try again.",

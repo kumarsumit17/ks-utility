@@ -1,3 +1,10 @@
+# 2026-11-27
+
+* **Update**: [Usage](usage.md): `v0.15.0` tagged.
+* **Creation**: [ks-suite-check](suite-check.md) added: the conformance check both release workflows run before building (platform folders, versions from the tag, no tracking SDKs, the app's own icons, language files, ks-utility's updater, the newest ks-utility pin), with one exception an app can state (`no-updater`).
+* **Update**: [App updates](app-update.md) "How each platform installs": the desktop helper (`DesktopInstaller`, `app_update::install`) quarantines and opens the disk image, then the app quits after 6 s so Finder can replace it; Windows unchanged; new text `common.appUpdate.openedMacCloses`, `openedMac` kept.
+* **Update**: [Release workflow](release-workflow.md) "Moving to the newest ks-utility": `ks-utility-bump.yml` moves an app's pin, tests and pushes to dev, or opens an issue; `notify-apps.yml` tells the apps about a new tag.
+
 # 2026-11-26
 
 * **Update**: [Usage](usage.md), [App updates](app-update.md), [Release workflow](release-workflow.md) and the README: links to the suite repository use its new name, `kumasumit/ks-suite`.

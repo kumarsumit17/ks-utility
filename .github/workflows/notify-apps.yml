@@ -1,0 +1,37 @@
+name: Tell the apps about a new tag
+
+# When a ks-utility tag is pushed, every app repository gets a repository_dispatch
+# "ks-utility-released", which starts its ks-utility-bump.yml (specs/release-workflow.md,
+# "Moving to the newest ks-utility"). It needs the secret KS_APPS_DISPATCH_TOKEN, which the
+# owner sets: a fine-grained token for the app repositories with "Contents: read and write"
+# (GitHub's requirement for repository_dispatch), and nothing else. Without it, nothing is sent
+# and the apps' daily run moves them instead.
+
+on:
+  push:
+    tags: ["v*.*.*"]
+
+permissions: {}
+
+jobs:
+  notify:
+    name: Notify ${{ matrix.app }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    strategy:
+      fail-fast: false
+      matrix:
+        app: [ks-beam, ks-jaiplayer, ks-streamflix, ks-tv-launcher, ks-vault, ks-expense-manager, ks-download-manager, ks-forge]
+    steps:
+      - name: repository_dispatch
+        env:
+          GH_TOKEN: ${{ secrets.KS_APPS_DISPATCH_TOKEN }}
+          KS_APP: ${{ matrix.app }}
+          KS_TAG: ${{ github.ref_name }}
+        run: |
+          if [ -z "$GH_TOKEN" ]; then
+            echo "::notice::KS_APPS_DISPATCH_TOKEN is not set: $KS_APP moves to $KS_TAG on its daily run."
+            exit 0
+          fi
+          gh api "repos/kumasumit/$KS_APP/dispatches" -f event_type=ks-utility-released -f "client_payload[tag]=$KS_TAG"
+          echo "Told $KS_APP about $KS_TAG."

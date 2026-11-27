@@ -9,6 +9,7 @@
 //! [`crate::sha256`].
 
 mod json;
+pub mod install;
 
 use std::time::{Duration, SystemTime};
 
