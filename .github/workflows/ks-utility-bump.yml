@@ -192,8 +192,12 @@ jobs:
           KS_TAG: ${{ steps.newest.outputs.tag }}
           KS_RUN: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           KS_DOWNLOAD: ${{ steps.test.outputs.download }}
+          KS_TESTS: ${{ steps.test.outcome }}
         run: |
-          if [ "$KS_DOWNLOAD" = true ]; then
+          if [ "$KS_TESTS" = success ]; then
+            title="Moving to ks-utility $KS_TAG: the tests passed, the commit or push failed"
+            body="The automatic move to ks-utility $KS_TAG passed the app's tests, but committing or pushing it to dev failed, so nothing was pushed: $KS_RUN. Check that the caller on main is the current one (repository_dispatch and the daily run use main's workflow file) and that dev has not moved meanwhile, then run the move again."
+          elif [ "$KS_DOWNLOAD" = true ]; then
             title="Moving to ks-utility $KS_TAG: downloads failed"
             body="The automatic move to ks-utility $KS_TAG could not download what the tests need, twice (a slow or rate-limited server, not the new tag), so nothing was pushed: $KS_RUN. Run the move again (Actions, \"Move to the newest ks-utility\", Run workflow), or wait for the daily run."
           else

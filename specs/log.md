@@ -1,5 +1,7 @@
 # 2026-11-27
 
+* **Update**: [Usage](usage.md): `v0.18.2` tagged.
+* **Update**: [Release workflow](release-workflow.md) "Moving to the newest ks-utility": an issue for a failed commit or push after passing tests says so; repository_dispatch and the daily run use the caller on the app's main.
 * **Update**: [Usage](usage.md): `v0.18.1` tagged.
 * **Update**: [Release workflow](release-workflow.md) "Moving to the newest ks-utility": the move restores Gradle's cache, retries the tests once after a download failure, and names a download failure as such in its issue.
 * **Update**: [Usage](usage.md): `v0.18.0` tagged.
