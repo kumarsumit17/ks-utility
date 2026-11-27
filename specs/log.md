@@ -1,5 +1,6 @@
 # 2026-11-27
 
+* **Update**: [Release workflow](release-workflow.md) "Moving to the newest ks-utility": the caller example passes `KS_WORKFLOWS_TOKEN` in block form; the inline `{ KS_WORKFLOWS_TOKEN: ${{ … }} }` is not valid YAML.
 * **Update**: [Usage](usage.md): `v0.16.0` tagged.
 * **Update**: [ks-suite-check](suite-check.md) and [Release workflow](release-workflow.md) "Moving to the newest ks-utility": the app's calls of ks-utility's shared workflows must be at the newest tag; the move changes them too when the caller passes `KS_WORKFLOWS_TOKEN` (GitHub's own token may not change workflow files).
 * **Update**: [Usage](usage.md): `v0.15.0` tagged.
