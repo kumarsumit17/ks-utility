@@ -178,13 +178,33 @@ jobs:
           if [ "$KS_KIND" = kotlin ]; then
             git add ks-utility
           else
-            git add -u -- '*package.json' '*package-lock.json' '*Cargo.toml' '*Cargo.lock'
+            git ls-files -m -- '*package.json' '*package-lock.json' '*Cargo.toml' '*Cargo.lock' | xargs -r git add --
           fi
           git diff --cached --stat
           [ -n "$(git diff --cached --name-only)" ] || { echo "::error::nothing to commit after the move"; exit 1; }
           git commit -q -m "chore: move ks-utility to $KS_TAG"
-          git push origin HEAD:dev
-          echo "::notice::Moved to ks-utility $KS_TAG and pushed to dev."
+          # dev may have moved while the tests ran (the app's own work). Put the one commit, which
+          # changes only the pin, on top of the new dev and push again; stop if dev already has
+          # the same pin, fail if dev moved the pin elsewhere (a conflict).
+          changed=$(git diff --name-only HEAD~1 HEAD)
+          for attempt in 1 2 3; do
+            if git push origin HEAD:dev; then
+              echo "::notice::Moved to ks-utility $KS_TAG and pushed to dev."
+              exit 0
+            fi
+            git fetch -q origin dev
+            if git diff --quiet origin/dev HEAD -- $changed; then
+              echo "::notice::dev already has ks-utility $KS_TAG; nothing to push."
+              exit 0
+            fi
+            if ! git -c rebase.autoStash=true rebase -q origin/dev; then
+              git rebase --abort || true
+              echo "::error::dev changed the ks-utility pin while the tests ran; move it by hand."
+              exit 1
+            fi
+          done
+          echo "::error::dev kept moving; the push failed three times."
+          exit 1
 
       - name: Open an issue when the tests fail
         if: failure() && steps.move.outputs.changed == 'true'

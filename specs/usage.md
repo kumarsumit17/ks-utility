@@ -79,6 +79,7 @@ node <ks-utility>/typescript/tools/lang.mjs import-xliff <file> --lang <code> --
 | `v0.4.0` | the commit the tag names | The shared release workflow for the Kotlin apps ([spec](release-workflow.md)). Do not use: it names a signed APK `-UNSIGNED`, so the publish check stops every release |
 | `v0.4.1` | the commit the tag names | Fix: signed APK and AAB keep their release names; call `kotlin-app-release.yml@v0.4.1` |
 | `v0.4.2` | the commit the tag names | Docs: verify release attestations with `--signer-workflow`; the workflow is unchanged from `v0.4.1` |
+| `v0.18.4` | the commit the tag names | `ks-utility-bump.yml`: when `dev` moved during the tests, the pin commit goes on top of the new `dev` and is pushed again (up to three times); a Tauri app's lock files are staged only when changed ([release workflow](release-workflow.md#moving-to-the-newest-ks-utility)) |
 | `v0.18.3` | the commit the tag names | `kotlin/settings.gradle.kts`: Google's mirror of Maven Central as a second source for plugins and dependencies ([Kotlin apps](#kotlin-apps)) |
 | `v0.18.2` | the commit the tag names | `ks-utility-bump.yml`: when the tests pass but the commit or push fails, the issue says so ([release workflow](release-workflow.md#moving-to-the-newest-ks-utility)) |
 | `v0.18.1` | the commit the tag names | `ks-utility-bump.yml`: Gradle's cache (read-only), one retry when the tests fail on a download, and an issue that names a download failure as such ([release workflow](release-workflow.md#moving-to-the-newest-ks-utility)) |
