@@ -45,6 +45,21 @@ pub fn is_dev_version(v: &str) -> bool {
     parse_version(v).is_some_and(|p| p.iter().all(|n| *n == 0))
 }
 
+/// True for a build that must never be offered a production release: a build from source
+/// (`0.0.0`) or a DEV build (`1.2.0-dev+abc1234`, the shared release workflow's manual run).
+/// [`check_due`] is false for both and [`decide`] never offers them an update, because neither
+/// is a release version; this names the rule for an app that hides the update section.
+pub fn is_dev_build(v: &str) -> bool {
+    if is_dev_version(v) {
+        return true;
+    }
+    let v = v.trim();
+    let Some((version, rest)) = v.split_once("-dev") else { return false };
+    let meta_ok = rest.is_empty()
+        || rest.strip_prefix('+').is_some_and(|m| !m.is_empty() && m.chars().all(|c| c.is_ascii_alphanumeric() || c == '.' || c == '-'));
+    parse_version(version).is_some() && meta_ok
+}
+
 /// `candidate` is a higher version than `current`, part by part, missing parts counting as
 /// zero. False when either is not a version.
 pub fn is_newer(candidate: &str, current: &str) -> bool {
@@ -459,6 +474,9 @@ mod tests {
         assert!(!is_newer("0.1.2", "0.1.3"));
         assert!(!is_newer("x", "0.1.3"));
         assert!(is_dev_version("0.0.0") && is_dev_version("v0.0.0") && !is_dev_version("0.0.1"));
+        assert!(is_dev_build("1.11.3-dev+abc1234") && is_dev_build("v2.0.0-dev") && is_dev_build("0.0.0"));
+        assert!(!is_dev_build("1.11.3") && !is_dev_build("1.11.3-dev+") && !is_dev_build("dev"));
+        assert!(!check_due(true, "1.11.3-dev+abc1234", None, SystemTime::now()), "a DEV build never checks");
     }
 
     #[test]

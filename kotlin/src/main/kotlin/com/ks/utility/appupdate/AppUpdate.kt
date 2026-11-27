@@ -154,6 +154,16 @@ object AppUpdate {
     /** True for `0.0.0` (with or without `v`). */
     fun isDevVersion(v: String): Boolean = parseVersion(v)?.all { it == 0L } == true
 
+    /**
+     * True for a build that must never be offered a production release: a build from source
+     * (`0.0.0`) or a DEV build (`1.2.0-dev+abc1234`, the shared release workflow's manual run).
+     * [isCheckDue] is false for both and [decide] never offers them an update, because neither
+     * is a release version; this names the rule for an app that hides the update section.
+     */
+    fun isDevBuild(v: String): Boolean = isDevVersion(v) || DEV_BUILD.matches(v.trim())
+
+    private val DEV_BUILD = Regex("""v?\d+(\.\d+){0,3}-dev(\+[0-9A-Za-z.-]+)?""")
+
     /** [candidate] is a higher version than [current]; false when either is not a version. */
     fun isNewer(candidate: String, current: String): Boolean {
         val a = parseVersion(candidate) ?: return false

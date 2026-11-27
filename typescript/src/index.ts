@@ -65,6 +65,7 @@ export {
   evaluateReleases,
   isCheckDue,
   isDevVersion,
+  isDevBuild,
   isNewerVersion,
   latestReleaseApiUrl,
   openedNote,

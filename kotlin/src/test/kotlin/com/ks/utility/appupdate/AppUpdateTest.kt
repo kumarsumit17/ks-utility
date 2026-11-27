@@ -192,4 +192,16 @@ class AppUpdateTest {
         assertNull(AppUpdate.parseReleases("not json", repo, UpdatePlatform.ANDROID))
         assertNull(AppUpdate.parseReleases("[]", repo, UpdatePlatform.ANDROID))
     }
+
+    @Test
+    fun devBuildsAreNeverOfferedProduction() {
+        assertTrue(AppUpdate.isDevBuild("1.11.3-dev+abc1234"))
+        assertTrue(AppUpdate.isDevBuild("v2.0.0-dev"))
+        assertTrue(AppUpdate.isDevBuild("0.0.0"))
+        assertFalse(AppUpdate.isDevBuild("1.11.3"))
+        assertFalse(AppUpdate.isDevBuild("1.11.3-dev+"))
+        assertFalse(AppUpdate.isCheckDue(true, "1.11.3-dev+abc1234", null, 0L), "a DEV build never checks by itself")
+        val release = Release("9.0.0", emptyList())
+        assertTrue(AppUpdate.decide(release, "1.11.3-dev+abc1234", null) is UpdateOutcome.UpToDate, "nor is offered a release")
+    }
 }

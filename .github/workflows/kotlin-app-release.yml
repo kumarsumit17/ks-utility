@@ -105,6 +105,15 @@ on:
         required: false
       KEY_PASSWORD:
         required: false
+      # The DEV build's own Android key (never the production ks-release key).
+      DEV_KEYSTORE_BASE64:
+        required: false
+      DEV_KEYSTORE_PASSWORD:
+        required: false
+      DEV_KEY_ALIAS:
+        required: false
+      DEV_KEY_PASSWORD:
+        required: false
 
 # Read-only by default. Only the publish job asks for write access, which the caller must grant.
 permissions:
@@ -129,6 +138,8 @@ jobs:
       mac: ${{ steps.ver.outputs.mac }}
       windows: ${{ steps.ver.outputs.windows }}
       ks_utility: ${{ steps.suite.outputs.ks_utility }}
+      variant: ${{ steps.variant.outputs.variant }}
+      dev_name: ${{ steps.variant.outputs.dev_name }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -209,6 +220,17 @@ jobs:
           } >> "$GITHUB_OUTPUT"
           echo "## ${{ inputs.display-name }} $tag ($([ "$release" = true ] && echo release || echo test build))" >> "$GITHUB_STEP_SUMMARY"
 
+      # A manual run is the DEV build (the suite's release cycle, "DEV and PROD side by side"):
+      # the DEV variant (-PksVariant=dev), version X.Y.Z-dev+<commit>, the DEV Android key.
+      - name: DEV or production
+        id: variant
+        env:
+          NAME: ${{ steps.ver.outputs.name }}
+          RELEASE: ${{ steps.ver.outputs.release }}
+        run: |
+          if [ "$RELEASE" = true ]; then echo "variant=prod"; else echo "variant=dev"; fi >> "$GITHUB_OUTPUT"
+          echo "dev_name=$NAME-dev+${GITHUB_SHA:0:7}" >> "$GITHUB_OUTPUT"
+
       # ks-suite-check (specs/suite-check.md): the suite rules that code can check, from
       # ks-utility's newest tag, which the app's pin must also be. A failure stops the release
       # and the rehearsal alike.
@@ -253,17 +275,19 @@ jobs:
       - name: Check signing secrets
         id: signing
         env:
-          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
-          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
-          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
-          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          KEYSTORE_BASE64: ${{ needs.version.outputs.release == 'true' && secrets.KEYSTORE_BASE64 || (needs.version.outputs.release != 'true' && secrets.DEV_KEYSTORE_BASE64 || '') }}
+          KEYSTORE_PASSWORD: ${{ needs.version.outputs.release == 'true' && secrets.KEYSTORE_PASSWORD || (needs.version.outputs.release != 'true' && secrets.DEV_KEYSTORE_PASSWORD || '') }}
+          KEY_ALIAS: ${{ needs.version.outputs.release == 'true' && secrets.KEY_ALIAS || (needs.version.outputs.release != 'true' && secrets.DEV_KEY_ALIAS || '') }}
+          KEY_PASSWORD: ${{ needs.version.outputs.release == 'true' && secrets.KEY_PASSWORD || (needs.version.outputs.release != 'true' && secrets.DEV_KEY_PASSWORD || '') }}
           RELEASE: ${{ needs.version.outputs.release }}
         run: |
+          # A release uses the production key; a DEV build (manual run) uses DEV_KEYSTORE_* only.
+          p=""; [ "$RELEASE" = "true" ] || p="DEV_"
           missing=()
-          [ -n "$KEYSTORE_BASE64" ] || missing+=("KEYSTORE_BASE64")
-          [ -n "$KEYSTORE_PASSWORD" ] || missing+=("KEYSTORE_PASSWORD")
-          [ -n "$KEY_ALIAS" ] || missing+=("KEY_ALIAS")
-          [ -n "$KEY_PASSWORD" ] || missing+=("KEY_PASSWORD")
+          [ -n "$KEYSTORE_BASE64" ] || missing+=("${p}KEYSTORE_BASE64")
+          [ -n "$KEYSTORE_PASSWORD" ] || missing+=("${p}KEYSTORE_PASSWORD")
+          [ -n "$KEY_ALIAS" ] || missing+=("${p}KEY_ALIAS")
+          [ -n "$KEY_PASSWORD" ] || missing+=("${p}KEY_PASSWORD")
           if [ "${#missing[@]}" -eq 0 ]; then
             echo "signed=true" >> "$GITHUB_OUTPUT"
           elif [ "$RELEASE" = "true" ]; then
@@ -271,8 +295,9 @@ jobs:
             echo "Missing signing secrets: \`${missing[*]}\`. Add them under Settings › Secrets and variables › Actions, then push a new tag." >> "$GITHUB_STEP_SUMMARY"
             exit 1
           else
-            echo "signed=false" >> "$GITHUB_OUTPUT"
-            echo "::warning::Missing signing secrets: ${missing[*]}. This test build is UNSIGNED."
+            echo "::error::Missing DEV signing secrets: ${missing[*]}. A DEV build is signed with its own key, never the production one, so nothing was built."
+            echo "Missing DEV signing secrets: \`${missing[*]}\`. Add them under Settings › Secrets and variables › Actions (a keystore made for DEV builds only), then run the DEV build again." >> "$GITHUB_STEP_SUMMARY"
+            exit 1
           fi
 
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -467,9 +492,9 @@ jobs:
         id: keystore
         if: steps.signing.outputs.signed == 'true'
         env:
-          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
-          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
-          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEYSTORE_BASE64: ${{ needs.version.outputs.release == 'true' && secrets.KEYSTORE_BASE64 || (needs.version.outputs.release != 'true' && secrets.DEV_KEYSTORE_BASE64 || '') }}
+          KEYSTORE_PASSWORD: ${{ needs.version.outputs.release == 'true' && secrets.KEYSTORE_PASSWORD || (needs.version.outputs.release != 'true' && secrets.DEV_KEYSTORE_PASSWORD || '') }}
+          KEY_ALIAS: ${{ needs.version.outputs.release == 'true' && secrets.KEY_ALIAS || (needs.version.outputs.release != 'true' && secrets.DEV_KEY_ALIAS || '') }}
         run: |
           umask 077
           mkdir -p "$RUNNER_TEMP/ks-signing"
@@ -493,9 +518,9 @@ jobs:
       - name: Build release APK and AAB
         env:
           SIGNING_STORE_FILE: ${{ steps.keystore.outputs.path }}
-          SIGNING_STORE_PASSWORD: ${{ steps.signing.outputs.signed == 'true' && secrets.KEYSTORE_PASSWORD || '' }}
-          SIGNING_KEY_ALIAS: ${{ steps.signing.outputs.signed == 'true' && secrets.KEY_ALIAS || '' }}
-          SIGNING_KEY_PASSWORD: ${{ steps.signing.outputs.signed == 'true' && secrets.KEY_PASSWORD || '' }}
+          SIGNING_STORE_PASSWORD: ${{ steps.signing.outputs.signed == 'true' && (needs.version.outputs.release == 'true' && secrets.KEYSTORE_PASSWORD || (needs.version.outputs.release != 'true' && secrets.DEV_KEYSTORE_PASSWORD || '')) || '' }}
+          SIGNING_KEY_ALIAS: ${{ steps.signing.outputs.signed == 'true' && (needs.version.outputs.release == 'true' && secrets.KEY_ALIAS || (needs.version.outputs.release != 'true' && secrets.DEV_KEY_ALIAS || '')) || '' }}
+          SIGNING_KEY_PASSWORD: ${{ steps.signing.outputs.signed == 'true' && (needs.version.outputs.release == 'true' && secrets.KEY_PASSWORD || (needs.version.outputs.release != 'true' && secrets.DEV_KEY_PASSWORD || '')) || '' }}
           MODULE: ${{ needs.version.outputs.phone == 'true' && inputs.android-module || '' }}
           TV_MODULE: ${{ needs.version.outputs.tv == 'true' && inputs.tv-module || '' }}
           PLAY: ${{ inputs.play-build-type }}
@@ -507,7 +532,7 @@ jobs:
           [ -z "$MODULE" ] || tasks+=("$MODULE:assembleRelease" "$MODULE:$bundle")
           [ -z "$TV_MODULE" ] || tasks+=("$TV_MODULE:assembleRelease" "$TV_MODULE:$bundle")
           ./gradlew "${tasks[@]}" \
-            "-PversionName=${{ needs.version.outputs.name }}" "-PversionCode=${{ needs.version.outputs.code }}"
+            "-PversionName=${{ needs.version.outputs.release == 'true' && needs.version.outputs.name || needs.version.outputs.dev_name }}" "-PversionCode=${{ needs.version.outputs.code }}" "-PksVariant=${{ needs.version.outputs.variant }}" "-PksDevVersion=${{ needs.version.outputs.dev_name }}"
 
       - name: Find the outputs
         id: out
@@ -562,14 +587,19 @@ jobs:
           AAB: ${{ steps.out.outputs.aab }}
           TV_APK: ${{ steps.out.outputs.tv_apk }}
           TV_AAB: ${{ steps.out.outputs.tv_aab }}
+          VARIANT: ${{ needs.version.outputs.variant }}
+          DEV_NAME: ${{ needs.version.outputs.dev_name }}
+          APP: ${{ inputs.app-name }}
         run: |
           # Decided in the shell: in a GitHub expression `cond && '' || 'x'` is always 'x',
           # because an empty string counts as false.
           if [ "$SIGNED" = "true" ]; then SUFFIX=""; else SUFFIX="-UNSIGNED"; fi
+          # A DEV build: <app>-dev-<version>-dev+<commit>-android.apk (and -google-tv).
+          if [ "$VARIANT" = dev ]; then BASE="$APP-dev-$DEV_NAME"; PHONE_TAIL="-android"; else PHONE_TAIL=""; fi
           mkdir -p dist
           if [ -n "$APK" ]; then
-            cp "$APK" "dist/$BASE$SUFFIX.apk"
-            cp "$AAB" "dist/$BASE$SUFFIX.aab"
+            cp "$APK" "dist/$BASE$PHONE_TAIL$SUFFIX.apk"
+            cp "$AAB" "dist/$BASE$PHONE_TAIL$SUFFIX.aab"
           fi
           if [ -n "$TV_APK" ]; then
             cp "$TV_APK" "dist/$BASE-google-tv$SUFFIX.apk"
@@ -578,7 +608,7 @@ jobs:
 
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: ${{ needs.version.outputs.release == 'true' && '' || 'dev-' }}android
+          name: ${{ needs.version.outputs.release != 'true' && 'dev-' || '' }}android
           path: dist/
           if-no-files-found: error
           # A rehearsal is the DEV build the owner tests by hand: named dev-…, kept 14 days.
@@ -634,11 +664,11 @@ jobs:
       - name: Build the dmg
         env:
           MODULE: ${{ inputs.mac-module }}
-        run: ./gradlew "$MODULE:packageReleaseDmg" "-PversionName=${{ needs.version.outputs.name }}" "-PversionCode=${{ needs.version.outputs.code }}"
+        run: ./gradlew "$MODULE:packageReleaseDmg" "-PversionName=${{ needs.version.outputs.name }}" "-PversionCode=${{ needs.version.outputs.code }}" "-PksVariant=${{ needs.version.outputs.variant }}" "-PksDevVersion=${{ needs.version.outputs.dev_name }}"
       - name: Collect
         env:
           MODULE: ${{ inputs.mac-module }}
-          NAME: ${{ inputs.app-name }}-v${{ needs.version.outputs.name }}-macos-${{ matrix.arch }}.dmg
+          NAME: ${{ needs.version.outputs.variant == 'dev' && format('{0}-dev-{1}', inputs.app-name, needs.version.outputs.dev_name) || format('{0}-v{1}', inputs.app-name, needs.version.outputs.name) }}-macos-${{ matrix.arch }}.dmg
         run: |
           dir="$(echo "${MODULE#:}" | tr ':' '/')"
           dmg="$(find "$dir/build/compose/binaries" -name '*.dmg' | sed -n '1p')"
@@ -646,7 +676,7 @@ jobs:
           mkdir -p dist && cp "$dmg" "dist/$NAME"
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: ${{ needs.version.outputs.release == 'true' && '' || 'dev-' }}macos-${{ matrix.arch }}
+          name: ${{ needs.version.outputs.release != 'true' && 'dev-' || '' }}macos-${{ matrix.arch }}
           path: dist/
           if-no-files-found: error
           # A rehearsal is the DEV build the owner tests by hand: named dev-…, kept 14 days.
@@ -692,11 +722,11 @@ jobs:
       - name: Build the msi
         env:
           MODULE: ${{ inputs.windows-module }}
-        run: ./gradlew "$MODULE:packageReleaseMsi" "-PversionName=${{ needs.version.outputs.name }}" "-PversionCode=${{ needs.version.outputs.code }}"
+        run: ./gradlew "$MODULE:packageReleaseMsi" "-PversionName=${{ needs.version.outputs.name }}" "-PversionCode=${{ needs.version.outputs.code }}" "-PksVariant=${{ needs.version.outputs.variant }}" "-PksDevVersion=${{ needs.version.outputs.dev_name }}"
       - name: Collect
         env:
           MODULE: ${{ inputs.windows-module }}
-          NAME: ${{ inputs.app-name }}-v${{ needs.version.outputs.name }}-windows-x64.msi
+          NAME: ${{ needs.version.outputs.variant == 'dev' && format('{0}-dev-{1}', inputs.app-name, needs.version.outputs.dev_name) || format('{0}-v{1}', inputs.app-name, needs.version.outputs.name) }}-windows-x64.msi
         run: |
           dir="$(echo "${MODULE#:}" | tr ':' '/')"
           msi="$(find "$dir/build/compose/binaries" -name '*.msi' | sed -n '1p')"
@@ -704,7 +734,7 @@ jobs:
           mkdir -p dist && cp "$msi" "dist/$NAME"
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: ${{ needs.version.outputs.release == 'true' && '' || 'dev-' }}windows
+          name: ${{ needs.version.outputs.release != 'true' && 'dev-' || '' }}windows
           path: dist/
           if-no-files-found: error
           # A rehearsal is the DEV build the owner tests by hand: named dev-…, kept 14 days.

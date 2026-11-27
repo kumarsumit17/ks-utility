@@ -28,6 +28,16 @@ export function isDevVersion(v: string): boolean {
   return p !== null && p.every((n) => n === 0);
 }
 
+/**
+ * True for a build that must never be offered a production release: a build from source
+ * (`0.0.0`) or a DEV build (`1.2.0-dev+abc1234`, the shared release workflow's manual run).
+ * `isCheckDue` is false for both and `decide` never offers them an update, because neither is a
+ * release version; this names the rule for an app that hides the update section.
+ */
+export function isDevBuild(v: string): boolean {
+  return isDevVersion(v) || /^v?\d+(\.\d+){0,3}-dev(\+[0-9A-Za-z.-]+)?$/.test(v.trim());
+}
+
 /** `candidate` is a higher version than `current`; false when either is not a version. */
 export function isNewerVersion(candidate: unknown, current: unknown): boolean {
   const a = parseVersion(candidate);

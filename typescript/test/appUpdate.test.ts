@@ -208,3 +208,11 @@ test("the note after opening: the desktop helper's Mac image says the app now cl
   assert.deepEqual(openedNote("windows", "KS App"), { key: "common.appUpdate.openedWindows" });
   assert.equal(MAC_QUIT_AFTER_MS, 6000);
 });
+
+test("a DEV build is never offered a production release", async () => {
+  const { isDevBuild, isCheckDue, decide } = await import("../src/index.ts");
+  assert.ok(isDevBuild("1.11.3-dev+abc1234") && isDevBuild("v2.0.0-dev") && isDevBuild("0.0.0"));
+  assert.ok(!isDevBuild("1.11.3") && !isDevBuild("1.11.3-dev+"));
+  assert.equal(isCheckDue(true, "1.11.3-dev+abc1234", null, 0), false);
+  assert.equal(decide({ version: "9.0.0", assets: [] } as any, "1.11.3-dev+abc1234", null).result, "upToDate");
+});

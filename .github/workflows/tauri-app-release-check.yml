@@ -63,6 +63,12 @@ on:
       ks-utility:
         description: "The ks-utility version the app is built on (v0.19.0), for the release notes."
         value: ${{ jobs.check.outputs.ks_utility }}
+      variant:
+        description: "dev for a manual run (the DEV build: the app builds its DEV variant, e.g. tauri build --config tauri.dev.conf.json), prod for a tag."
+        value: ${{ jobs.check.outputs.variant }}
+      dev-version:
+        description: "The DEV build's version, X.Y.Z-dev+<commit>; its files are named <app>-dev-<dev-version>-<platform>.<ext>."
+        value: ${{ jobs.check.outputs.dev_version }}
 
 permissions:
   contents: read
@@ -83,6 +89,8 @@ jobs:
       heading: ${{ steps.v.outputs.heading }}
       rehearsal: ${{ steps.v.outputs.rehearsal }}
       ks_utility: ${{ steps.suite.outputs.ks_utility }}
+      variant: ${{ steps.variant.outputs.variant }}
+      dev_version: ${{ steps.variant.outputs.dev_version }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -162,6 +170,16 @@ jobs:
           [ -n "$newest" ] || { echo "::error::could not read ks-utility's tags"; exit 1; }
           git clone -q --depth 1 --branch "$newest" -c advice.detachedHead=false https://github.com/kumasumit/ks-utility.git "$RUNNER_TEMP/ks-utility-newest"
           node "$RUNNER_TEMP/ks-utility-newest/typescript/tools/suite-check.mjs" . --newest "$newest" --newest-commit "$(git -C "$RUNNER_TEMP/ks-utility-newest" rev-parse HEAD)" $([ "$GITHUB_EVENT_NAME" = workflow_dispatch ] && echo --rehearsal)
+
+      # A manual run is the DEV build (the suite's release cycle, "DEV and PROD side by side").
+      - name: DEV or production
+        id: variant
+        env:
+          KS_VERSION: ${{ steps.v.outputs.version }}
+          KS_REHEARSAL: ${{ steps.v.outputs.rehearsal }}
+        run: |
+          if [ "$KS_REHEARSAL" = true ]; then echo "variant=dev"; else echo "variant=prod"; fi >> "$GITHUB_OUTPUT"
+          echo "dev_version=$KS_VERSION-dev+${GITHUB_SHA:0:7}" >> "$GITHUB_OUTPUT"
 
       - name: The tagged commit is on main
         if: github.event_name == 'push' && inputs.require-main
