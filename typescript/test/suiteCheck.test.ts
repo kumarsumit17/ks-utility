@@ -71,6 +71,12 @@ test("a Tauri pin that is not the newest tag fails; the newest passes", () => {
   assert.match(problems[0], /shared\/package\.json pins ks-utility v0\.13\.2, not the newest tag v0\.14\.0/);
   write(root, "shared/package.json", '{"dependencies": {"ks-utility": "git+https://github.com/kumasumit/ks-utility.git#v0.14.0"}}');
   assert.deepEqual(check(root, { tag: "v0.14.0", commit: "abc" }), []);
+  write(root, ".github/workflows/release.yml", "jobs:\n  r:\n    uses: kumasumit/ks-utility/.github/workflows/kotlin-app-release.yml@v0.13.0\n");
+  const lag = check(root, { tag: "v0.14.0", commit: "abc" });
+  assert.equal(lag.length, 1, lag.join(" | "));
+  assert.match(lag[0], /release\.yml calls ks-utility's kotlin-app-release\.yml at v0\.13\.0, not the newest tag v0\.14\.0/);
+  write(root, ".github/workflows/release.yml", "jobs:\n  r:\n    uses: kumasumit/ks-utility/.github/workflows/kotlin-app-release.yml@v0.14.0\n");
+  assert.deepEqual(check(root, { tag: "v0.14.0", commit: "abc" }), []);
 });
 
 test("an app without an updater says so, with a reason", () => {

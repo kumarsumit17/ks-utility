@@ -1,5 +1,7 @@
 # 2026-11-27
 
+* **Update**: [Usage](usage.md): `v0.16.0` tagged.
+* **Update**: [ks-suite-check](suite-check.md) and [Release workflow](release-workflow.md) "Moving to the newest ks-utility": the app's calls of ks-utility's shared workflows must be at the newest tag; the move changes them too when the caller passes `KS_WORKFLOWS_TOKEN` (GitHub's own token may not change workflow files).
 * **Update**: [Usage](usage.md): `v0.15.0` tagged.
 * **Creation**: [ks-suite-check](suite-check.md) added: the conformance check both release workflows run before building (platform folders, versions from the tag, no tracking SDKs, the app's own icons, language files, ks-utility's updater, the newest ks-utility pin), with one exception an app can state (`no-updater`).
 * **Update**: [App updates](app-update.md) "How each platform installs": the desktop helper (`DesktopInstaller`, `app_update::install`) quarantines and opens the disk image, then the app quits after 6 s so Finder can replace it; Windows unchanged; new text `common.appUpdate.openedMacCloses`, `openedMac` kept.

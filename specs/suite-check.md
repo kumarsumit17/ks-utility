@@ -28,6 +28,7 @@ node <ks-utility>/typescript/tools/suite-check.mjs <app dir> [--newest <tag> --n
 | Language files | No `en.json` with a `hi.json`, or the [language-file check](usage.md#language-files) fails on them (and on any Chrome `_locales`) |
 | ks-utility's updater | No source file uses `com.ks.utility.appupdate`, `ks_utility::app_update` or `appUpdate` from `ks-utility` |
 | The newest ks-utility | The `ks-utility` submodule, or a `ks-utility` git tag in a `package.json` or `Cargo.toml`, is not ks-utility's newest tag: move the pin first (the suite's [release cycle](https://github.com/kumasumit/ks-suite/blob/main/specs/release-cycle.md), step 1) |
+| The newest shared workflows | From `v0.16.0`: a file in the app's `.github/workflows/` calls `kumasumit/ks-utility/.github/workflows/<name>.yml@<tag>` at another tag than the newest, so its release would run older checks |
 
 Build output, dependencies and the ks-utility copy (`build/`, `.gradle/`, `node_modules/`, `target/`, `dist/`, `ks-utility/`) are not looked into.
 

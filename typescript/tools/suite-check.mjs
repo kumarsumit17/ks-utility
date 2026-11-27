@@ -150,6 +150,13 @@ export function suiteCheck(root, { newest = null, langTool = null } = {}) {
       }
     }
     for (const p of pins) if (!p.ok) problems.push(`${p.where} pins ks-utility ${p.got}, not the newest tag ${newest.tag}; move the pin first (the suite's release cycle, step 1)`);
+    // 8. The app's workflows call ks-utility's shared workflows at the newest tag too, so its
+    //    release runs the newest checks.
+    for (const f of all.filter((f) => /(^|\/)\.github\/workflows\/[^/]+\.ya?ml$/.test(rel(f)))) {
+      for (const m of read(f).matchAll(/kumasumit\/ks-utility\/\.github\/workflows\/([\w.-]+\.ya?ml)@([\w.-]+)/g)) {
+        if (m[2] !== newest.tag) problems.push(`${rel(f)} calls ks-utility's ${m[1]} at ${m[2]}, not the newest tag ${newest.tag}`);
+      }
+    }
   }
   return [...new Set(problems)];
 }
