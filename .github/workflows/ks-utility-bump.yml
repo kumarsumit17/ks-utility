@@ -120,6 +120,19 @@ jobs:
           java-version: "17"
       # Gradle's cache, read-only as in the release workflow: the move downloads less, so fewer
       # runs fail on a slow or rate-limited Maven Central or plugin portal.
+      # Patient downloads: one network error must not make Gradle drop Maven Central, the plugin
+      # portal or the mirror for the rest of the build (then everything later is "not found").
+      - name: Gradle network settings
+        if: steps.move.outputs.changed == 'true' && inputs.java
+        run: |
+          d="${GRADLE_USER_HOME:-$HOME/.gradle}"
+          mkdir -p "$d"
+          cat >> "$d/gradle.properties" <<'PROPS'
+          systemProp.org.gradle.internal.http.connectionTimeout=120000
+          systemProp.org.gradle.internal.http.socketTimeout=120000
+          systemProp.org.gradle.internal.repository.max.retries=6
+          systemProp.org.gradle.internal.repository.initial.backoff=2000
+          PROPS
       - uses: gradle/actions/setup-gradle@0723195856401067f7a2779048b490ace7a47d7c # v5.0.2
         if: steps.move.outputs.changed == 'true' && inputs.java
         with:

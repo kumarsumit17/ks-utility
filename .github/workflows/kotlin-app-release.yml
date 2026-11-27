@@ -430,6 +430,18 @@ jobs:
           node-version: "24"
 
       # v5 is the MIT-licensed line; v6 moves caching to a separately licensed component.
+      # Patient downloads: one network error must not make Gradle drop Maven Central, the plugin
+      # portal or the mirror for the rest of the build (then everything later is "not found").
+      - name: Gradle network settings
+        run: |
+          d="${GRADLE_USER_HOME:-$HOME/.gradle}"
+          mkdir -p "$d"
+          cat >> "$d/gradle.properties" <<'PROPS'
+          systemProp.org.gradle.internal.http.connectionTimeout=120000
+          systemProp.org.gradle.internal.http.socketTimeout=120000
+          systemProp.org.gradle.internal.repository.max.retries=6
+          systemProp.org.gradle.internal.repository.initial.backoff=2000
+          PROPS
       - uses: gradle/actions/setup-gradle@0723195856401067f7a2779048b490ace7a47d7c # v5.0.2
 
       # The keystore goes into the runner's temp folder, readable by this user only, and is
@@ -583,6 +595,18 @@ jobs:
         if: inputs.node
         with:
           node-version: "24"
+      # Patient downloads: one network error must not make Gradle drop Maven Central, the plugin
+      # portal or the mirror for the rest of the build (then everything later is "not found").
+      - name: Gradle network settings
+        run: |
+          d="${GRADLE_USER_HOME:-$HOME/.gradle}"
+          mkdir -p "$d"
+          cat >> "$d/gradle.properties" <<'PROPS'
+          systemProp.org.gradle.internal.http.connectionTimeout=120000
+          systemProp.org.gradle.internal.http.socketTimeout=120000
+          systemProp.org.gradle.internal.repository.max.retries=6
+          systemProp.org.gradle.internal.repository.initial.backoff=2000
+          PROPS
       - uses: gradle/actions/setup-gradle@0723195856401067f7a2779048b490ace7a47d7c # v5.0.2
       - name: Tests
         if: inputs.desktop-test-tasks != ''
@@ -629,6 +653,18 @@ jobs:
         if: inputs.node
         with:
           node-version: "24"
+      # Patient downloads: one network error must not make Gradle drop Maven Central, the plugin
+      # portal or the mirror for the rest of the build (then everything later is "not found").
+      - name: Gradle network settings
+        run: |
+          d="${GRADLE_USER_HOME:-$HOME/.gradle}"
+          mkdir -p "$d"
+          cat >> "$d/gradle.properties" <<'PROPS'
+          systemProp.org.gradle.internal.http.connectionTimeout=120000
+          systemProp.org.gradle.internal.http.socketTimeout=120000
+          systemProp.org.gradle.internal.repository.max.retries=6
+          systemProp.org.gradle.internal.repository.initial.backoff=2000
+          PROPS
       - uses: gradle/actions/setup-gradle@0723195856401067f7a2779048b490ace7a47d7c # v5.0.2
       - name: Tests
         if: inputs.desktop-test-tasks != ''

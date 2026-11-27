@@ -1,5 +1,6 @@
 # 2026-11-27
 
+* **Update**: [Release workflow](release-workflow.md): the Gradle jobs of the release workflow and the move set longer network timeouts and more retries, so one lost request no longer makes Gradle drop a repository (for the next tag).
 * **Update**: [Usage](usage.md) "Versioning": ks-utility tags at most once a day, collecting changes on `dev`; an urgent security fix is the only exception.
 * **Update**: [Release workflow](release-workflow.md) "Moving to the newest ks-utility" and [Usage](usage.md): `v0.18.4` tagged: a push rejected because `dev` moved during the tests is put on top of the new `dev` and retried.
 * **Update**: [Usage](usage.md) "Kotlin apps": `v0.18.3` tagged; the Kotlin build also resolves from Google's mirror of Maven Central.
