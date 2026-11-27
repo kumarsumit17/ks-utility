@@ -860,5 +860,59 @@
     "en": "Default (setting)",
     "hi": "डिफ़ॉल्ट",
     "avoid": []
+  },
+  {
+    "en": "Equalizer",
+    "hi": "इक्वलाइज़र",
+    "avoid": [],
+    "review": true
+  },
+  {
+    "en": "Preset",
+    "hi": "प्रीसेट",
+    "avoid": [],
+    "review": true
+  },
+  {
+    "en": "Effect",
+    "hi": "इफ़ेक्ट",
+    "avoid": [],
+    "review": true
+  },
+  {
+    "en": "Bass",
+    "hi": "बेस",
+    "avoid": [],
+    "review": true
+  },
+  {
+    "en": "Dialogue",
+    "hi": "डायलॉग",
+    "avoid": [],
+    "review": true
+  },
+  {
+    "en": "Music",
+    "hi": "म्यूज़िक",
+    "avoid": [],
+    "review": true
+  },
+  {
+    "en": "Custom",
+    "hi": "कस्टम",
+    "avoid": [],
+    "review": true
+  },
+  {
+    "en": "Original (unprocessed audio)",
+    "hi": "ओरिजिनल",
+    "avoid": [],
+    "review": true
+  },
+  {
+    "en": "Passthrough",
+    "hi": "पासथ्रू",
+    "avoid": [],
+    "review": true
   }
 ]

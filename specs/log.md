@@ -1,5 +1,6 @@
 # 2026-11-27
 
+* **Update**: [Hindi style guide](hindi-style.md): 9 terms from KS JaiPlayer added for owner review (Equalizer इक्वलाइज़र, Preset प्रीसेट, Effect इफ़ेक्ट, Bass बेस, Dialogue डायलॉग, Music म्यूज़िक, Custom कस्टम, Original (unprocessed audio) ओरिजिनल, Passthrough पासथ्रू), in the table and `lang/hindi-terms.json`.
 * **Update**: [Usage](usage.md) "Versioning" and `CLAUDE.md`: a ks-utility tag is made only with the owner's approval (it replaces "build, test, release, no waiting").
 * **Update**: [Usage](usage.md): `v0.19.0` tagged, with the owner's approval.
 * **Update**: [Release workflow](release-workflow.md) "DEV builds, approval and production" and [App updates](app-update.md) (for the next tag): the manual run builds the DEV variant (`-PksVariant=dev`, `X.Y.Z-dev+<commit>`, files `<app>-dev-…`), signs Android with the `DEV_KEYSTORE_*` secrets only and fails without them; `isDevBuild` in Kotlin, Rust and TypeScript.
