@@ -15,6 +15,11 @@ export interface Term {
   avoid: string[];
   /** Chosen in the guide's style but not yet approved by the owner. */
   review?: boolean;
+  /**
+   * A short Hindi explanation an app may show under the word (Original: "मूल ऑडियो (बिना
+   * बदलाव वाला)"), and the translator's note in the editor and XLIFF. Optional.
+   */
+  description?: string;
 }
 
 /**
@@ -32,7 +37,7 @@ export interface GlossaryTerm {
 
 /** The Hindi term list as a glossary. */
 export function hindiGlossary(terms: readonly Term[]): GlossaryTerm[] {
-  return terms.map((t) => ({ en: t.en, text: t.hi, avoid: t.avoid }));
+  return terms.map((t) => (t.description ? { en: t.en, text: t.hi, avoid: t.avoid, note: t.description } : { en: t.en, text: t.hi, avoid: t.avoid }));
 }
 
 export interface CheckOptions {

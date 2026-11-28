@@ -90,7 +90,16 @@ jobs:
           case "$KS_KIND" in
             kotlin)
               [ -d ks-utility ] || { echo "::error::no ks-utility submodule"; exit 1; }
-              git -C ks-utility fetch -q --tags origin
+              git -C ks-utility fetch -q --tags --unshallow origin 2>/dev/null || git -C ks-utility fetch -q --tags origin
+              # Never backwards: a pin already ahead of the newest tag (an app trying ks-utility's
+              # dev before its tag) stays where it is.
+              current=$(git -C ks-utility rev-parse HEAD)
+              tagged=$(git -C ks-utility rev-parse "refs/tags/$KS_TAG^{commit}")
+              if [ "$current" != "$tagged" ] && git -C ks-utility merge-base --is-ancestor "$tagged" "$current"; then
+                echo "::notice::ks-utility is pinned at ${current:0:7}, ahead of $KS_TAG; not moved back."
+                echo "changed=false" >> "$GITHUB_OUTPUT"
+                exit 0
+              fi
               git -C ks-utility checkout -q "refs/tags/$KS_TAG"
               ;;
             tauri)

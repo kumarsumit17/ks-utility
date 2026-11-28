@@ -1,5 +1,16 @@
+# 2026-11-28
+
+* **Update**: [Rules](rules.md) is now a pointer to `CLAUDE.md` "Rules (non-negotiable)", the one place the rules are kept (the development-tools sentence moved there). `CLAUDE.md` "Working efficiently": targeted search by default, graphify only where it is proven to save tokens.
+* **Update**: fix in the release workflows (no spec change): the ks-suite-check step no longer stops silently when the app is pinned at an untagged ks-utility commit (a `grep` with no match under `pipefail`); a Tauri commit pin is reported as `commit <sha>`. Found by KS JaiPlayer's DEV build.
+* **Update**: [ks-suite-check](suite-check.md) and [Release workflow](release-workflow.md): Tauri apps too may pin a ks-utility `dev` commit in a DEV build (`#<commit>`, `rev = "<commit>"`); a commit pin fails a release and a branch pin always fails (before, a Tauri commit pin went unnoticed).
+* **Update**: [ks-suite-check](suite-check.md) and [Release workflow](release-workflow.md): a DEV build may pin ks-utility at a commit on its `dev` ahead of the newest tag, to try unreleased ks-utility work in one app first; the move never moves a pin backwards.
+* **Update**: [Hindi style guide](hindi-style.md): the term table has a Description column (optional, `description` in `lang/hindi-terms.json`), a short Hindi explanation an app may show under the word; first for Original and Passthrough, given by the owner.
+* **Update**: [Hindi style guide](hindi-style.md): the owner approved KS JaiPlayer's 9 audio terms as proposed (Equalizer, Preset, Effect, Bass, Dialogue, Music, Custom, Original, Passthrough). No term is left for owner review.
+
 # 2026-11-27
 
+* **Update**: [Hindi style guide](hindi-style.md): 9 terms from KS JaiPlayer added for owner review (Equalizer इक्वलाइज़र, Preset प्रीसेट, Effect इफ़ेक्ट, Bass बेस, Dialogue डायलॉग, Music म्यूज़िक, Custom कस्टम, Original (unprocessed audio) ओरिजिनल, Passthrough पासथ्रू), in the table and `lang/hindi-terms.json`.
+* **Update**: [Usage](usage.md) "Versioning" and `CLAUDE.md`: a ks-utility tag is made only with the owner's approval (it replaces "build, test, release, no waiting").
 * **Update**: [Usage](usage.md): `v0.19.0` tagged, with the owner's approval.
 * **Update**: [Release workflow](release-workflow.md) "DEV builds, approval and production" and [App updates](app-update.md) (for the next tag): the manual run builds the DEV variant (`-PksVariant=dev`, `X.Y.Z-dev+<commit>`, files `<app>-dev-…`), signs Android with the `DEV_KEYSTORE_*` secrets only and fails without them; `isDevBuild` in Kotlin, Rust and TypeScript.
 * **Update**: [Release workflow](release-workflow.md) "DEV builds, approval and production" (new section, for the next tag): rehearsals are the DEV build (artifacts named `dev-…`, kept 14 days); the publish step runs in the environment `production` for the owner's approval; every release attaches `SHA256SUMS` and its notes record the ks-utility version and each platform's signing. The Tauri publish workflow takes `ks-utility` and `signing`.

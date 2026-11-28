@@ -193,19 +193,20 @@ test("Android string resources keep argument numbers across languages", () => {
 
 test("the Hindi style guide table and the term data agree", () => {
   const md = readFileSync(new URL("specs/hindi-style.md", root), "utf8");
-  const section = md.slice(md.indexOf("| English | Hindi | Avoid | Status |"));
+  const section = md.slice(md.indexOf("| English | Hindi | Avoid | Status | Description |"));
   const rows = section
     .split("\n")
     .slice(2)
     .filter((l) => l.startsWith("|"))
     .map((l) => l.split("|").slice(1, -1).map((c) => c.trim()));
-  const fromTable = rows.map(([en, hi, avoid, status]) => ({
+  const fromTable = rows.map(([en, hi, avoid, status, description]) => ({
     en,
     hi,
     avoid: avoid === "—" ? [] : avoid.split(",").map((a) => a.trim()),
     review: status === "owner review",
+    description: description === "—" ? undefined : description,
   }));
-  const fromData = terms.map((t) => ({ en: t.en, hi: t.hi, avoid: t.avoid, review: t.review === true }));
+  const fromData = terms.map((t) => ({ en: t.en, hi: t.hi, avoid: t.avoid, review: t.review === true, description: t.description }));
   assert.deepEqual(fromTable, fromData);
   for (const s of rows.map((r) => r[3])) assert.ok(s === "approved" || s === "owner review", s);
   // A term never uses its own disallowed alternative, and digits are Latin.

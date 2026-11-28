@@ -21,11 +21,11 @@ Common, generic utility functions for the KS-Suite apps. Part of KS-Suite; the s
 - **Drop-in.** Each utility is self-contained: once an app has `ks-utility` as a dependency, a utility is used by importing it. No utility needs setup or configuration of its own.
 - **No third-party dependencies.** A utility uses only its language's standard library. The Kotlin part is plain Kotlin/JVM with no Android SDK, so Android, TV and desktop apps can all use it.
 - **No app knowledge.** No app package names, resources, screens, storage schemas or feature flags. Anything a utility needs from the app comes in as a parameter.
-- **Build, test, release, no waiting.** Every change is built, tested (Rust, TypeScript, Kotlin and the language check), pushed to `dev`, fast-forwarded to `main` and released with the next tag, with no approval asked before tagging. Never tag while a test fails. A new helper or behaviour change raises MINOR, a fix raises PATCH, and a pushed tag is never moved. See the suite's [release cycle](https://github.com/kumasumit/ks-suite/blob/main/specs/release-cycle.md#build-test-release-no-waiting).
+- **Build, test, then the owner's approval.** Every change is built and tested (Rust, TypeScript, Kotlin and the language check) and pushed to `dev`. A tag is a production release: it is made only with the owner's explicit approval, then `main` fast-forwards to it. Never tag while a test fails. A new helper or behaviour change raises MINOR, a fix raises PATCH, and a pushed tag is never moved. A change to a shared workflow is first tried in one app's rehearsal at `@dev`. See the suite's [release cycle](https://github.com/kumasumit/ks-suite/blob/main/specs/release-cycle.md).
 - **At most one tag a day.** Changes collect on `dev`; one tag a day releases them, and `main` moves only with that tag (apps call the shared workflows at `@main`). An urgent security fix is the only exception. Every tag starts a move in every app, and an app release takes about 1.5 hours. See `specs/usage.md`, "Versioning".
 - **Pinned by version tag.** Every app pins a `ks-utility` version tag; a pushed tag is never moved or deleted (see "How apps depend on it"). A change here reaches an app only when that app moves its pin, so apps still build and ship alone.
 - **No breaking changes in place.** Apps move their pins at different times: add a new function instead of changing the meaning or signature of one that is in use.
-- **No network, no analytics.** A utility never opens a connection or reports anything by itself, so it is safe for `ks-vault` and `ks-expense-manager`.
+- **No network, no analytics.** A utility never opens a connection or reports anything by itself, so it is safe for `ks-vault` and `ks-expense-manager`. The development tools in `typescript/tools/` are not shipped in any app; the translation editor among them listens on `127.0.0.1` only, behind a random token, and connects nowhere.
 - **Tested here.** Each utility has unit tests in this repository, in the same commit.
 - Before adding a utility, check that at least two apps need it, or that it is plainly generic. If it is only useful to one app, put it in that app.
 
@@ -42,7 +42,7 @@ npm run check:lang                             # language files: shared catalogu
 ```
 
 ## Working efficiently (keep token use low)
-- Use the knowledge graph first: follow the rules in the `graphify` section at the end of this file. [graphify](https://github.com/Graphify-Labs/graphify) is a development tool only; it is never a dependency of the code and is never bundled or shipped.
+- Search in a targeted way by default (`grep`, `find`, reading only the lines located); use graphify only where it is proven to save tokens (the `graphify` section at the end of this file). [graphify](https://github.com/Graphify-Labs/graphify) is a development tool only; it is never a dependency of the code and is never bundled or shipped.
 - One-time setup on a new machine (owner): `uv tool install graphifyy` (the package name has two y's), then `/graphify .` in Claude Code. The setup in `.claude/` is committed; `graphify-out/` is generated and git-ignored.
 - Read only the specs the task needs, and do not re-read a file that has not changed in this session.
 - Never read generated files: `build/`, `.gradle/`, `target/`, `node_modules/`, `graphify-out/graph.json`.

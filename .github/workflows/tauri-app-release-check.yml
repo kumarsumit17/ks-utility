@@ -155,10 +155,12 @@ jobs:
           # submodule's commit (Kotlin), or the git tag in package.json and Cargo.toml (Tauri).
           if [ -n "$(git ls-tree HEAD ks-utility 2>/dev/null)" ]; then
             sha=$(git ls-tree HEAD ks-utility | awk '{print $3}')
-            pin=$(git ls-remote --tags https://github.com/kumasumit/ks-utility.git | awk -v s="$sha" '$1 == s { sub("refs/tags/", "", $2); sub(/\^\{\}$/, "", $2); print $2 }' | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -n 1)
+            pin=$(git ls-remote --tags https://github.com/kumasumit/ks-utility.git | awk -v s="$sha" '$1 == s { sub("refs/tags/", "", $2); sub(/\^\{\}$/, "", $2); print $2 }' | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -n 1 || true)
             [ -n "$pin" ] || pin="commit ${sha:0:7}"
           else
-            pin=$(git ls-files '*package.json' '*Cargo.toml' | xargs grep -ho -E 'ks-utility(\.git#|.*tag *= *")v[0-9]+\.[0-9]+\.[0-9]+' 2>/dev/null | grep -oE 'v[0-9]+\.[0-9]+\.[0-9]+' | sort -u | tr '\n' ' ' | sed 's/ $//')
+            pin=$(git ls-files '*package.json' '*Cargo.toml' | xargs grep -ho -E 'ks-utility(\.git#|.*tag *= *")v[0-9]+\.[0-9]+\.[0-9]+' 2>/dev/null | grep -oE 'v[0-9]+\.[0-9]+\.[0-9]+' | sort -u | tr '\n' ' ' | sed 's/ $//' || true)
+            # A DEV build on a ks-utility dev commit: "commit abc1234".
+            [ -n "$pin" ] || pin=$(git ls-files '*package.json' '*Cargo.toml' | xargs grep -ho -E 'ks-utility(\.git#|[^#]*rev *= *")[0-9a-f]{7,40}' 2>/dev/null | grep -oE '[0-9a-f]{7,40}$' | head -n 1 | sed -E 's/^(.{7}).*/commit \1/' || true)
           fi
           # With the commit: "v0.18.4 (7dabd4a)".
           if [ -z "${sha:-}" ] && [ -n "$pin" ] && [ "${pin#* }" = "$pin" ]; then
@@ -168,8 +170,28 @@ jobs:
           echo "ks_utility=${pin:-unknown}" >> "$GITHUB_OUTPUT"
           newest=$(git ls-remote --tags --refs https://github.com/kumasumit/ks-utility.git 'v*' | sed 's#.*refs/tags/##' | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -n 1)
           [ -n "$newest" ] || { echo "::error::could not read ks-utility's tags"; exit 1; }
-          git clone -q --depth 1 --branch "$newest" -c advice.detachedHead=false https://github.com/kumasumit/ks-utility.git "$RUNNER_TEMP/ks-utility-newest"
-          node "$RUNNER_TEMP/ks-utility-newest/typescript/tools/suite-check.mjs" . --newest "$newest" --newest-commit "$(git -C "$RUNNER_TEMP/ks-utility-newest" rev-parse HEAD)" $([ "$GITHUB_EVENT_NAME" = workflow_dispatch ] && echo --rehearsal)
+          # The check comes from ks-utility's newest tag. A DEV build (manual run) whose submodule
+          # is pinned at ks-utility's dev head, to try unreleased ks-utility work before it is
+          # tagged, takes the check from dev instead, and that commit is accepted as the pin.
+          from="$newest"; extra=()
+          newest_commit=$(git ls-remote https://github.com/kumasumit/ks-utility.git "refs/tags/$newest^{}" | awk '{print $1}')
+          if [ "$GITHUB_EVENT_NAME" = workflow_dispatch ]; then
+            extra+=(--rehearsal)
+            app_pin=$(git ls-tree HEAD ks-utility 2>/dev/null | awk '{print $3}')
+            # A Tauri app: a commit in package.json ("ks-utility.git#<sha>") or Cargo.toml (rev = "<sha>").
+            [ -n "$app_pin" ] || app_pin=$(git ls-files '*package.json' '*Cargo.toml' | xargs grep -ho -E 'ks-utility(\.git#|[^#]*rev *= *")[0-9a-f]{7,40}' 2>/dev/null | grep -oE '[0-9a-f]{7,40}$' | sort -u | head -n 1 || true)
+            if [ -n "$app_pin" ] && [ "$app_pin" != "$newest_commit" ]; then
+              # Accepted when the pin is a commit on ks-utility's dev that is ahead of the newest tag.
+              git clone -q --branch dev https://github.com/kumasumit/ks-utility.git "$RUNNER_TEMP/ks-utility-dev"
+              if git -C "$RUNNER_TEMP/ks-utility-dev" merge-base --is-ancestor "$app_pin" HEAD 2>/dev/null \
+                 && git -C "$RUNNER_TEMP/ks-utility-dev" merge-base --is-ancestor "$newest_commit" "$app_pin"; then
+                from=dev; extra+=(--dev-commit "$(git -C "$RUNNER_TEMP/ks-utility-dev" rev-parse "$app_pin^{commit}")")
+                echo "::notice::DEV build on ks-utility dev (${app_pin:0:7}, ahead of $newest), not a release."
+              fi
+            fi
+          fi
+          git clone -q --depth 1 --branch "$from" -c advice.detachedHead=false https://github.com/kumasumit/ks-utility.git "$RUNNER_TEMP/ks-utility-newest"
+          node "$RUNNER_TEMP/ks-utility-newest/typescript/tools/suite-check.mjs" . --newest "$newest" --newest-commit "$newest_commit" "${extra[@]}"
 
       # A manual run is the DEV build (the suite's release cycle, "DEV and PROD side by side").
       - name: DEV or production
