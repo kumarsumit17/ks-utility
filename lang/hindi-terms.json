@@ -899,11 +899,13 @@
   {
     "en": "Original (unprocessed audio)",
     "hi": "ओरिजिनल",
-    "avoid": []
+    "avoid": [],
+    "description": "मूल ऑडियो (बिना बदलाव वाला)"
   },
   {
     "en": "Passthrough",
     "hi": "पासथ्रू",
-    "avoid": []
+    "avoid": [],
+    "description": "पासथ्रू (सीधा आउटपुट)"
   }
 ]

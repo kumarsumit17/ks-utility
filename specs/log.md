@@ -1,5 +1,6 @@
 # 2026-11-28
 
+* **Update**: [Hindi style guide](hindi-style.md): the term table has a Description column (optional, `description` in `lang/hindi-terms.json`), a short Hindi explanation an app may show under the word; first for Original and Passthrough, given by the owner.
 * **Update**: [Hindi style guide](hindi-style.md): the owner approved KS JaiPlayer's 9 audio terms as proposed (Equalizer, Preset, Effect, Bass, Dialogue, Music, Custom, Original, Passthrough). No term is left for owner review.
 
 # 2026-11-27
