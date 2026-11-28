@@ -1,5 +1,6 @@
 # 2026-11-28
 
+* **Update**: fix in the release workflows (no spec change): the ks-suite-check step no longer stops silently when the app is pinned at an untagged ks-utility commit (a `grep` with no match under `pipefail`); a Tauri commit pin is reported as `commit <sha>`. Found by KS JaiPlayer's DEV build.
 * **Update**: [ks-suite-check](suite-check.md) and [Release workflow](release-workflow.md): Tauri apps too may pin a ks-utility `dev` commit in a DEV build (`#<commit>`, `rev = "<commit>"`); a commit pin fails a release and a branch pin always fails (before, a Tauri commit pin went unnoticed).
 * **Update**: [ks-suite-check](suite-check.md) and [Release workflow](release-workflow.md): a DEV build may pin ks-utility at a commit on its `dev` ahead of the newest tag, to try unreleased ks-utility work in one app first; the move never moves a pin backwards.
 * **Update**: [Hindi style guide](hindi-style.md): the term table has a Description column (optional, `description` in `lang/hindi-terms.json`), a short Hindi explanation an app may show under the word; first for Original and Passthrough, given by the owner.
