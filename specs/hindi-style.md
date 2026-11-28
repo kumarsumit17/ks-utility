@@ -175,12 +175,12 @@ The data file `lang/hindi-terms.json` holds the same rows; a test fails if this 
 | Control Center | कंट्रोल सेंटर | — | approved |
 | Currency | करेंसी | — | approved |
 | Default (setting) | डिफ़ॉल्ट | — | approved |
-| Equalizer | इक्वलाइज़र | — | owner review |
-| Preset | प्रीसेट | — | owner review |
-| Effect | इफ़ेक्ट | — | owner review |
-| Bass | बेस | — | owner review |
-| Dialogue | डायलॉग | — | owner review |
-| Music | म्यूज़िक | — | owner review |
-| Custom | कस्टम | — | owner review |
-| Original (unprocessed audio) | ओरिजिनल | — | owner review |
-| Passthrough | पासथ्रू | — | owner review |
+| Equalizer | इक्वलाइज़र | — | approved |
+| Preset | प्रीसेट | — | approved |
+| Effect | इफ़ेक्ट | — | approved |
+| Bass | बेस | — | approved |
+| Dialogue | डायलॉग | — | approved |
+| Music | म्यूज़िक | — | approved |
+| Custom | कस्टम | — | approved |
+| Original (unprocessed audio) | ओरिजिनल | — | approved |
+| Passthrough | पासथ्रू | — | approved |

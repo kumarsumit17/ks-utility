@@ -1,3 +1,7 @@
+# 2026-11-28
+
+* **Update**: [Hindi style guide](hindi-style.md): the owner approved KS JaiPlayer's 9 audio terms as proposed (Equalizer, Preset, Effect, Bass, Dialogue, Music, Custom, Original, Passthrough). No term is left for owner review.
+
 # 2026-11-27
 
 * **Update**: [Hindi style guide](hindi-style.md): 9 terms from KS JaiPlayer added for owner review (Equalizer इक्वलाइज़र, Preset प्रीसेट, Effect इफ़ेक्ट, Bass बेस, Dialogue डायलॉग, Music म्यूज़िक, Custom कस्टम, Original (unprocessed audio) ओरिजिनल, Passthrough पासथ्रू), in the table and `lang/hindi-terms.json`.
