@@ -114,3 +114,16 @@ test("a DEV build may pin ks-utility's dev head; a release may not", async () =>
   assert.deepEqual(suiteCheck(root, { newest, langTool, allowDev: true, devCommit: devHead }), [], "a DEV build on ks-utility dev passes");
   assert.ok(suiteCheck(root, { newest, langTool, devCommit: devHead }).some((p: string) => /not the newest tag/.test(p)), "dev-commit counts only in a rehearsal");
 });
+
+test("a Tauri app may pin a ks-utility dev commit in a DEV build only", () => {
+  const root = goodApp();
+  const sha = "abcdef1234567890abcdef1234567890abcdef12";
+  write(root, "shared/package.json", `{"dependencies": {"ks-utility": "git+https://github.com/kumasumit/ks-utility.git#${sha}"}}`);
+  write(root, "shared/src-tauri/Cargo.toml", `[package]\nname = "a"\nversion = "0.0.0"\n[dependencies]\nks-utility = { git = "https://github.com/kumasumit/ks-utility", rev = "${sha.slice(0, 7)}" }\n`);
+  const newest = { tag: "v0.19.0", commit: "2".repeat(40) };
+  const release = suiteCheck(root, { newest, langTool });
+  assert.equal(release.filter((p: string) => /pins ks-utility commit abcdef1/.test(p)).length, 2, release.join(" | "));
+  assert.deepEqual(suiteCheck(root, { newest, langTool, allowDev: true, devCommit: sha }), [], "a DEV build on ks-utility dev passes");
+  write(root, "shared/src-tauri/Cargo.toml", '[package]\nname = "a"\nversion = "0.0.0"\n[dependencies]\nks-utility = { git = "https://github.com/kumasumit/ks-utility", branch = "dev" }\n');
+  assert.ok(suiteCheck(root, { newest, langTool, allowDev: true, devCommit: sha }).some((p: string) => /branch dev/.test(p)), "never a branch");
+});

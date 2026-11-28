@@ -151,6 +151,15 @@ export function suiteCheck(root, { newest = null, langTool = null, allowDev = fa
       for (const m of read(f).matchAll(/ks-utility(?:\.git)?(?:#|"[^\n]*?tag\s*=\s*")(v\d+\.\d+\.\d+)/g)) {
         pins.push({ where: rel(f), ok: m[1] === newest.tag, got: m[1] });
       }
+      // A commit pin (npm "ks-utility.git#<sha>", Cargo rev = "<sha>"): only a DEV build on
+      // ks-utility's dev may use one; a branch pin never.
+      for (const m of read(f).matchAll(/ks-utility(?:\.git)?(?:#|"[^\n]*?rev\s*=\s*")([0-9a-f]{7,40})\b/g)) {
+        const ok = allowDev && devCommit !== null && (devCommit.startsWith(m[1]) || m[1].startsWith(devCommit));
+        pins.push({ where: rel(f), ok, got: `commit ${m[1].slice(0, 7)}` });
+      }
+      for (const m of read(f).matchAll(/ks-utility[^\n]*?branch\s*=\s*"([^"]+)"/g)) {
+        pins.push({ where: rel(f), ok: false, got: `branch ${m[1]} (pin a tag, or in a DEV build a commit)` });
+      }
     }
     for (const p of pins) if (!p.ok) problems.push(`${p.where} pins ks-utility ${p.got}, not the newest tag ${newest.tag}; move the pin first (the suite's release cycle, step 1)`);
   }

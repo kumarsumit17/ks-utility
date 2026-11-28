@@ -265,12 +265,14 @@ jobs:
           if [ "$GITHUB_EVENT_NAME" = workflow_dispatch ]; then
             extra+=(--rehearsal)
             app_pin=$(git ls-tree HEAD ks-utility 2>/dev/null | awk '{print $3}')
+            # A Tauri app: a commit in package.json ("ks-utility.git#<sha>") or Cargo.toml (rev = "<sha>").
+            [ -n "$app_pin" ] || app_pin=$(git ls-files '*package.json' '*Cargo.toml' | xargs grep -ho -E 'ks-utility(\.git#|[^#]*rev *= *")[0-9a-f]{7,40}' 2>/dev/null | grep -oE '[0-9a-f]{7,40}$' | sort -u | head -n 1)
             if [ -n "$app_pin" ] && [ "$app_pin" != "$newest_commit" ]; then
               # Accepted when the pin is a commit on ks-utility's dev that is ahead of the newest tag.
               git clone -q --branch dev https://github.com/kumasumit/ks-utility.git "$RUNNER_TEMP/ks-utility-dev"
               if git -C "$RUNNER_TEMP/ks-utility-dev" merge-base --is-ancestor "$app_pin" HEAD 2>/dev/null \
                  && git -C "$RUNNER_TEMP/ks-utility-dev" merge-base --is-ancestor "$newest_commit" "$app_pin"; then
-                from=dev; extra+=(--dev-commit "$app_pin")
+                from=dev; extra+=(--dev-commit "$(git -C "$RUNNER_TEMP/ks-utility-dev" rev-parse "$app_pin^{commit}")")
                 echo "::notice::DEV build on ks-utility dev (${app_pin:0:7}, ahead of $newest), not a release."
               fi
             fi
