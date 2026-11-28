@@ -3,11 +3,12 @@
 // release workflows (kotlin-app-release.yml, tauri-app-release-check.yml) before anything is
 // built (specs/suite-check.md). Node's standard library only.
 //
-//   node <ks-utility>/typescript/tools/suite-check.mjs <app dir> [--newest <tag> --newest-commit <sha>] [--rehearsal]
+//   node <ks-utility>/typescript/tools/suite-check.mjs <app dir> [--newest <tag> --newest-commit <sha>] [--rehearsal [--dev-commit <sha>]]
 //
 // Prints one line per problem (with ::error:: for GitHub) and exits 1 when there is any.
 // `--newest` and `--newest-commit` are ks-utility's newest tag and its commit; without them the
-// pin is not checked. `--rehearsal` also accepts calls of ks-utility's shared workflows at @dev.
+// pin is not checked. `--rehearsal` also accepts calls of ks-utility's shared workflows at @dev,
+// and with `--dev-commit <sha>` (ks-utility's dev head) a submodule pinned there.
 
 import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
@@ -61,7 +62,7 @@ const read = (f) => { try { return readFileSync(f, "utf8"); } catch { return "";
 const sha256 = (f) => createHash("sha256").update(readFileSync(f)).digest("hex");
 
 /** The problems of the app at `root`. `newest`: ks-utility's newest tag and commit, or null. */
-export function suiteCheck(root, { newest = null, langTool = null, allowDev = false } = {}) {
+export function suiteCheck(root, { newest = null, langTool = null, allowDev = false, devCommit = null } = {}) {
   const problems = [];
   const all = files(root);
   const rel = (f) => relative(root, f);
@@ -141,7 +142,9 @@ export function suiteCheck(root, { newest = null, langTool = null, allowDev = fa
       try {
         const line = execFileSync("git", ["-C", root, "ls-tree", "HEAD", "ks-utility"], { encoding: "utf8" });
         const sha = line.split(/\s+/)[2];
-        if (sha) pins.push({ where: "the ks-utility submodule", ok: sha === newest.commit, got: sha.slice(0, 7) });
+        // A DEV build may also pin ks-utility's dev head, to try unreleased ks-utility work
+        // in one app before it is tagged (specs/suite-check.md); a release never may.
+        if (sha) pins.push({ where: "the ks-utility submodule", ok: sha === newest.commit || (allowDev && devCommit !== null && sha === devCommit), got: sha.slice(0, 7) });
       } catch { /* not a git checkout: nothing to compare */ }
     }
     for (const f of all.filter((f) => /^(package\.json|Cargo\.toml)$/.test(basename(f)))) {
@@ -167,12 +170,12 @@ export function suiteCheck(root, { newest = null, langTool = null, allowDev = fa
 
 function main(argv) {
   const [root, ...rest] = argv;
-  if (!root) { console.error("usage: suite-check.mjs <app dir> [--newest <tag> --newest-commit <sha>] [--rehearsal]"); return 2; }
+  if (!root) { console.error("usage: suite-check.mjs <app dir> [--newest <tag> --newest-commit <sha>] [--rehearsal [--dev-commit <sha>]]"); return 2; }
   const opt = (name) => { const i = rest.indexOf(name); return i >= 0 ? rest[i + 1] : undefined; };
   const tag = opt("--newest");
   const commit = opt("--newest-commit");
   const here = dirname(fileURLToPath(import.meta.url));
-  const problems = suiteCheck(root, { newest: tag && commit ? { tag, commit } : null, langTool: join(here, "lang.mjs"), allowDev: rest.includes("--rehearsal") });
+  const problems = suiteCheck(root, { newest: tag && commit ? { tag, commit } : null, langTool: join(here, "lang.mjs"), allowDev: rest.includes("--rehearsal"), devCommit: opt("--dev-commit") ?? null });
   for (const p of problems) console.log(`::error::ks-suite-check: ${p}`);
   console.log(problems.length ? `ks-suite-check: ${problems.length} problem(s).` : "ks-suite-check: OK.");
   return problems.length ? 1 : 0;

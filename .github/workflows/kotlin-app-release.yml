@@ -257,8 +257,26 @@ jobs:
           echo "ks_utility=${pin:-unknown}" >> "$GITHUB_OUTPUT"
           newest=$(git ls-remote --tags --refs https://github.com/kumasumit/ks-utility.git 'v*' | sed 's#.*refs/tags/##' | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -n 1)
           [ -n "$newest" ] || { echo "::error::could not read ks-utility's tags"; exit 1; }
-          git clone -q --depth 1 --branch "$newest" -c advice.detachedHead=false https://github.com/kumasumit/ks-utility.git "$RUNNER_TEMP/ks-utility-newest"
-          node "$RUNNER_TEMP/ks-utility-newest/typescript/tools/suite-check.mjs" . --newest "$newest" --newest-commit "$(git -C "$RUNNER_TEMP/ks-utility-newest" rev-parse HEAD)" $([ "$GITHUB_EVENT_NAME" = workflow_dispatch ] && echo --rehearsal)
+          # The check comes from ks-utility's newest tag. A DEV build (manual run) whose submodule
+          # is pinned at ks-utility's dev head, to try unreleased ks-utility work before it is
+          # tagged, takes the check from dev instead, and that commit is accepted as the pin.
+          from="$newest"; extra=()
+          newest_commit=$(git ls-remote https://github.com/kumasumit/ks-utility.git "refs/tags/$newest^{}" | awk '{print $1}')
+          if [ "$GITHUB_EVENT_NAME" = workflow_dispatch ]; then
+            extra+=(--rehearsal)
+            app_pin=$(git ls-tree HEAD ks-utility 2>/dev/null | awk '{print $3}')
+            if [ -n "$app_pin" ] && [ "$app_pin" != "$newest_commit" ]; then
+              # Accepted when the pin is a commit on ks-utility's dev that is ahead of the newest tag.
+              git clone -q --branch dev https://github.com/kumasumit/ks-utility.git "$RUNNER_TEMP/ks-utility-dev"
+              if git -C "$RUNNER_TEMP/ks-utility-dev" merge-base --is-ancestor "$app_pin" HEAD 2>/dev/null \
+                 && git -C "$RUNNER_TEMP/ks-utility-dev" merge-base --is-ancestor "$newest_commit" "$app_pin"; then
+                from=dev; extra+=(--dev-commit "$app_pin")
+                echo "::notice::DEV build on ks-utility dev (${app_pin:0:7}, ahead of $newest), not a release."
+              fi
+            fi
+          fi
+          git clone -q --depth 1 --branch "$from" -c advice.detachedHead=false https://github.com/kumasumit/ks-utility.git "$RUNNER_TEMP/ks-utility-newest"
+          node "$RUNNER_TEMP/ks-utility-newest/typescript/tools/suite-check.mjs" . --newest "$newest" --newest-commit "$newest_commit" "${extra[@]}"
 
   android:
     name: Android and Google TV

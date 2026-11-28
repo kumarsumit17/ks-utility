@@ -1,5 +1,6 @@
 # 2026-11-28
 
+* **Update**: [ks-suite-check](suite-check.md) and [Release workflow](release-workflow.md): a DEV build may pin ks-utility at a commit on its `dev` ahead of the newest tag, to try unreleased ks-utility work in one app first; the move never moves a pin backwards.
 * **Update**: [Hindi style guide](hindi-style.md): the term table has a Description column (optional, `description` in `lang/hindi-terms.json`), a short Hindi explanation an app may show under the word; first for Original and Passthrough, given by the owner.
 * **Update**: [Hindi style guide](hindi-style.md): the owner approved KS JaiPlayer's 9 audio terms as proposed (Equalizer, Preset, Effect, Bass, Dialogue, Music, Custom, Original, Passthrough). No term is left for owner review.
 

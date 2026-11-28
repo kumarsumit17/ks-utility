@@ -98,3 +98,19 @@ test("an app without an updater says so, with a reason", () => {
   write(root, "ks-suite-check.json", '{"skip-icons": "x"}');
   assert.ok(check(root).some((p) => /not an exception the check knows/.test(p)));
 });
+
+test("a DEV build may pin ks-utility's dev head; a release may not", async () => {
+  const { execFileSync } = await import("node:child_process");
+  const root = goodApp();
+  const git = (...a: string[]) => execFileSync("git", ["-C", root, ...a], { encoding: "utf8" });
+  git("init", "-q");
+  write(root, ".gitmodules", '[submodule "ks-utility"]\n\tpath = ks-utility\n\turl = https://github.com/kumasumit/ks-utility.git\n');
+  const devHead = "1".repeat(40);
+  git("update-index", "--add", "--cacheinfo", `160000,${devHead},ks-utility`);
+  git("-c", "user.email=t@t", "-c", "user.name=t", "commit", "-q", "-m", "pin");
+  const newest = { tag: "v0.19.0", commit: "2".repeat(40) };
+  assert.ok(suiteCheck(root, { newest, langTool }).some((p: string) => /pins ks-utility 1111111, not the newest tag v0\.19\.0/.test(p)), "a release needs the newest tag");
+  assert.ok(suiteCheck(root, { newest, langTool, allowDev: true }).some((p: string) => /not the newest tag/.test(p)), "a rehearsal without --dev-commit too");
+  assert.deepEqual(suiteCheck(root, { newest, langTool, allowDev: true, devCommit: devHead }), [], "a DEV build on ks-utility dev passes");
+  assert.ok(suiteCheck(root, { newest, langTool, devCommit: devHead }).some((p: string) => /not the newest tag/.test(p)), "dev-commit counts only in a rehearsal");
+});
